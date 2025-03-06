@@ -1,0 +1,18 @@
+<header>
+  <nav>
+    <a routerLink="/cards">Home</a>
+    <a routerLink="/about">About</a>
+    <a routerLink="/contacts">Contacts</a>
+
+    <!-- Only show login/register when NOT authenticated -->
+    <div class="right" *ngIf="!isAuthenticated">
+      <a routerLink="/login">Login</a>
+      <a routerLink="/register">Register</a>
+    </div>
+
+    <!-- Show logout when authenticated -->
+    <div class="right" *ngIf="isAuthenticated">
+      <a href="#" (click)="onLogout(); $event.preventDefault()">Logout</a>
+    </div>
+  </nav>
+</header>

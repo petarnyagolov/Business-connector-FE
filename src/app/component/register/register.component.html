@@ -1,0 +1,44 @@
+<h2>User Registration</h2>
+
+<form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+  <!-- Username -->
+  <div class="form-group">
+    <div>
+      <label for="firstName">Name:</label>
+      <input id="firstName" formControlName="firstName" />
+      <div *ngIf="registrationForm.get('firstName')?.invalid && registrationForm.get('firstName')?.touched">
+        Family is required.
+      </div>
+    </div>
+    <div>
+      <label for="lastName">Last Name:</label>
+      <input id="lastName" formControlName="lastName" />
+      <div *ngIf="registrationForm.get('lastName')?.invalid && registrationForm.get('lastName')?.touched">
+        Username is required.
+      </div>
+    </div>
+  </div>
+
+  <!-- Email -->
+  <div class="form-group">
+    <div>
+    <label for="email">Email:</label>
+    <input id="email" formControlName="email" />
+    <div *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched">
+      A valid email is required.
+    </div>
+  </div>
+
+    <!-- Password -->
+<div>
+    <label for="password">Password:</label>
+    <input id="password" type="password" formControlName="password" />
+    <div *ngIf="registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched">
+      Password must be at least 6 characters long.
+    </div>
+  </div>
+  </div>
+
+  <!-- Submit Button -->
+  <button type="submit" [disabled]="registrationForm.invalid">Register</button>
+</form>

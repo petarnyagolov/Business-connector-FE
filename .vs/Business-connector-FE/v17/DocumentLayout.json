@@ -1,0 +1,100 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\projects\\Business-connector-FE\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|c:\\projects\\business-connector-fe\\src\\app\\app-routing.module.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|solutionrelative:src\\app\\app-routing.module.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|c:\\projects\\business-connector-fe\\src\\app\\component\\header\\header.component.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|solutionrelative:src\\app\\component\\header\\header.component.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|c:\\projects\\business-connector-fe\\src\\app\\card-page\\card-page.component.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|solutionrelative:src\\app\\card-page\\card-page.component.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|c:\\projects\\business-connector-fe\\src\\app\\card-page\\card-page.component.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{89834DD4-9A1C-B2B9-D985-B339A8041310}|Business-connector-FE.esproj|solutionrelative:src\\app\\card-page\\card-page.component.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 231,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "header.component.html",
+              "DocumentMoniker": "C:\\projects\\Business-connector-FE\\src\\app\\component\\header\\header.component.html",
+              "RelativeDocumentMoniker": "src\\app\\component\\header\\header.component.html",
+              "ToolTip": "C:\\projects\\Business-connector-FE\\src\\app\\component\\header\\header.component.html",
+              "RelativeToolTip": "src\\app\\component\\header\\header.component.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAABUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-02-27T13:32:46.33Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "app-routing.module.ts",
+              "DocumentMoniker": "C:\\projects\\Business-connector-FE\\src\\app\\app-routing.module.ts",
+              "RelativeDocumentMoniker": "src\\app\\app-routing.module.ts",
+              "ToolTip": "C:\\projects\\Business-connector-FE\\src\\app\\app-routing.module.ts",
+              "RelativeToolTip": "src\\app\\app-routing.module.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-02-13T13:27:56.024Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "card-page.component.ts",
+              "DocumentMoniker": "C:\\projects\\Business-connector-FE\\src\\app\\card-page\\card-page.component.ts",
+              "RelativeDocumentMoniker": "src\\app\\card-page\\card-page.component.ts",
+              "ToolTip": "C:\\projects\\Business-connector-FE\\src\\app\\card-page\\card-page.component.ts",
+              "RelativeToolTip": "src\\app\\card-page\\card-page.component.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-02-13T16:14:29.304Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "card-page.component.html",
+              "DocumentMoniker": "C:\\projects\\Business-connector-FE\\src\\app\\card-page\\card-page.component.html",
+              "RelativeDocumentMoniker": "src\\app\\card-page\\card-page.component.html",
+              "ToolTip": "C:\\projects\\Business-connector-FE\\src\\app\\card-page\\card-page.component.html",
+              "RelativeToolTip": "src\\app\\card-page\\card-page.component.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-02-13T16:14:07.715Z"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 169,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
