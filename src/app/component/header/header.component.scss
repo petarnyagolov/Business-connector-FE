@@ -1,15 +1,31 @@
+
+
+
+.logout-btn {
+  margin-left: auto;
+
+}
+
 header {
-    background-color: #f0f0f0; /* Example background color */
-    padding: 10px;
-  }
-  
-  nav a {
-    margin-right: 10px;
-    text-decoration: none;
-    color: #333;
-    cursor: pointer;
-  }
+  background-color: #6753a6;
+  padding: 10px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+}
+
+nav a {
+  margin-right: 10px;
+  text-decoration: none;
+  color: #ffffff;
+}
 
 .right {
-    float: right;
-  }
+  margin-left: auto;
+}
+
+.logout-btn {
+  margin-left: auto;
+}

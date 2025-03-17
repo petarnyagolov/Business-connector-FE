@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { CardPageComponent } from './card-page/card-page.component'; 
 import { RouterModule } from '@angular/router';
 import { HeaderComponent } from './component/header/header.component';
 

@@ -1,14 +1,16 @@
 export interface Company {
     id?: number; 
+    vatNumber: string;
     name: string;
-    uniqueIdentificationCode: string;
+    person: string
     country: string;
     city: string;
+    address: string
     industry: string;
-    fieldOfWork: string;
+    activity: string;
     description: string;
     phone: string;
     email: string;
-    address: string;
-    materiallyResponsiblePerson: string;
+    founded: Date;
+    size: number;
   }

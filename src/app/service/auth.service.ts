@@ -12,10 +12,9 @@ export class AuthService {
   private authStatusSubject = new BehaviorSubject<boolean>(false); 
   authStatus$ = this.authStatusSubject.asObservable(); 
 
-
   constructor(private http: HttpClient, private router: Router) {
-    const authToken = localStorage.getItem('authToken');
-    this.authStatusSubject.next(!!authToken);
+    const refreshToken = localStorage.getItem('refreshToken'); // Използваме само refreshToken
+    this.authStatusSubject.next(!!refreshToken);
   }
 
   register(userData: any): Observable<any> {
@@ -25,8 +24,8 @@ export class AuthService {
   login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials, { responseType: 'json' }).pipe(
       tap((response: any) => {
-        if (response && response.accessToken && response.refreshToken) {
-          this.setTokens(response.accessToken, response.refreshToken);
+        if (response && response.refreshToken) { 
+          this.setRefreshToken(response.refreshToken);
           this.authStatusSubject.next(true);
           this.router.navigate(['/cards']);
         }
@@ -34,21 +33,16 @@ export class AuthService {
     );
   }
   
-  setTokens(accessToken: string, refreshToken: string) {
-    localStorage.setItem('authToken', accessToken);
+  setRefreshToken(refreshToken: string) {
     localStorage.setItem('refreshToken', refreshToken);
   }
 
   getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('authToken');
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
+    return new HttpHeaders(); // Няма да използваме `Authorization`
   }
 
   getProtectedResource(): Observable<any> {
-    const headers = this.getAuthHeaders();
-    return this.http.get(`${this.apiUrl}/protected`, { headers });
+    return this.http.get(`${this.apiUrl}/protected`);
   }
 
   refreshToken(): Observable<any> {
@@ -56,33 +50,22 @@ export class AuthService {
       refreshToken: this.getRefreshToken()
     }).pipe(
       tap(tokens => {
-        this.setAccessToken(tokens.accessToken);
         this.authStatusSubject.next(true);
       })
     );
   }
 
-  getAccessToken() {
-    return localStorage.getItem('accessToken');
-  }
-  
-  getRefreshToken() {
+  getRefreshToken(): string | null {
     return localStorage.getItem('refreshToken');
   }
   
-  setAccessToken(token: string) {
-    localStorage.setItem('accessToken', token);
-  }
-
-  isAuthenticated(): Observable<boolean> {
-    return this.authStatusSubject.asObservable();
+  isAuthenticated(): boolean {
+    return this.authStatusSubject.value; // Вече не проверяваме localStorage
   }
   
   logout() {
-    localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     this.authStatusSubject.next(false);
     this.router.navigate(['/login']);
   }
-  
 }

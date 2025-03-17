@@ -1,0 +1,78 @@
+<h2>Create Company</h2>
+<div *ngIf="errorMessage" class="alert alert-danger">
+  {{ errorMessage }}
+</div>
+<form [formGroup]="createCompanyForm" (ngSubmit)="getDataFromOutside()">
+  <!-- Username -->
+  <div class="form-group row">
+    <div class="col">
+      <label for="country">Country:</label>
+      <select id="country" formControlName="country">
+        <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+      </select>
+      <!-- <input  /> -->
+      <div *ngIf="createCompanyForm.get('country')?.invalid && createCompanyForm.get('country')?.touched">
+
+        Country must be at least 6 characters long.
+      </div>
+
+      <div class="col">
+        <label for="vatNumber">VAT number:</label>
+        <input id="vatNumber" formControlName="vatNumber" />
+        <div *ngIf="createCompanyForm.get('vatNumber')?.invalid && createCompanyForm.get('vatNumber')?.touched">
+          VAT number is required!
+        </div>
+        <button type="button" (click)="getDataFromOutside()">
+          Get Data
+        </button>
+      </div>
+    </div>
+
+    
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <div class="form-group" *ngIf="showCompanyDetails">
+      <div>
+        <label for="name">Name:</label>
+        <input id="name" formControlName="name" />
+        <div *ngIf="createCompanyForm.get('name')?.invalid && createCompanyForm.get('name')?.touched">
+          Username is required.
+        </div>
+      </div>
+      <div>
+        <label for="activity">Activity:</label>
+        <input id="activity" formControlName="activity" />
+        <div *ngIf="createCompanyForm.get('activity')?.invalid && createCompanyForm.get('activity')?.touched">
+          Activity is required.
+        </div>
+      </div>
+    <div>
+      <label for="person">Person:</label>
+      <input id="person" formControlName="person" />
+      <div *ngIf="createCompanyForm.get('person')?.invalid && createCompanyForm.get('person')?.touched">
+        Person is required.
+      </div>
+    </div>
+
+
+    <div>
+      <label for="city">City:</label>
+      <input id="city" type="city" formControlName="city" />
+      <div *ngIf="createCompanyForm.get('city')?.invalid && createCompanyForm.get('city')?.touched">
+        City must be at least 6 characters long.
+      </div>
+    </div>
+
+    <div>
+      <label for="description">Description:</label>
+      <input id="description" formControlName="description" />
+      <div *ngIf="createCompanyForm.get('description')?.invalid && createCompanyForm.get('description')?.touched">
+        Description is required.
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Button -->
+  <button type="submit" [disabled]="createCompanyForm.invalid">Create</button>
+  </div>
+</form>
