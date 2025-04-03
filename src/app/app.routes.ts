@@ -12,9 +12,9 @@ import { UserCompaniesComponent } from './user-companies/user-companies.componen
 export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'cards', component: CardPageComponent },
+  // { path: 'cards', component: CardPageComponent },
   { path: 'about', component: AboutComponent },
-  { path: '', pathMatch: 'full', redirectTo: '/list' },
+  { path: '', pathMatch: 'full', redirectTo: '/companies' },
   { path: 'list', component: CardStandaloneComponent },
   { path: 'companies', component: CompanyListComponent },
   {

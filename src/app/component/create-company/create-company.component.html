@@ -1,78 +1,79 @@
 <h2>Create Company</h2>
-<div *ngIf="errorMessage" class="alert alert-danger">
-  {{ errorMessage }}
-</div>
-<form [formGroup]="createCompanyForm" (ngSubmit)="getDataFromOutside()">
-  <!-- Username -->
-  <div class="form-group row">
-    <div class="col">
-      <label for="country">Country:</label>
-      <select id="country" formControlName="country">
-        <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
-      </select>
-      <!-- <input  /> -->
-      <div *ngIf="createCompanyForm.get('country')?.invalid && createCompanyForm.get('country')?.touched">
+<form [formGroup]="createCompanyForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <mat-form-field appearance="fill">
+      <mat-label>Country</mat-label>
+      <mat-select formControlName="country">
+        <mat-option *ngFor="let country of countries" [value]="country">{{ country }}</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-        Country must be at least 6 characters long.
-      </div>
+    <mat-form-field appearance="fill">
+      <mat-label>VAT Number</mat-label>
+      <input matInput formControlName="vatNumber" />
+    </mat-form-field>
 
-      <div class="col">
-        <label for="vatNumber">VAT number:</label>
-        <input id="vatNumber" formControlName="vatNumber" />
-        <div *ngIf="createCompanyForm.get('vatNumber')?.invalid && createCompanyForm.get('vatNumber')?.touched">
-          VAT number is required!
-        </div>
-        <button type="button" (click)="getDataFromOutside()">
-          Get Data
-        </button>
-      </div>
-    </div>
+    <button mat-raised-button color="primary" type="button" (click)="getDataFromOutside()">Validate</button>
+  </div>
 
-    
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  <div *ngIf="showCompanyDetails">
+    <div class="form-group">
+      <mat-form-field appearance="fill">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
 
-    <div class="form-group" *ngIf="showCompanyDetails">
-      <div>
-        <label for="name">Name:</label>
-        <input id="name" formControlName="name" />
-        <div *ngIf="createCompanyForm.get('name')?.invalid && createCompanyForm.get('name')?.touched">
-          Username is required.
-        </div>
-      </div>
-      <div>
-        <label for="activity">Activity:</label>
-        <input id="activity" formControlName="activity" />
-        <div *ngIf="createCompanyForm.get('activity')?.invalid && createCompanyForm.get('activity')?.touched">
-          Activity is required.
-        </div>
-      </div>
-    <div>
-      <label for="person">Person:</label>
-      <input id="person" formControlName="person" />
-      <div *ngIf="createCompanyForm.get('person')?.invalid && createCompanyForm.get('person')?.touched">
-        Person is required.
-      </div>
-    </div>
+      <mat-form-field appearance="fill">
+        <mat-label>Activity</mat-label>
+        <input matInput formControlName="activity" />
+      </mat-form-field>
 
+      <mat-form-field appearance="fill">
+        <mat-label>Person</mat-label>
+        <input matInput formControlName="person" />
+      </mat-form-field>
 
-    <div>
-      <label for="city">City:</label>
-      <input id="city" type="city" formControlName="city" />
-      <div *ngIf="createCompanyForm.get('city')?.invalid && createCompanyForm.get('city')?.touched">
-        City must be at least 6 characters long.
-      </div>
-    </div>
+      <mat-form-field appearance="fill">
+        <mat-label>City</mat-label>
+        <input matInput formControlName="city" />
+      </mat-form-field>
 
-    <div>
-      <label for="description">Description:</label>
-      <input id="description" formControlName="description" />
-      <div *ngIf="createCompanyForm.get('description')?.invalid && createCompanyForm.get('description')?.touched">
-        Description is required.
-      </div>
+      <mat-form-field appearance="fill">
+        <mat-label>Address</mat-label>
+        <input matInput formControlName="address" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Phone</mat-label>
+        <input matInput formControlName="phone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Founded</mat-label>
+        <input matInput formControlName="founded" type="date" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Industry</mat-label>
+
+        <mat-select formControlName="industry">
+          @for (industry of industries; track industry.value) {
+            <mat-option [value]="industry.value">{{industry.viewValue}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
     </div>
   </div>
 
-  <!-- Submit Button -->
-  <button type="submit" [disabled]="createCompanyForm.invalid">Create</button>
-  </div>
+  <button mat-raised-button color="primary" type="submit" [disabled]="createCompanyForm.invalid">Submit</button>
 </form>

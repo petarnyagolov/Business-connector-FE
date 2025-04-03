@@ -3,20 +3,41 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CompanyService } from '../../service/company.service';
 import { tap } from 'rxjs';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+
+interface Industry {
+  value: string;
+  viewValue: string;
+}
 
 @Component({
   selector: 'app-create-company',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule
+  ],
   templateUrl: './create-company.component.html',
-  styleUrl: './create-company.component.scss'
+  styleUrls: ['./create-company.component.scss']
 })
 export class CreateCompanyComponent {
   createCompanyForm: FormGroup;
   countries: string[] = [];
   isBulgaria: boolean = false;
+  isSpecialBulgarian: boolean = false;
   isValidVatNumber: boolean = false;
   errorMessage: any;
   showCompanyDetails: boolean = false;
+
+  industries: Industry[] = [
+    {value: 'Fitness', viewValue: 'Фитнес'}
+  ]
 
   constructor(private fb: FormBuilder, private companyService: CompanyService) {
     this.createCompanyForm = this.fb.group({
@@ -32,7 +53,9 @@ export class CreateCompanyComponent {
       founded: [null],
       size: [0],
       description: [''],
-      industry: ['Unknown']
+      industry: ['Unknown'],
+      isSpecialBulgarian: [false],
+      website: ['']
     });
     this.getCountryNames();
   }
@@ -41,32 +64,10 @@ export class CreateCompanyComponent {
     if (this.createCompanyForm.valid) {
       const formData = this.createCompanyForm.value;
       this.companyService.createCompany(formData).pipe(
-
         tap({
           next: (response: any) => {
             console.log('Response:', response);
             alert('Registration successful!');
-
-            if (!formData) {
-              console.error("formData is null or undefined");
-              return;
-            }
-
-            this.companyService.createCompany({
-              country: formData?.country,
-              vatNumber: formData?.vatNumber,
-              name: formData?.Name,
-              person: formData?.person,
-              activity: formData?.activity,
-              city: formData?.city,
-              address: formData.address,
-              phone: formData?.phone ?? '',
-              email: formData?.email ?? '',
-              founded: formData?.founded ?? null,
-              size: formData?.size ?? 0,
-              description: formData?.description ?? '',
-              industry: formData?.industry ?? 'Unknown'
-            });
           },
           error: (error: any) => {
             console.error('Error:', error);
@@ -82,35 +83,30 @@ export class CreateCompanyComponent {
   getDataFromOutside(): void {
     const vatNumber = this.createCompanyForm.get('vatNumber')?.value;
     const country = this.createCompanyForm.get('country')?.value;
-  
-  
-      this.companyService.getCompanyInfoFromOutside(vatNumber, country).subscribe({
-        next: response => {
-          console.log('Company info:', response);
-          this.isValidVatNumber = true;
-          this.errorMessage = ''; // Clear any previous error messages
-          this.showCompanyDetails = true;
 
-        },
-        error: error => {
-          if (error.status === 404) {
-            this.errorMessage = 'Компанията не е намерена в регистъра.';
-          } else if (error.status === 400) {
-            this.errorMessage = 'Компанията вече съществува в базата данни.';
-          } else {
-            this.errorMessage = 'Възникна неочаквана грешка. Опитайте отново.';
-          }
-          console.error('Error fetching company info:', error);
+    this.companyService.getCompanyInfoFromOutside(vatNumber, country).subscribe({
+      next: response => {
+        console.log('Company info:', response);
+        this.isValidVatNumber = true;
+        this.errorMessage = ''; // Clear any previous error messages
+        this.showCompanyDetails = true;
+      },
+      error: error => {
+        if (error.status === 404) {
+          this.errorMessage = 'Компанията не е намерена в регистъра.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Компанията вече съществува в базата данни.';
+        } else {
+          this.errorMessage = 'Възникна неочаквана грешка. Опитайте отново.';
         }
-      });
-    
+        console.error('Error fetching company info:', error);
+      }
+    });
   }
-  
+
   getCountryNames(): void {
     this.companyService.getCountryNames().subscribe((data: any[]) => {
       this.countries = data.map(country => country);
     });
-
   }
-
 }

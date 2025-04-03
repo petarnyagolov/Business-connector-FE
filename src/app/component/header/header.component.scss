@@ -7,7 +7,8 @@
 }
 
 header {
-  background-color: #6753a6;
+  // background-color: limegreen;
+  background-color: #63b175;
   padding: 10px;
 }
 
@@ -20,6 +21,11 @@ nav a {
   margin-right: 10px;
   text-decoration: none;
   color: #ffffff;
+}
+
+nav a:hover {
+  background-color: #eaf84c;
+  transform: scale(1.05);
 }
 
 .right {

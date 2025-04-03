@@ -1,44 +1,48 @@
 <h2>User Registration</h2>
-
-<form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+<div class="container">
+<form class="form full-width" [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
   <!-- Username -->
-  <div class="form-group">
-    <div>
-      <label for="firstName">Name:</label>
-      <input id="firstName" formControlName="firstName" />
-      <div *ngIf="registrationForm.get('firstName')?.invalid && registrationForm.get('firstName')?.touched">
-        Family is required.
-      </div>
+  <!-- <div class="form-group"> -->
+  <mat-form-field>
+    <mat-label for="firstName">Name:</mat-label>
+    <input matInput id="firstName" formControlName="firstName" placeholder="Ex. John" value="firstName" />
+    <div *ngIf="registrationForm.get('firstName')?.invalid && registrationForm.get('firstName')?.touched">
+      Name is required.
     </div>
-    <div>
-      <label for="lastName">Last Name:</label>
-      <input id="lastName" formControlName="lastName" />
-      <div *ngIf="registrationForm.get('lastName')?.invalid && registrationForm.get('lastName')?.touched">
-        Username is required.
-      </div>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label for="lastName">Last Name:</mat-label>
+    <input matInput id="lastName" formControlName="lastName" placeholder="Ex. Doe" value="lastName" />
+    <div *ngIf="registrationForm.get('lastName')?.invalid && registrationForm.get('lastName')?.touched">
+      Last Name is required.
     </div>
-  </div>
+  </mat-form-field>
+  <!-- </div> -->
 
   <!-- Email -->
-  <div class="form-group">
-    <div>
-    <label for="email">Email:</label>
-    <input id="email" formControlName="email" />
+
+  <mat-form-field>
+    <mat-label for="email">Email:</mat-label>
+    <!-- <label for="email">Email:</label> -->
+    <input matInput id="email" formControlName="email" />
     <div *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched">
       A valid email is required.
     </div>
-  </div>
+  </mat-form-field>
 
-    <!-- Password -->
-<div>
-    <label for="password">Password:</label>
-    <input id="password" type="password" formControlName="password" />
+
+  <!-- Password -->
+  <mat-form-field>
+    <mat-label for="password">Password:</mat-label>
+    <!-- <label for="password">Password:</label> -->
+    <input matInput id="password" type="password" formControlName="password" />
     <div *ngIf="registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched">
       Password must be at least 6 characters long.
     </div>
+  </mat-form-field>
+  <div class="button-row">
+    <button mat-raised-button type="submit" [disabled]="registrationForm.invalid">Register</button>
   </div>
-  </div>
-
-  <!-- Submit Button -->
-  <button type="submit" [disabled]="registrationForm.invalid">Register</button>
 </form>
+</div>

@@ -4,6 +4,7 @@ import { catchError, Observable, shareReplay, tap, throwError } from 'rxjs';
 import { Company } from '../model/company';
 import { map } from 'rxjs';
 import { CompanyData } from '../model/companyData';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,15 +12,14 @@ import { CompanyData } from '../model/companyData';
 export class CompanyService {
   private api = 'http://localhost:8080';
 
-  private apiUrl = 'api/companies'; 
+  private apiUrl = `${this.api}/api/companies`; 
   private apiCountryUrl = `${this.api}/api/utils/countries`;
   private apiGetCompanyInfo = `${this.api}/api/utils/company`;
-  private externalApi = '';
   private countryNames$: Observable<string[]> | null = null;
 
 
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private auth: AuthService) {
       
      }
  
@@ -33,7 +33,7 @@ export class CompanyService {
     console.log(this.countryNames$.forEach(country => console.log(country)));
     return this.countryNames$;
   }
-  
+
   getCompanyInfoFromOutside(vatNumber: string, country: string): Observable<any> {
     const params = { country };
     return this.http.get<any>(`${this.apiGetCompanyInfo}/${vatNumber}`, { params }).pipe(
@@ -54,7 +54,8 @@ export class CompanyService {
   }
 
   createCompany(company: Company): Observable<Company> {
-    return this.http.post<Company>(this.apiUrl, company);
+    // const headers = { 'Authorization': `Bearer ${this.auth.getAccessToken()}` };
+    return this.http.post<Company>('http://localhost:8080/api/user/companies', company);
   }
 
   updateCompany(company: Company): Observable<Company> {

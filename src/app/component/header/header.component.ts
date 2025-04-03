@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, Input } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
 import { NgIf } from '@angular/common';
@@ -17,6 +17,8 @@ import { MatIconModule } from '@angular/material/icon';
 })
 
 export class HeaderComponent {
+  @Input() pageTitle!:string;
+  @Input() logoSrc!:string;
   isAuthenticated: boolean = false;
 
   constructor(

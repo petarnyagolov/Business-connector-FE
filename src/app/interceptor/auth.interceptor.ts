@@ -1,36 +1,31 @@
 import { Injectable } from '@angular/core';
 import { HttpEvent, HttpInterceptor, HttpHandler, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, switchMap, filter, take } from 'rxjs/operators';
+import { catchError, switchMap, filter, take, finalize } from 'rxjs/operators';
 import { AuthService } from '../service/auth.service'
 
 @Injectable({
-  providedIn:'root'
+  providedIn: 'root'
 })
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    let authReq = req;
-    const token = this.authService.getAccessToken();
-
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const token = localStorage.getItem('accessToken');  
     if (token) {
-      authReq = this.addToken(req, token);
-    }
-
-    return next.handle(authReq).pipe(
-      catchError(error => {
-        if (error instanceof HttpErrorResponse && error.status === 401) {
-          return this.handle401Error(authReq, next);
-        } else {
-          return throwError(() => error);
+      const cloned = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
         }
-      })
-    );
+      });
+      return next.handle(cloned);
+    }
+    return next.handle(req);
   }
+
 
   private addToken(request: HttpRequest<any>, token: string) {
     return request.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
@@ -42,15 +37,22 @@ export class AuthInterceptor implements HttpInterceptor {
       this.refreshTokenSubject.next(null);
 
       return this.authService.refreshToken().pipe(
-        switchMap((token: any) => {
-          this.isRefreshing = false;
-          this.refreshTokenSubject.next(token.accessToken);
-          return next.handle(this.addToken(request, token.accessToken));
+        switchMap((newToken: string) => {
+          if(newToken) {
+            this.refreshTokenSubject.next(newToken);
+            localStorage.setItem('accessToken', newToken);
+            return next.handle(this.addToken(request, newToken))
+          }
+          this.authService.logout();
+          return throwError(() => 'Token expired');
         }),
         catchError(err => {
-          this.isRefreshing = false;
           this.authService.logout();
           return throwError(() => err);
+        }),
+        finalize(() => {
+          this.isRefreshing = false;
+          this.refreshTokenSubject.next(null);
         })
       );
     } else {

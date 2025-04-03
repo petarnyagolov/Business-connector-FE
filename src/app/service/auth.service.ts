@@ -2,15 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators'; 
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = 'http://localhost:8080/api/auth';
-  private authStatusSubject = new BehaviorSubject<boolean>(false); 
-  authStatus$ = this.authStatusSubject.asObservable(); 
+  private authStatusSubject = new BehaviorSubject<boolean>(false);
+  authStatus$ = this.authStatusSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
     const refreshToken = localStorage.getItem('refreshToken'); // Използваме само refreshToken
@@ -24,21 +24,26 @@ export class AuthService {
   login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials, { responseType: 'json' }).pipe(
       tap((response: any) => {
-        if (response && response.refreshToken) { 
+        if (response && response.refreshToken) {
           this.setRefreshToken(response.refreshToken);
+          this.setAccessToken(response.accessToken);
           this.authStatusSubject.next(true);
-          this.router.navigate(['/cards']);
+          this.router.navigate(['/companies']);
         }
       })
     );
   }
-  
+
   setRefreshToken(refreshToken: string) {
-    localStorage.setItem('refreshToken', refreshToken);
+    window.localStorage.setItem('refreshToken', refreshToken);
   }
 
-  getAuthHeaders(): HttpHeaders {
-    return new HttpHeaders(); // Няма да използваме `Authorization`
+  setAccessToken(accessToken: string | null) : void {
+    if (accessToken !== null) {
+      window.localStorage.setItem('accessToken', accessToken);
+    } else {
+      window.localStorage.removeItem('accessToken');
+    }
   }
 
   getProtectedResource(): Observable<any> {
@@ -58,14 +63,19 @@ export class AuthService {
   getRefreshToken(): string | null {
     return localStorage.getItem('refreshToken');
   }
-  
+
   isAuthenticated(): boolean {
-    return this.authStatusSubject.value; // Вече не проверяваме localStorage
+    return this.authStatusSubject.value;
   }
-  
+
   logout() {
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('accessToken');
     this.authStatusSubject.next(false);
     this.router.navigate(['/login']);
+  }
+
+  getAccessToken(): string | null {
+    return window.localStorage.getItem('accessToken');
   }
 }
