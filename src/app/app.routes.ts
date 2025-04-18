@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { CardPageComponent } from './card-page/card-page.component';
-import { CardStandaloneComponent } from './card-standalone.component';
 import { RegisterComponent } from './component/register/register.component';
 import { LoginComponent } from './component/login/login.component';
 import { AboutComponent } from './component/about/about.component';
@@ -15,7 +14,7 @@ export const routes: Routes = [
   // { path: 'cards', component: CardPageComponent },
   { path: 'about', component: AboutComponent },
   { path: '', pathMatch: 'full', redirectTo: '/companies' },
-  { path: 'list', component: CardStandaloneComponent },
+  { path: 'list', component: CompanyListComponent },
   { path: 'companies', component: CompanyListComponent },
   {
     path: 'user/companies',

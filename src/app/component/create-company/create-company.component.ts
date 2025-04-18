@@ -2,16 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CompanyService } from '../../service/company.service';
+import { IndustryService } from '../../service/industry.service'
 import { tap } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-
-interface Industry {
-  value: string;
-  viewValue: string;
-}
+import { Industry } from '../../model/industry'
 
 @Component({
   selector: 'app-create-company',
@@ -35,17 +32,14 @@ export class CreateCompanyComponent {
   errorMessage: any;
   showCompanyDetails: boolean = false;
 
-  industries: Industry[] = [
-    {value: 'Fitness', viewValue: 'Фитнес'}
-  ]
+  industries: Industry[] = []
 
-  constructor(private fb: FormBuilder, private companyService: CompanyService) {
+  constructor(private fb: FormBuilder, private companyService: CompanyService, private industryService: IndustryService) {
     this.createCompanyForm = this.fb.group({
       country: ['', Validators.required],
       vatNumber: ['', Validators.required],
       name: ['', Validators.required],
       person: [''],
-      activity: [''],
       city: [''],
       address: [''],
       phone: [''],
@@ -53,7 +47,7 @@ export class CreateCompanyComponent {
       founded: [null],
       size: [0],
       description: [''],
-      industry: ['Unknown'],
+      industry: ['', Validators.required],
       isSpecialBulgarian: [false],
       website: ['']
     });
@@ -67,7 +61,7 @@ export class CreateCompanyComponent {
         tap({
           next: (response: any) => {
             console.log('Response:', response);
-            alert('Registration successful!');
+            alert('You have a company!');
           },
           error: (error: any) => {
             console.error('Error:', error);
@@ -96,12 +90,15 @@ export class CreateCompanyComponent {
           this.errorMessage = 'Компанията не е намерена в регистъра.';
         } else if (error.status === 400) {
           this.errorMessage = 'Компанията вече съществува в базата данни.';
+          
         } else {
           this.errorMessage = 'Възникна неочаквана грешка. Опитайте отново.';
         }
+        alert(this.errorMessage);
         console.error('Error fetching company info:', error);
       }
     });
+    this.getIndustries();
   }
 
   getCountryNames(): void {
@@ -109,4 +106,32 @@ export class CreateCompanyComponent {
       this.countries = data.map(country => country);
     });
   }
+
+  getIndustries(): void {
+    const country = this.createCompanyForm.get('country')?.value;
+  
+    this.industryService.getAllIndustries(country).subscribe({
+      next: response => {
+        this.industries = response.map(industry => 
+          ({
+            value: industry.value|| '',
+            viewValue: industry.viewValue || ''
+          })
+
+        ); // Използвай 'response' вместо 'data'
+        this.errorMessage = ''; // Изчистване на предишните съобщения за грешка
+      },
+      error: error => {
+        if (error.status === 404) {
+          this.errorMessage = 'Компанията не е намерена в регистъра.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Компанията вече съществува в базата данни.';
+        } else {
+          this.errorMessage = 'Възникна неочаквана грешка. Опитайте отново.';
+        }
+        console.error('Error fetching company info:', error);
+      }
+    });
+  }
+  
 }

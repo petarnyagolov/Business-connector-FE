@@ -19,18 +19,19 @@
   <div *ngIf="showCompanyDetails">
     <div class="form-group">
       <mat-form-field appearance="fill">
-        <mat-label>Name</mat-label>
+        <mat-label>Company Name</mat-label>
         <input matInput formControlName="name" />
       </mat-form-field>
 
       <mat-form-field appearance="fill">
-        <mat-label>Activity</mat-label>
-        <input matInput formControlName="activity" />
-      </mat-form-field>
+        <mat-label>Industry</mat-label>
 
-      <mat-form-field appearance="fill">
-        <mat-label>Person</mat-label>
-        <input matInput formControlName="person" />
+        <mat-select formControlName="industry">
+          <!-- @for (industry of industries; track industry.value) {
+            <mat-option [value]="industry.value">{{industry.viewValue}}</mat-option>
+          } -->
+          <mat-option *ngFor="let industry of industries" [value]="industry.value">{{ industry.viewValue }}</mat-option>
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="fill">
@@ -43,6 +44,13 @@
         <input matInput formControlName="address" />
       </mat-form-field>
 
+     
+
+      <mat-form-field appearance="fill">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+      </mat-form-field>
+
       <mat-form-field appearance="fill">
         <mat-label>Phone</mat-label>
         <input matInput formControlName="phone" />
@@ -52,26 +60,7 @@
         <mat-label>Email</mat-label>
         <input matInput formControlName="email" />
       </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Founded</mat-label>
-        <input matInput formControlName="founded" type="date" />
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Description</mat-label>
-        <textarea matInput formControlName="description"></textarea>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Industry</mat-label>
-
-        <mat-select formControlName="industry">
-          @for (industry of industries; track industry.value) {
-            <mat-option [value]="industry.value">{{industry.viewValue}}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      
     </div>
   </div>
 

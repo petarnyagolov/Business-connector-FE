@@ -10,19 +10,29 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class CompanyService {
+
   private api = 'http://localhost:8080';
 
   private apiUrl = `${this.api}/api/companies`; 
+  private apiUserUrl = `${this.api}/api/user/companies`; 
   private apiCountryUrl = `${this.api}/api/utils/countries`;
   private apiGetCompanyInfo = `${this.api}/api/utils/company`;
   private countryNames$: Observable<string[]> | null = null;
 
 
 
-    constructor(private http: HttpClient, private auth: AuthService) {
+    constructor(private http: HttpClient) {
       
      }
  
+     getAllCompaniesByUser() : Observable<Company[]> {
+      return this.http.get<Company[] > (this.apiUserUrl).pipe(
+        // map(data => data.map(country => country)), // Extract country names
+        shareReplay(1) // Cache the response to prevent multiple API calls
+      );
+      throw new Error('Method not implemented.');
+    }
+
   getCountryNames(): Observable<string[]> {
     if (!this.countryNames$) {
       this.countryNames$ = this.http.get<any[]>(this.apiCountryUrl).pipe(
@@ -39,8 +49,8 @@ export class CompanyService {
     return this.http.get<any>(`${this.apiGetCompanyInfo}/${vatNumber}`, { params }).pipe(
       tap(response => console.log('Received data:', response)),
       catchError(error => {
-        console.error('Error fetching company data:', error);
-        return throwError(() => new Error('Failed to fetch company data'));
+      console.error('Error fetching company data:', error);
+      return throwError(() => error); // Pass the error to the component
       })
     );
   }
