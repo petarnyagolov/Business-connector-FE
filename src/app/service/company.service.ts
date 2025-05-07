@@ -21,9 +21,7 @@ export class CompanyService {
 
 
 
-    constructor(private http: HttpClient) {
-      
-     }
+    constructor(private http: HttpClient) {}
  
      getAllCompaniesByUser() : Observable<Company[]> {
       return this.http.get<Company[] > (this.apiUserUrl).pipe(
@@ -55,7 +53,7 @@ export class CompanyService {
     );
   }
 
-  getCompanies(): Observable<Company[]> {
+  getAllCompanies(): Observable<Company[]> {
     return this.http.get<Company[]>(this.apiUrl);
   }
 
@@ -74,5 +72,18 @@ export class CompanyService {
 
   deleteCompany(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  searchCompanies(query: string, page: number, size: number): Observable<any> {
+    const params = {
+      query: query,
+      page: page.toString(),
+      size: size.toString()
+    };
+    return this.http.get<any>(`${this.apiUrl}/search`, { params });
+  }
+
+  getCompanyByVatNumber(vatNumber: string) {
+    return this.http.get<Company>(`${this.apiUrl}/${vatNumber}`);
   }
 }

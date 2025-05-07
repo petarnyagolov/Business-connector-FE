@@ -7,15 +7,16 @@ import { CreateCompanyComponent } from './component/create-company/create-compan
 import { CompanyListComponent } from './company-list/company-list.component';
 import { AuthGuard } from './interceptor/auth.guard';
 import { UserCompaniesComponent } from './user-companies/user-companies.component';
+import { CompanyDetailComponent } from './company-detail/company-detail.component';
 
 export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
-  // { path: 'cards', component: CardPageComponent },
   { path: 'about', component: AboutComponent },
   { path: '', pathMatch: 'full', redirectTo: '/companies' },
   { path: 'list', component: CompanyListComponent },
   { path: 'companies', component: CompanyListComponent },
+  { path: 'companies/:vatNumber', component: CompanyDetailComponent },
   {
     path: 'user/companies',
     component: UserCompaniesComponent,

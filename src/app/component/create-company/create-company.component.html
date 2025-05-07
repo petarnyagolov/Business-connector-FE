@@ -1,15 +1,15 @@
-<h2>Create Company</h2>
+<h2>Добави Фирма</h2>
 <form [formGroup]="createCompanyForm" (ngSubmit)="onSubmit()">
   <div class="form-group">
     <mat-form-field appearance="fill">
-      <mat-label>Country</mat-label>
+      <mat-label>Държава</mat-label>
       <mat-select formControlName="country">
         <mat-option *ngFor="let country of countries" [value]="country">{{ country }}</mat-option>
       </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="fill">
-      <mat-label>VAT Number</mat-label>
+      <mat-label>ЕИК</mat-label>
       <input matInput formControlName="vatNumber" />
     </mat-form-field>
 
@@ -19,12 +19,12 @@
   <div *ngIf="showCompanyDetails">
     <div class="form-group">
       <mat-form-field appearance="fill">
-        <mat-label>Company Name</mat-label>
+        <mat-label>Име на фирма</mat-label>
         <input matInput formControlName="name" />
       </mat-form-field>
 
       <mat-form-field appearance="fill">
-        <mat-label>Industry</mat-label>
+        <mat-label>Индустрия</mat-label>
 
         <mat-select formControlName="industry">
           <!-- @for (industry of industries; track industry.value) {
@@ -35,23 +35,23 @@
       </mat-form-field>
 
       <mat-form-field appearance="fill">
-        <mat-label>City</mat-label>
+        <mat-label>Град</mat-label>
         <input matInput formControlName="city" />
       </mat-form-field>
 
       <mat-form-field appearance="fill">
-        <mat-label>Address</mat-label>
+        <mat-label>Адрес</mat-label>
         <input matInput formControlName="address" />
       </mat-form-field>
 
      
 
       <mat-form-field appearance="fill">
-        <mat-label>Description</mat-label>
+        <mat-label>Описание</mat-label>
         <textarea matInput formControlName="description"></textarea>
       </mat-form-field>
 
-      <mat-form-field appearance="fill">
+      <!-- <mat-form-field appearance="fill">
         <mat-label>Phone</mat-label>
         <input matInput formControlName="phone" />
       </mat-form-field>
@@ -60,7 +60,7 @@
         <mat-label>Email</mat-label>
         <input matInput formControlName="email" />
       </mat-form-field>
-      
+       -->
     </div>
   </div>
 

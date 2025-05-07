@@ -1,45 +1,64 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import {MatGridListModule} from '@angular/material/grid-list';
-import { MatCardModule, MatCardTitle, MatCardContent } from '@angular/material/card';
+import { MatCardModule, MatCardContent,} from '@angular/material/card';
 import {  MatButtonModule } from '@angular/material/button';
 import { Company } from '../model/company';
 import { CompanyService } from '../service/company.service';
-
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-user-companies',
-  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule,MatCardTitle, MatCardContent],
+  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatCardContent],
   templateUrl: './user-companies.component.html',
   styleUrl: './user-companies.component.scss',
   standalone: true
 })
 export class UserCompaniesComponent {
-  companies = [] as Company[];
+  companies: Company[] = [];
+  showCancelButton: boolean = false; 
+
 
   
 constructor(private router: Router, private companyService: CompanyService) {
-  this.companies=[
-    {name: 'Company 1', description: 'Description 1', vatNumber: '12345678', country: 'Bulgaria', city: ' Sofia', address:'Al. Stamboliski 1',industry:'Sort',phone:'123', email:'email'},
-    {name: 'Company 1', description: 'Description 1', vatNumber: '12345678', country: 'Bulgaria', city: ' Sofia', address:'Al. Stamboliski 1',industry:'Sort',phone:'123', email:'email'},
-    {name: 'Company 1', description: 'Description 1', vatNumber: '12345678', country: 'Bulgaria', city: ' Sofia', address:'Al. Stamboliski 1',industry:'Sort',phone:'123', email:'email'},
-    {name: 'Company 1', description: 'Description 1', vatNumber: '12345678', country: 'Bulgaria', city: ' Sofia', address:'Al. Stamboliski 1',industry:'Sort',phone:'123', email:'email'}
+  this.loadCompanies();
 
-  ]
-
-  // this.companyService.getAllCompaniesByUser().subscribe((data: Company[]) => {
-  //   this.companies = data;
-  // });
 }
 
 
+ngOnInit(): void {
+  // Listen to route changes and toggle the button visibility
+  this.router.events
+    .pipe(filter((event) => event instanceof NavigationEnd))
+    .subscribe(() => {
+      this.showCancelButton = this.router.url.includes('/create');
+    });
+}
+
+loadCompanies(): void {
+  this.companyService.getAllCompaniesByUser().subscribe({
+    next: (data: Company[]) => {
+      this.companies = data; 
+    },
+    error: (error) => {
+      console.error('Error fetching companies:', error); 
+    }
+  });
+}
   createCompany() {
+    console.log('createCompany() called'); // Debugging
+    // this.showCancelButton = true;
+    console.log('showCancelButton:', this.showCancelButton); // Debugging
     this.router.navigate(['/user/companies/create']);
   }
   
   onCancel() {
+    console.log('onCancel() called'); // Debugging
+    // this.showCancelButton = false;
+    console.log('showCancelButton:', this.showCancelButton); // Debugging
     this.router.navigate(['/user/companies']);
+    
   }
   getGridColumns(): number {
     if (this.companies.length === 1) {
@@ -71,9 +90,11 @@ constructor(private router: Router, private companyService: CompanyService) {
 
   getRowSpan(): number {
     if (this.companies.length === 1) {
-      return 2; // Single card spans two rows
+      return 2;
+    } else if (this.companies.length === 2) {
+      return 2;
     } else {
-      return 1; // Each card spans one row
+      return 2; // беше 1, но това ще даде повече височина
     }
   }
 }

@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { Industry } from '../../model/industry'
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-company',
@@ -34,7 +35,7 @@ export class CreateCompanyComponent {
 
   industries: Industry[] = []
 
-  constructor(private fb: FormBuilder, private companyService: CompanyService, private industryService: IndustryService) {
+  constructor(private fb: FormBuilder, private companyService: CompanyService, private industryService: IndustryService, private router: Router) {
     this.createCompanyForm = this.fb.group({
       country: ['', Validators.required],
       vatNumber: ['', Validators.required],
@@ -62,6 +63,7 @@ export class CreateCompanyComponent {
           next: (response: any) => {
             console.log('Response:', response);
             alert('You have a company!');
+            this.router.navigate(['/user/companies']);
           },
           error: (error: any) => {
             console.error('Error:', error);

@@ -1,11 +1,117 @@
 // mat-grid-tile {
 //   background: lightblue;
 // }
-mat-grid-tile {
-  padding: 15px; /* Add a small padding around each tile */
+// mat-grid-tile {
+//   padding: 15px 15px 15px 15px;
+//   margin: 15px 15px 15px 15px; /* Add a small padding around each tile */
+// }
+
+// mat-card {
+//   height: 80%; /* Ensure the card fills the grid tile */
+//   width: 80%;
+// }
+
+// .card-grid {
+//   display: grid;
+//   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+//   gap: 16px;
+//   padding: 16px;
+// }
+
+// mat-card {
+//   display: flex;
+//   flex-direction: column;
+//   height: 100%;
+// }
+
+// mat-card-content {
+//   flex-grow: 1;
+// }
+
+// mat-card-actions {
+//   display: flex;
+//   flex-wrap: wrap;
+//   justify-content: flex-end;
+//   gap: 8px;
+//   margin-top: auto;
+// }
+
+// @media (max-width: 600px) {
+//   .card-grid {
+//     grid-template-columns: 1fr;
+//   }
+
+//   mat-card-actions {
+//     justify-content: center;
+//   }
+// }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
 }
 
 mat-card {
-  height: 70%; /* Ensure the card fills the grid tile */
-  width: 80%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.company-logo {
+  display: block;
+  margin: 0 auto 20px auto;
+  width: 80px;
+  height: auto;
+}
+
+.company-details {
+  font-size: 14px;
+
+  p {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .label {
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+    color: gray;
+  }
+
+  .value {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: black;
+  }
+}
+
+mat-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
