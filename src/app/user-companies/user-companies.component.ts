@@ -28,10 +28,13 @@ constructor(private router: Router, private companyService: CompanyService) {
 
 
 ngOnInit(): void {
+  this.loadCompanies();
+
   // Listen to route changes and toggle the button visibility
   this.router.events
     .pipe(filter((event) => event instanceof NavigationEnd))
     .subscribe(() => {
+      this.loadCompanies();
       this.showCancelButton = this.router.url.includes('/create');
     });
 }

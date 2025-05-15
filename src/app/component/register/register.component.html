@@ -41,6 +41,16 @@
       Password must be at least 6 characters long.
     </div>
   </mat-form-field>
+
+  <mat-form-field>
+    <mat-label for="lang">Language:</mat-label>
+    <mat-select id="lang" formControlName="lang">
+      <mat-option value="bg">🇧🇬 Bulgarian</mat-option>
+      <mat-option value="en">🇬🇧 English</mat-option>
+      <mat-option value="de">🇩🇪 German</mat-option>
+    </mat-select>
+  </mat-form-field>
+  
   <div class="button-row">
     <button mat-raised-button type="submit" [disabled]="registrationForm.invalid">Register</button>
   </div>
