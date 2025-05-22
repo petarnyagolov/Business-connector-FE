@@ -4,8 +4,8 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import {MatGridListModule} from '@angular/material/grid-list';
 import { MatCardModule, MatCardContent,} from '@angular/material/card';
 import {  MatButtonModule } from '@angular/material/button';
-import { Company } from '../model/company';
-import { CompanyService } from '../service/company.service';
+import { Company } from '../../model/company';
+import { CompanyService } from '../../service/company.service';
 import { filter } from 'rxjs';
 
 @Component({

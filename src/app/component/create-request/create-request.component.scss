@@ -1,0 +1,13 @@
+.request-form {
+  max-width: 600px;
+  margin: 2rem auto;
+}
+.form-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  flex-direction: column;
+}
+.file-upload {
+  margin-top: 1rem;
+}

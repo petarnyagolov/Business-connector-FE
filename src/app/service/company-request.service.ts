@@ -1,0 +1,35 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { CompanyRequest } from '../model/companyRequest';
+import { Observable, shareReplay } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CompanyRequestService {
+  private api = 'http://localhost:8080/api/request-company';
+
+  constructor(private http: HttpClient) { }
+  private apiUrl = `${this.api}`; // URL на API-то за заявки
+
+
+  searchRequests(query: string, page: number, size: number) {
+    const params = {
+      query: query,
+      page: page.toString(),
+      size: size.toString()
+    };
+    return this.http.get<any>(`${this.apiUrl}/search`, { params });
+  }
+
+     getAllRequestsByUser() : Observable<CompanyRequest[]> {
+      return this.http.get<CompanyRequest[] > (`${this.apiUrl}/user`).pipe(
+        // map(data => data.map(country => country)), // Extract country names
+        shareReplay(1) // Cache the response to prevent multiple API calls
+      );
+    }
+
+    createRequest(formData: FormData): Observable<any> {
+      return this.http.post(`${this.apiUrl}`, formData);
+    }
+}

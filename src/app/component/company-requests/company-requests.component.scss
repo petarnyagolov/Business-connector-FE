@@ -1,0 +1,149 @@
+// .header {
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+//   margin-bottom: 20px;
+
+//   h2 {
+//     margin: 0;
+//     font-size: 24px;
+//     font-weight: bold;
+//   }
+
+//   .search-bar {
+//     width: 100%;
+//     max-width: 400px;
+//   }
+// }
+
+// .table-container {
+//   margin-top: 20px;
+//   overflow-x: auto; /* За мобилни устройства */
+// }
+
+// mat-paginator {
+//   margin-top: 20px;
+// }
+
+// @media (max-width: 768px) {
+//   .header {
+//     flex-direction: column;
+//     align-items: flex-start;
+//   }
+
+//   .search-bar {
+//     width: 100%;
+//   }
+
+//   table {
+//     font-size: 12px;
+//   }
+// }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .search-bar {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+.listing-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 1rem;
+  margin-top: 20px;
+}
+
+mat-card.listing-card {
+  display: flex;
+  padding: 1rem;
+  border-radius: 12px;
+
+  .card-content {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    width: 100%;
+
+    .image img {
+      width: 150px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .info {
+      flex: 1;
+
+      .title-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h3 {
+          margin: 0;
+          font-size: 18px;
+        }
+
+        .price {
+          font-weight: bold;
+          color: #00796b;
+        }
+      }
+
+      .description {
+        margin-top: 0.5rem;
+        font-size: 14px;
+        color: #555;
+      }
+
+      .company {
+        margin-top: 0.5rem;
+        font-size: 13px;
+        color: #777;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+    }
+  }
+}
+
+mat-paginator {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+
+  .listing-container {
+    grid-template-columns: 1fr;
+  }
+
+  .card-content {
+    flex-direction: column;
+
+    .image img {
+      width: 100%;
+      height: auto;
+    }
+  }
+}

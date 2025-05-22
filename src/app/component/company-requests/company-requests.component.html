@@ -1,0 +1,65 @@
+<div class="header">
+  <h2>Списък с обяви</h2>
+  <mat-form-field class="search-bar" appearance="outline">
+    <mat-label>Търсене</mat-label>
+    <input matInput (keyup)="onSearch($event)" placeholder="Търсене по стока, услуга, ключова дума..." />
+  </mat-form-field>
+</div>
+<div class="listing-container">
+  <mat-card class="listing-card" *ngFor="let request of companyRequests.data">
+    <div class="card-content">
+      <div class="image" *ngIf="request.pictures.length > 0">
+        <img [src]="request.pictures[0]" alt="Image" />
+      </div>
+      <div class="info">
+        <div class="title-section">
+          <h3>{{ request.title }}</h3>
+          <span class="price">{{ request.description }}</span>
+        </div>
+        <p class="description">{{ request.description }}</p>
+        <div class="company">
+          <mat-icon>business</mat-icon> {{ request.requesterName }} 
+        </div>
+      </div>
+    </div>
+  </mat-card>
+</div>
+
+<mat-paginator
+  [length]="totalRequests"
+  [pageSize]="pageSize"
+  [pageSizeOptions]="[10, 20, 50]"
+  (page)="onPageChange($event)">
+</mat-paginator>
+
+<!-- <div class="table-container">
+  <table mat-table [dataSource]="companyRequests" class="mat-elevation-z8">
+  
+    <ng-container matColumnDef="title">
+      <th mat-header-cell *matHeaderCellDef> Обява </th>
+      <td mat-cell *matCellDef="let requests">
+        <button mat-button color="primary" (click)="viewRequestDetails(requests.id)">
+          {{ requests.id }}
+        </button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef> Заглавие </th>
+      <td mat-cell *matCellDef="let request"> {{ request.title }} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef> Информация </th>
+      <td mat-cell *matCellDef="let request"> {{ request.description }} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="requesterName">
+      <th mat-header-cell *matHeaderCellDef> Компания </th>
+      <td mat-cell *matCellDef="let request"> {{ request.company }} </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div> -->

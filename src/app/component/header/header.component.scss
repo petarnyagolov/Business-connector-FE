@@ -1,43 +1,127 @@
 
 
 
-.logout-btn {
-  margin-left: auto;
+// .logout-btn {
+//   margin-left: auto;
 
+// }
+
+// header {
+//   // background-color: limegreen;
+//   background-color: #63b175;
+//   padding: 10px;
+// }
+
+// nav {
+//   display: flex;
+//   align-items: center;
+// }
+
+// nav a {
+//   margin-right: 10px;
+//   text-decoration: none;
+//   color: #ffffff;
+// }
+
+// nav a:hover {
+//   background-color: #eaf84c;
+//   transform: scale(1.05);
+// }
+
+// .right {
+//   margin-left: auto;
+// }
+
+// .logout-btn {
+//   margin-left: auto;
+// }
+
+// .app-logo {
+//   height: 50px;
+//   width: auto;
+//   margin-right: 20px;
+// }
+.sidenav-container {
+  height: 64px;
+  position: relative;
+  z-index: 1;
 }
 
-header {
-  // background-color: limegreen;
-  background-color: #63b175;
-  padding: 10px;
+.mobile-menu {
+  background-color: #63b175; 
+  color: white;
+  z-index: 2; 
+  position: absolute; 
+  mat-nav-list {
+    a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 10px 20px;
+
+      &:hover {
+        background-color: #eaf84c; 
+        color: black;
+      }
+    }
+  }
 }
 
-nav {
+.top-toolbar {
   display: flex;
   align-items: center;
-}
-
-nav a {
-  margin-right: 10px;
-  text-decoration: none;
-  color: #ffffff;
-}
-
-nav a:hover {
-  background-color: #eaf84c;
-  transform: scale(1.05);
-}
-
-.right {
-  margin-left: auto;
-}
-
-.logout-btn {
-  margin-left: auto;
+  background-color: #63b175;
+  color: white;
+  padding: 0 10px;
+  z-index: 3;
+  position: sticky;
+  top: 0;
 }
 
 .app-logo {
-  height: 50px;
-  width: auto;
-  margin-right: 20px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.title {
+  font-weight: bold;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+
+  a {
+    color: white;
+    margin-right: 10px;
+    text-decoration: none;
+
+    &:hover {
+      background-color: #eaf84c;
+      color:green;
+    }
+  }
+}
+
+// .mobile-toggle {
+//   display: none;
+// }
+
+@media (max-width: 100%) {
+  // .nav-links {
+  //   display: none;
+  // }
+
+  .mobile-menu {
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; 
+  }
 }

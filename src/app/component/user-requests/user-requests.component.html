@@ -1,0 +1,38 @@
+<h4 style="text-align: center;">Моите Обяви</h4>
+<div class="card-grid">
+  <mat-card class="example-card" *ngFor="let request of companyRequests" appearance="outlined">
+
+    <mat-card-header>
+      <img src="/small-business-svgrepo-com.svg" alt="Company Logo" class="company-logo" />
+    </mat-card-header>
+
+    <mat-card-content>
+      <p><span class="label">Фирма: </span> <span class="value">{{ request.requesterName | uppercase }}</span></p>
+      <p><span class="label">Описание: </span> <span class="value">{{ request.description }}</span></p>
+      <p><span class="label">Заглавие: </span> <span class="value">{{ request.title }}</span></p>
+      <p><span class="label">Тип: </span> <span class="value">{{ request.requestType }}</span></p>
+      <p><span class="label">Активна От: </span> <span class="value">{{ request.activeFrom | date:'dd.MM.yyyy HH:mm' }}</span></p>
+      <p><span class="label">Активна До: </span> <span class="value">{{ request.activeTo | date:'dd.MM.yyyy HH:mm' }}</span></p>
+      <ng-container *ngIf="request.pictures && request.pictures.length">
+        <p><span class="label">Снимки: </span>
+          <ng-container *ngFor="let pic of request.pictures">
+            <img *ngIf="pic" [src]="pic" alt="Снимка" style="max-width: 80px; max-height: 80px; margin-right: 5px;" />
+          </ng-container>
+        </p>
+      </ng-container>
+      <p><span class="label">Статус: </span> <span class="value">{{ request.status }}</span></p>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-button>Редактирай</button>
+    </mat-card-actions>
+  </mat-card>
+</div>
+<div style="margin-top: auto;padding: 10px;">
+  <button *ngIf="!showCancelButton" mat-raised-button color="accent" routerLink="create">
+    Добави обява
+  </button>
+  <button *ngIf="showCancelButton" mat-raised-button color="warn" (click)="onCancel()">
+    Откажи Добавяне обява
+  </button>
+  <router-outlet></router-outlet>
+</div>

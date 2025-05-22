@@ -1,0 +1,78 @@
+<form [formGroup]="requestForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data" class="request-form">
+  <mat-card>
+    <mat-card-title>Създай заявка</mat-card-title>
+    <mat-card-content>
+      <div class="form-fields">
+        <mat-form-field appearance="fill">
+          <mat-label>Компания</mat-label>
+          <mat-select formControlName="company" required>
+            <mat-option [value]="''">-- Избери компания --</mat-option>
+            <mat-option *ngFor="let company of userCompanies" [value]="company.vatNumber">
+              {{ company.name }} ({{ company.vatNumber }})
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="requestForm.get('company')?.hasError('required')">Компанията е задължителна</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Заглавие</mat-label>
+          <input matInput formControlName="title" required>
+          <mat-error *ngIf="requestForm.get('title')?.hasError('required')">Заглавието е задължително</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Тип заявка</mat-label>
+          <mat-select formControlName="requestType" required>
+            <mat-option value="LOOKING_FOR_SERVICE">Търся услуга</mat-option>
+            <mat-option value="SHARE_SERVICE">Предлагам услуга</mat-option>
+            <mat-option value="BUY">Купувам</mat-option>
+            <mat-option value="SELL">Продавам</mat-option>
+            <mat-option value="OTHER">Друго</mat-option>
+
+          </mat-select>
+          <mat-error *ngIf="requestForm.get('requestType')?.hasError('required')">Типът е задължителен</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Описание</mat-label>
+          <textarea matInput formControlName="description" rows="3"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Статус</mat-label>
+          <mat-select formControlName="status" required>
+            <mat-option value="ACTIVE">Активна</mat-option>
+            <mat-option value="INACTIVE">Неактивна</mat-option>
+          </mat-select>
+          <mat-error *ngIf="requestForm.get('status')?.hasError('required')">Статусът е задължителен</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Активна от</mat-label>
+          <input matInput [matDatepicker]="pickerFrom" formControlName="activeFrom" required>
+          <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+          <mat-datepicker #pickerFrom></mat-datepicker>
+          <mat-error *ngIf="requestForm.get('activeFrom')?.hasError('required')">Начална дата е задължителна</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Активна до</mat-label>
+          <input matInput [matDatepicker]="pickerTo" formControlName="activeTo" required>
+          <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
+          <mat-datepicker #pickerTo></mat-datepicker>
+          <mat-error *ngIf="requestForm.get('activeTo')?.hasError('required')">Крайна дата е задължителна</mat-error>
+        </mat-form-field>
+
+        <div class="file-upload">
+          <label for="pictures">Снимки</label>
+          <input type="file" id="pictures" (change)="onFileSelected($event)" multiple accept="image/*">
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      
+      <button mat-raised-button color="primary" type="submit" [disabled]="requestForm.invalid">Създай</button>
+      <button mat-button color="warn" type="button" (click)="onCancel()">Отказ</button>
+    </mat-card-actions>
+  </mat-card>
+</form>

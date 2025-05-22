@@ -2,9 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, Observable, shareReplay, tap, throwError } from 'rxjs';
 import { Company } from '../model/company';
-import { map } from 'rxjs';
-import { CompanyData } from '../model/companyData';
-import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'

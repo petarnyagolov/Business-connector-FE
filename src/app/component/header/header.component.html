@@ -1,23 +1,34 @@
-<header> 
-  
-  <nav>
-    <img src="
-  /logo.png" alt="Company Logo" class="app-logo" />
-    <a routerLink="/companies" mat-button>Home</a>    
-    <a routerLink="/user/companies" *ngIf="isAuthenticated" mat-button>My companies</a>
-    <a routerLink="/about" mat-button>About</a>
+<mat-sidenav-container class="sidenav-container">
+  <!-- <mat-sidenav #sidenav class="mobile-menu" mode="over">
+    <mat-nav-list>
+      <a mat-button mat-list-item routerLink="/companies">Начало</a>
+      <a mat-button mat-list-item routerLink="/requests" *ngIf="isAuthenticated">Обяви</a>
+      <a mat-button mat-list-item routerLink="/user/companies" *ngIf="isAuthenticated">Моите фирми</a>
+      <a mat-button mat-list-item routerLink="/requests/my-requests" *ngIf="isAuthenticated">Моите Обяви</a>
+      <a mat-button mat-list-item routerLink="/requests/my-responses" *ngIf="isAuthenticated">Моите Отговори</a>
+      <a mat-button mat-list-item routerLink="/about">За нас</a>
+      <a mat-button mat-list-item routerLink="/login" *ngIf="!isAuthenticated">Login</a>
+      <a mat-button mat-list-item routerLink="/register" *ngIf="!isAuthenticated">Register</a>
+      <a mat-button mat-list-item href="#" *ngIf="isAuthenticated" (click)="onLogout(); $event.preventDefault()">Logout</a>
+    </mat-nav-list>
+  </mat-sidenav> -->
 
-    <!-- Only show login/register when NOT authenticated -->
-    <div class="right" *ngIf="!isAuthenticated">
-      <a routerLink="/login" mat-button>Login</a>
-      <a routerLink="/register" mat-button>Register</a>
-    </div>
-
-    <!-- Show logout when authenticated -->
-    <div class="logout-btn" *ngIf="isAuthenticated" >
-      <a href="#" (click)="onLogout(); $event.preventDefault()" mat-button>Logout</a>
-    </div>
-  </nav>
-
-  <h1>{{pageTitle}}</h1>
-</header>
+  <mat-toolbar color="primary" class="top-toolbar">
+    <!-- <button mat-icon-button (click)="sidenav.toggle()" class="mobile-toggle">
+      <mat-icon>menu</mat-icon>
+    </button> -->
+    <img src="/logo.png" class="app-logo" alt="Logo" />
+    <span class="spacer"></span>
+    <nav class="nav-links">
+      <a mat-button routerLink="/companies">Начало</a>
+      <a mat-button routerLink="/requests" *ngIf="isAuthenticated">Обяви</a>
+      <a mat-button routerLink="/user/companies" *ngIf="isAuthenticated">Моите фирми</a>
+      <a mat-button routerLink="/requests/my-requests" *ngIf="isAuthenticated">Моите Обяви</a>
+      <a mat-button routerLink="/requests/my-responses" *ngIf="isAuthenticated">Моите Отговори</a>
+      <a mat-button routerLink="/about">За нас</a>
+      <a mat-button routerLink="/login" *ngIf="!isAuthenticated">Login</a>
+      <a mat-button routerLink="/register" *ngIf="!isAuthenticated">Register</a>
+      <a mat-button href="#" *ngIf="isAuthenticated" (click)="onLogout(); $event.preventDefault()">Logout</a>
+    </nav>
+  </mat-toolbar>
+</mat-sidenav-container>
