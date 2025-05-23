@@ -6,9 +6,9 @@
   </mat-form-field>
 </div>
 <div class="listing-container">
-  <mat-card class="listing-card" *ngFor="let request of companyRequests.data">
+  <mat-card class="listing-card" *ngFor="let request of companyRequests">
     <div class="card-content">
-      <div class="image" *ngIf="request.pictures.length > 0">
+      <div class="image" *ngIf="request.pictures && request.pictures.length > 0">
         <img [src]="request.pictures[0]" alt="Image" />
       </div>
       <div class="info">

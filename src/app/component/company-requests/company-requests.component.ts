@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -18,7 +17,6 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [MatCardModule,
     MatButtonModule,
     MatPaginator,
-    MatTableModule,
     CommonModule,
     MatFormFieldModule,
     MatInputModule,
@@ -29,7 +27,7 @@ import { MatIconModule } from '@angular/material/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompanyRequestsComponent implements OnInit {
-  companyRequests: MatTableDataSource<CompanyRequest> = new MatTableDataSource<CompanyRequest>();
+  companyRequests: CompanyRequest[] = [];
   displayedColumns: string[] = ['title', 'description', 'requesterName'];
   totalRequests: number = 0;
   pageSize: number = 20;
@@ -37,7 +35,7 @@ export class CompanyRequestsComponent implements OnInit {
   searchQuery: string = '';
   searchSubject: Subject<string> = new Subject<string>();
 
-  constructor(private companyRequestService: CompanyRequestService, private router: Router) {
+  constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef) {
     this.searchSubject.pipe(debounceTime(1000)).subscribe((searchQuery) => {
       this.searchQuery = searchQuery;
       this.currentPage = 0; // Рестартиране на страницата при ново търсене
@@ -51,8 +49,9 @@ export class CompanyRequestsComponent implements OnInit {
     this.companyRequestService
     .searchRequests(this.searchQuery, this.currentPage, this.pageSize)
     .subscribe((response: any) => {
-      this.companyRequests.data = response.content; 
-      this.totalRequests = response.totalElements; 
+      this.companyRequests = response.content;
+      this.totalRequests = response.totalElements;
+      this.cdr.markForCheck();
     });
   }
 
