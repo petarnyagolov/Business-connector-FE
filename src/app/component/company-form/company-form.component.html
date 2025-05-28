@@ -1,0 +1,65 @@
+<form [formGroup]="companyForm" class="company-form">
+  <div class="form-row">
+    <mat-form-field appearance="fill">
+      <mat-label>Държава</mat-label>
+      <mat-select formControlName="country" (selectionChange)="countryChange.emit($event)">
+        <mat-option *ngFor="let country of countries" [value]="country">{{ country }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>ЕИК/VAT</mat-label>
+      <input matInput formControlName="vatNumber" />
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="button" (click)="onValidate()" style="align-self: flex-end; margin-left: 16px;">Validate</button>
+  </div>
+  <ng-container *ngIf="showCompanyDetails && isValidVatNumber">
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Име на фирма</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Индустрия</mat-label>
+        <mat-select formControlName="industry">
+          <mat-option *ngFor="let industry of industries" [value]="industry.value">{{ industry.viewValue }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Град</mat-label>
+        <input matInput formControlName="city" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Адрес</mat-label>
+        <input matInput formControlName="address" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Описание</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Брой служители</mat-label>
+        <mat-select formControlName="employeesSize">
+          <mat-option *ngFor="let size of employeesSizes" [value]="size.value">{{ size.viewValue }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill">
+        <mat-label>Вашата длъжност във фирмата</mat-label>
+        <input matInput formControlName="creatorPosition" />
+      </mat-form-field>
+      <div>
+        <label for="logoInputId">Лого на фирмата</label>
+        <input id="logoInputId" type="file" (change)="onLogoSelected($event)" #logoInput>
+        <button mat-icon-button *ngIf="selectedLogo" (click)="clearLogo()" type="button" aria-label="Clear logo">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+  <!-- Removed the submit button and its div.button-row -->
+</form>

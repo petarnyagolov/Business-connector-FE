@@ -4,6 +4,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -11,6 +13,11 @@ import { debounceTime } from 'rxjs/operators';
 import { CompanyRequestService } from '../../service/company-request.service'
 import { CompanyRequest } from '../../model/companyRequest';
 import { MatIconModule } from '@angular/material/icon';
+import { CompanyService } from '../../service/company.service';
+import { ResponseService } from '../../service/response.service';
+import { Company } from '../../model/company';
+import { FormsModule } from '@angular/forms';
+import { RequestTypeTranslatePipe } from './request-type-translate.pipe';
 
 @Component({
   selector: 'app-company-requests',
@@ -20,7 +27,11 @@ import { MatIconModule } from '@angular/material/icon';
     CommonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIconModule],
+    MatSelectModule,
+    MatOptionModule,
+    FormsModule,
+    MatIconModule,
+    RequestTypeTranslatePipe],
   templateUrl: './company-requests.component.html',
   styleUrl: './company-requests.component.scss',
   standalone: true,
@@ -34,8 +45,11 @@ export class CompanyRequestsComponent implements OnInit {
   currentPage: number = 0;
   searchQuery: string = '';
   searchSubject: Subject<string> = new Subject<string>();
+  showReplyFormId: string | null = null;
+  replyFormData: { [key: string]: { responserVatNumber: string; responseText: string } } = {};
+  userCompanies: Company[] = [];
 
-  constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef) {
+  constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef, private companyService: CompanyService, private responseService: ResponseService) {
     this.searchSubject.pipe(debounceTime(1000)).subscribe((searchQuery) => {
       this.searchQuery = searchQuery;
       this.currentPage = 0; // Рестартиране на страницата при ново търсене
@@ -44,6 +58,8 @@ export class CompanyRequestsComponent implements OnInit {
   }
   ngOnInit(): void {
     this.loadRequests();
+    // Зареждаме компаниите на потребителя за селекта във формата за отговор
+    this.companyService.getAllCompaniesByUser().subscribe(companies => this.userCompanies = companies);
   }
   loadRequests() {
     this.companyRequestService
@@ -68,6 +84,35 @@ export class CompanyRequestsComponent implements OnInit {
 
   viewRequestDetails(id: string): void {
     this.router.navigate(['/requests', id]);
+  }
+
+  onReply(request: CompanyRequest): void {
+    this.showReplyFormId = request.id;
+    if (!this.replyFormData[request.id]) {
+      this.replyFormData[request.id] = { responserVatNumber: '', responseText: '' };
+    }
+  }
+
+  onCancelReply(): void {
+    this.showReplyFormId = null;
+  }
+
+  onSubmitReply(request: CompanyRequest): void {
+    const data = this.replyFormData[request.id];
+    if (!data.responserVatNumber || !data.responseText) return;
+    this.responseService.createResponse(request.id, data).subscribe({
+      next: () => {
+        alert('Отговорът е изпратен успешно!');
+        this.showReplyFormId = null;
+        this.replyFormData[request.id] = { responserVatNumber: '', responseText: '' };
+      },
+      error: () => alert('Грешка при изпращане на отговор!')
+    });
+  }
+
+  onSave(request: CompanyRequest): void {
+    // Placeholder: тук може да се имплементира логика за запазване на обявата (например в любими)
+    alert('Обявата е запазена!');
   }
 
 

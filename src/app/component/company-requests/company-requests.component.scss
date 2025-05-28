@@ -90,6 +90,7 @@ mat-card.listing-card {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        position: relative;
 
         h3 {
           margin: 0;
@@ -99,6 +100,17 @@ mat-card.listing-card {
         .price {
           font-weight: bold;
           color: #00796b;
+          margin-left: 16px;
+        }
+
+        .request-type.right-align {
+          display: flex;
+          align-items: center;
+          margin-left: auto;
+          gap: 4px;
+          font-size: 14px;
+          color: #1976d2;
+          font-weight: 500;
         }
       }
 
@@ -146,4 +158,11 @@ mat-paginator {
       height: auto;
     }
   }
+}
+
+button.active-reply {
+  background-color: #1976d2 !important;
+  color: #fff !important;
+  border: 1px solid #1976d2 !important;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
 }

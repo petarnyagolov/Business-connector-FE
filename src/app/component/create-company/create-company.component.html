@@ -1,68 +1,10 @@
 <h2>Добави Фирма</h2>
-<form [formGroup]="createCompanyForm" (ngSubmit)="onSubmit()">
-  <div class="form-group">
-    <mat-form-field appearance="fill">
-      <mat-label>Държава</mat-label>
-      <mat-select formControlName="country">
-        <mat-option *ngFor="let country of countries" [value]="country">{{ country }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill">
-      <mat-label>ЕИК</mat-label>
-      <input matInput formControlName="vatNumber" />
-    </mat-form-field>
-
-    <button mat-raised-button color="primary" type="button" (click)="getDataFromOutside()">Validate</button>
-  </div>
-
-  <div *ngIf="showCompanyDetails">
-    <div class="form-group">
-      <mat-form-field appearance="fill">
-        <mat-label>Име на фирма</mat-label>
-        <input matInput formControlName="name" />
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Индустрия</mat-label>
-
-        <mat-select formControlName="industry">
-          <!-- @for (industry of industries; track industry.value) {
-            <mat-option [value]="industry.value">{{industry.viewValue}}</mat-option>
-          } -->
-          <mat-option *ngFor="let industry of industries" [value]="industry.value">{{ industry.viewValue }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Град</mat-label>
-        <input matInput formControlName="city" />
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Адрес</mat-label>
-        <input matInput formControlName="address" />
-      </mat-form-field>
-
-     
-
-      <mat-form-field appearance="fill">
-        <mat-label>Описание</mat-label>
-        <textarea matInput formControlName="description"></textarea>
-      </mat-form-field>
-
-      <!-- <mat-form-field appearance="fill">
-        <mat-label>Phone</mat-label>
-        <input matInput formControlName="phone" />
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="email" />
-      </mat-form-field>
-       -->
-    </div>
-  </div>
-
-  <button mat-raised-button color="primary" type="submit" [disabled]="createCompanyForm.invalid">Submit</button>
-</form>
+<app-company-form
+  #companyFormComponent
+  [mode]="'create'"
+  [countries]="countries"
+  [industries]="industries"
+  (formSubmit)="onCompanyFormSubmit($event)"
+  (validateCompany)="onCompanyValidate($event)"
+  (countryChange)="onCountryChanged($event)">
+</app-company-form>

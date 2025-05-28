@@ -2,15 +2,17 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import {MatGridListModule} from '@angular/material/grid-list';
-import { MatCardModule, MatCardContent,} from '@angular/material/card';
+import { MatCardModule, MatCardContent} from '@angular/material/card';
 import {  MatButtonModule } from '@angular/material/button';
 import { Company } from '../../model/company';
 import { CompanyService } from '../../service/company.service';
 import { filter } from 'rxjs';
+import { MatIcon } from '@angular/material/icon';
+
 
 @Component({
   selector: 'app-user-companies',
-  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatCardContent],
+  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatCardContent, MatIcon],
   templateUrl: './user-companies.component.html',
   styleUrl: './user-companies.component.scss',
   standalone: true
@@ -62,6 +64,9 @@ loadCompanies(): void {
     console.log('showCancelButton:', this.showCancelButton); // Debugging
     this.router.navigate(['/user/companies']);
     
+  }
+  editCompany(company: Company) {
+    this.router.navigate(['/user/companies/update', company.vatNumber]);
   }
   getGridColumns(): number {
     if (this.companies.length === 1) {

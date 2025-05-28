@@ -15,14 +15,19 @@ export class CompanyService {
   private apiCountryUrl = `${this.api}/api/utils/countries`;
   private apiGetCompanyInfo = `${this.api}/api/utils/company`;
   private countryNames$: Observable<string[]> | null = null;
-
-
+  private userCompaniesCache: Company[] | null = null;
 
     constructor(private http: HttpClient) {}
  
      getAllCompaniesByUser() : Observable<Company[]> {
-      return this.http.get<Company[] > (this.apiUserUrl).pipe(
-        // map(data => data.map(country => country)), // Extract country names
+      if (this.userCompaniesCache) {
+        return new Observable(observer => {
+          observer.next(this.userCompaniesCache!);
+          observer.complete();
+        });
+      }
+      return this.http.get<Company[]>(this.apiUserUrl).pipe(
+        tap(companies => this.userCompaniesCache = companies),
         shareReplay(1) // Cache the response to prevent multiple API calls
       );
       throw new Error('Method not implemented.');
@@ -59,12 +64,11 @@ export class CompanyService {
   }
 
   createCompany(company: Company): Observable<Company> {
-    // const headers = { 'Authorization': `Bearer ${this.auth.getAccessToken()}` };
-    return this.http.post<Company>('http://localhost:8080/api/user/companies', company);
+    return this.http.post<Company>(this.apiUserUrl, company);
   }
 
   updateCompany(company: Company): Observable<Company> {
-    return this.http.put<Company>(`${this.apiUrl}/${company.id}`, company);
+    return this.http.put<Company>(`${this.apiUserUrl}/${company.vatNumber}`, company);
   }
 
   deleteCompany(id: number): Observable<any> {
@@ -81,6 +85,18 @@ export class CompanyService {
   }
 
   getCompanyByVatNumber(vatNumber: string) {
+    return this.http.get<Company>(`${this.apiUserUrl}/${vatNumber}`);
+  }
+
+    getCompanyByVatNumberAndUser(vatNumber: string) {
     return this.http.get<Company>(`${this.apiUrl}/${vatNumber}`);
+  }
+
+  cacheUserCompanies(companies: Company[]): void {
+    this.userCompaniesCache = companies;
+  }
+
+  clearUserCompaniesCache(): void {
+    this.userCompaniesCache = null;
   }
 }

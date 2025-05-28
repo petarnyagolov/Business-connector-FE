@@ -15,10 +15,38 @@
         <div class="title-section">
           <h3>{{ request.title }}</h3>
           <span class="price">{{ request.description }}</span>
+          <div class="request-type right-align">
+            <mat-icon>campaign</mat-icon>
+            <span>{{ request.requestType | requestTypeTranslate:'bg' }}</span>
+          </div>
         </div>
         <p class="description">{{ request.description }}</p>
         <div class="company">
-          <mat-icon>business</mat-icon> {{ request.requesterName }} 
+          <mat-icon>business</mat-icon> {{ request.requesterName }} <span *ngIf="request.requesterVatNumber">({{ request.requesterVatNumber }})</span>
+        </div>
+        <div class="actions">
+          <button mat-stroked-button color="primary" (click)="viewRequestDetails(request.id)" [disabled]="showReplyFormId === request.id">Виж</button>
+          <button mat-stroked-button color="accent" (click)="onReply(request)" [class.active-reply]="showReplyFormId === request.id">Отговори</button>
+          <button mat-stroked-button color="warn" (click)="onSave(request)" [disabled]="showReplyFormId === request.id">Запази</button>
+        </div>
+        <div *ngIf="showReplyFormId === request.id" class="reply-form">
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Компания</mat-label>
+            <mat-select [(ngModel)]="replyFormData[request.id].responserVatNumber" required>
+              <mat-option [value]="''">-- Избери компания --</mat-option>
+              <mat-option *ngFor="let company of userCompanies" [value]="company.vatNumber">
+                {{ company.name }} ({{ company.vatNumber }})
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" style="width: 100%; margin-top: 16px;">
+            <mat-label>Отговор</mat-label>
+            <textarea matInput [(ngModel)]="replyFormData[request.id].responseText" rows="4" required></textarea>
+          </mat-form-field>
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button mat-raised-button color="primary" (click)="onSubmitReply(request)">Отговори</button>
+            <button mat-button color="warn" (click)="onCancelReply()">Отказ</button>
+          </div>
         </div>
       </div>
     </div>
@@ -31,35 +59,3 @@
   [pageSizeOptions]="[10, 20, 50]"
   (page)="onPageChange($event)">
 </mat-paginator>
-
-<!-- <div class="table-container">
-  <table mat-table [dataSource]="companyRequests" class="mat-elevation-z8">
-  
-    <ng-container matColumnDef="title">
-      <th mat-header-cell *matHeaderCellDef> Обява </th>
-      <td mat-cell *matCellDef="let requests">
-        <button mat-button color="primary" (click)="viewRequestDetails(requests.id)">
-          {{ requests.id }}
-        </button>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef> Заглавие </th>
-      <td mat-cell *matCellDef="let request"> {{ request.title }} </td>
-    </ng-container>
-
-    <ng-container matColumnDef="description">
-      <th mat-header-cell *matHeaderCellDef> Информация </th>
-      <td mat-cell *matCellDef="let request"> {{ request.description }} </td>
-    </ng-container>
-
-    <ng-container matColumnDef="requesterName">
-      <th mat-header-cell *matHeaderCellDef> Компания </th>
-      <td mat-cell *matCellDef="let request"> {{ request.company }} </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
-</div> -->

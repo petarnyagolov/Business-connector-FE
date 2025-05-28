@@ -29,8 +29,9 @@
 .container {
   display: flex;
   justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  height: 50vh; /* Full viewport height */
+  align-items: flex-start; /* Align to top so form grows down */
+  min-height: 100vh; /* Allow full height for scrolling */
+  height: auto;
 }
 
 h2 {
@@ -42,8 +43,8 @@ h2 {
 .form {
   justify-content: center;
   align-items: center;
-  min-width: 50%;
-  max-width: 50%;
+  min-width: 320px;
+  max-width: 600px;
   width: 100%;
   padding-left: 5%;
 }

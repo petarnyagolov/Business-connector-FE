@@ -14,6 +14,7 @@ import { UserRequestsComponent } from './component/user-requests/user-requests.c
 import { UserResponsesComponent } from './component/user-responses/user-responses.component';
 
 export const routes: Routes = [
+  // { path: 'home', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'about', component: AboutComponent },
@@ -41,4 +42,8 @@ export const routes: Routes = [
     ]
   },
   { path: 'requests/my-responses', component: UserResponsesComponent, canActivate: [AuthGuard] },
+  {
+    path: 'user/companies/update/:vatNumber',
+    loadComponent: () => import('./component/company-form/company-form-update-wrapper.component').then(m => m.CompanyFormUpdateWrapperComponent)
+  },
 ];

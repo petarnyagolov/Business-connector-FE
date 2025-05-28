@@ -1,1 +1,39 @@
-<p>request-details works!</p>
+<div *ngIf="request; else loading">
+  <h2>{{ request.title }}</h2>
+  <p><b>Описание:</b> {{ request.description }}</p>
+  <p><b>Тип:</b> {{ request.requestType }}</p>
+  <p><b>Фирма:</b> {{ request.requesterName }} ({{ request.requesterVatNumber }})</p>
+  <p><b>Статус:</b> {{ request.status }}</p>
+  <p><b>Активна от:</b> {{ request.activeFrom | date:'dd.MM.yyyy HH:mm' }}</p>
+  <p><b>Активна до:</b> {{ request.activeTo | date:'dd.MM.yyyy HH:mm' }}</p>
+  <div *ngIf="request.pictures && request.pictures.length">
+    <b>Снимки:</b>
+    <ng-container *ngFor="let pic of request.pictures">
+      <img *ngIf="pic" [src]="pic" alt="Снимка" style="max-width: 80px; max-height: 80px; margin-right: 5px;" />
+    </ng-container>
+  </div>
+
+  <form [formGroup]="responseForm" (ngSubmit)="onSubmit()" style="margin-top:2rem;">
+    <h3>Създай отговор</h3>
+    <mat-form-field appearance="fill">
+      <mat-label>Компания</mat-label>
+      <mat-select formControlName="companyVatNumber" required>
+        <mat-option [value]="''">-- Избери компания --</mat-option>
+        <mat-option *ngFor="let company of companies" [value]="company.vatNumber">
+          {{ company.name }} ({{ company.vatNumber }})
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="responseForm.get('companyVatNumber')?.hasError('required')">Компанията е задължителна</mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Съобщение</mat-label>
+      <textarea matInput formControlName="message" rows="3"></textarea>
+      <mat-error *ngIf="responseForm.get('message')?.hasError('required')">Съобщението е задължително</mat-error>
+    </mat-form-field>
+    <button mat-raised-button color="primary" type="submit" [disabled]="responseForm.invalid">Изпрати отговор</button>
+    <div *ngIf="responseSuccess" style="color:green; margin-top:10px;">Отговорът е изпратен успешно!</div>
+  </form>
+</div>
+<ng-template #loading>
+  <p>Зареждане...</p>
+</ng-template>

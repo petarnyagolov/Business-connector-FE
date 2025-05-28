@@ -51,8 +51,18 @@
     </mat-select>
   </mat-form-field>
   
+  <h3>Данни за фирмата</h3>
+  <app-company-form
+    #companyFormComponent
+    [mode]="'create'"
+    [countries]="countries"
+    [industries]="industries"
+    (formSubmit)="onCompanyFormSubmit($event)"
+    (validateCompany)="onCompanyValidate($event)"
+    (countryChange)="countriesSelected($event)">
+  </app-company-form>
   <div class="button-row">
-    <button mat-raised-button type="submit" [disabled]="registrationForm.invalid">Register</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="!registrationForm.valid || !companyFormComponentRef.companyForm.valid" style="margin-top: 16px;">Register</button>
   </div>
 </form>
 </div>

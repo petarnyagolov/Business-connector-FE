@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core'; // Import AfterViewInit
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -10,19 +10,45 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatDividerModule} from '@angular/material/divider';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { CompanyFormComponent } from '../company-form/company-form.component';
+import { CompanyService } from '../../service/company.service';
+import { IndustryService } from '../../service/industry.service';
+import { Router } from '@angular/router';
 
 
 @Component({
   standalone: true,
   selector: 'app-registration-form',
-  imports: [ReactiveFormsModule, CommonModule, MatInputModule, MatFormFieldModule, MatButtonModule, MatIconModule, MatDividerModule, MatOptionModule, MatSelectModule],
+  imports: [ReactiveFormsModule, CommonModule, MatInputModule, MatFormFieldModule, MatButtonModule, MatIconModule, MatDividerModule, MatOptionModule, MatSelectModule, CompanyFormComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, AfterViewInit { 
   registrationForm: FormGroup;
+  companyFormData: any = null;
+  selectedCompanyLogo: File | null = null; 
+  @ViewChild('companyFormComponent') companyFormComponentRef!: CompanyFormComponent;
 
-  constructor(private fb: FormBuilder, private authService: AuthService) {
+  ngAfterViewInit(): void {
+    // This method is required by the AfterViewInit interface.
+    // You can add any initialization logic here if needed.
+  }
+
+  employeesSizes = [
+    { value: '1-10', viewValue: '1-10' },
+    { value: '10-20', viewValue: '10-20' },
+    { value: '20-50', viewValue: '20-50' },
+    { value: '50-100', viewValue: '50-100' },
+    { value: '100+', viewValue: '100+' }
+  ];
+
+  errorMessage: string = '';
+  countries: string[] = [];
+  industries: any[] = [];
+  isValidVatNumber: boolean = false;
+  showCompanyDetails: boolean = false;
+
+  constructor(private fb: FormBuilder, private authService: AuthService, private companyService: CompanyService, private industryService: IndustryService, private router: Router) {
     this.registrationForm = this.fb.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
@@ -32,35 +58,184 @@ export class RegisterComponent {
     });
   }
 
+  ngOnInit() {
+    this.getCountryNames();
+  }
+
+  onLogoChanged(logo: File | null): void {
+    this.selectedCompanyLogo = logo;
+  }
+
+  onCompanyFormSubmit(companyData: any) {
+    this.companyFormData = companyData;
+  }
+
+  onCompanyValidate(data: { vatNumber: string, country: string }) {
+    this.companyService.getCompanyInfoFromOutside(data.vatNumber, data.country).subscribe({
+      next: () => {
+        this.isValidVatNumber = true;
+        this.showCompanyDetails = true;
+        this.getIndustries(data.country);
+        if (this.companyFormComponentRef) {
+          this.companyFormComponentRef.setCompanyDetailsVisible(true);
+          this.companyFormComponentRef.setVatValid(true);
+        }
+        alert('Компанията е валидирана успешно!');
+      },
+      error: (error) => {
+        this.isValidVatNumber = false;
+        this.showCompanyDetails = false;
+        if (this.companyFormComponentRef) {
+          this.companyFormComponentRef.setCompanyDetailsVisible(false);
+          this.companyFormComponentRef.setVatValid(false);
+        }
+        if (error.status === 404) {
+          alert('Компанията не е намерена в регистъра.');
+        } else if (error.status === 400) {
+          alert('Компанията вече съществува в базата данни.');
+        } else {
+          alert('Възникна неочаквана грешка. Опитайте отново.');
+        }
+      }
+    });
+  }
+
   onSubmit(): void {
-    if (this.registrationForm.valid) {
-      const formData = this.registrationForm.value;
-      this.authService.register(formData).pipe(
+    if (this.registrationForm.valid && this.companyFormComponentRef && this.companyFormComponentRef.companyForm.valid) {
+      const registrationData = this.registrationForm.value;
+      const companyData = this.companyFormComponentRef.companyForm.getRawValue();
+
+      const requestPayload = {
+        ...registrationData, 
+        companyInfo: companyData 
+      };
+
+      const logoToUpload = this.selectedCompanyLogo ? this.selectedCompanyLogo : undefined;
+
+      this.authService.register(requestPayload, logoToUpload).pipe(
         tap({
-          next: (response: any) => {
-            console.log('Response:', response); 
-            alert('Registration successful!');
-            this.authService.login({ email: formData.email, password: formData.password }).pipe(
-              tap({
-                next: (loginResponse: any) => {
-                  console.log('Login Response:', loginResponse); 
-                  alert('Login successful!');
-                  },
-                error: (loginError: any) => {
-                  console.error('Login Error:', loginError);
-                  alert('Login failed. Please try again.');
-                }
-              })
-            ).subscribe();
+          next: (registerResponse: any) => { 
+            console.log('Registration successful:', registerResponse);
+            
+            this.authService.login({ email: registrationData.email, password: registrationData.password }).subscribe({
+              next: (loginResponse: any) => { 
+                console.log('Login successful:', loginResponse);
+                alert('User registered and logged in successfully! Redirecting to home...');
+                this.router.navigate(['/companies']);
+              },
+              error: (loginError) => {
+                console.error('Login failed after registration:', loginError);
+                alert('Registration was successful, but login failed. Please try to log in manually.');
+                this.router.navigate(['/login']);
+              }
+            });
           },
-          error: (error: any) => {
-            console.error('Error:', error);
-            alert('Registration failed. Please try again.');
+          error: (registerError) => {
+            console.error('Registration failed:', registerError);
+            let errorMessage = 'Registration failed. Please try again.';
+            if (registerError.error && registerError.error.message) {
+              errorMessage = registerError.error.message; 
+            }
+            alert(errorMessage);
           }
         })
       ).subscribe();
     } else {
-      console.log('Form is invalid.');
+      alert('Please fill out all required fields correctly in both user and company forms.');
+      
     }
+  }
+
+  getDataFromOutside(): void {
+    const vatNumber = this.companyFormComponentRef?.companyForm.get('vatNumber')?.value;
+    const country = this.companyFormComponentRef?.companyForm.get('country')?.value;
+
+    if (!vatNumber || !country) {
+      alert('Please select a country and enter a VAT number in the company form first.');
+      return;
+    }
+
+    this.companyService.getCompanyInfoFromOutside(vatNumber, country).subscribe({
+      next: response => {
+        this.isValidVatNumber = true;
+        this.errorMessage = '';
+        this.showCompanyDetails = true;
+        if (this.companyFormComponentRef) {
+          this.companyFormComponentRef.setCompanyDetailsVisible(true);
+          this.companyFormComponentRef.setVatValid(true);
+        }
+        this.getIndustries(country); 
+      },
+      error: error => {
+        this.isValidVatNumber = false;
+        this.showCompanyDetails = false;
+        if (error.status === 404) {
+          this.errorMessage = 'Компанията не е намерена в регистъра.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Компанията вече съществува в базата данни.';
+        } else {
+          this.errorMessage = 'Възникна неочаквана грешка. Опитайте отново.';
+        }
+        alert(this.errorMessage);
+      }
+    });
+  }
+
+  getCountryNames(): void {
+    this.companyService.getCountryNames().subscribe((data: any[]) => {
+      this.countries = data.map(country => country);
+    });
+  }
+
+  getIndustries(country?: string): void {
+    const companyFormCountry = this.companyFormComponentRef?.companyForm.get('country')?.value;
+    const selectedCountry = country || companyFormCountry;
+
+    if (!selectedCountry) {
+      this.industries = []; 
+      return;
+    }
+    this.industryService.getAllIndustries(selectedCountry).subscribe({
+      next: (response) => {
+        this.industries = response.map((industry: any) => ({
+          value: industry.value || '',
+          viewValue: industry.viewValue || ''
+        }));
+        this.errorMessage = '';
+      },
+      error: (error) => {
+        this.industries = [];
+        if (error.status === 404) {
+          this.errorMessage = 'Няма индустрии за тази държава.';
+        } else {
+          this.errorMessage = 'Възникна неочаквана грешка при зареждане на индустрии.';
+        }
+      }
+    });
+  }
+
+  countriesSelected(event: any) {
+    const selectedValue = event.value;
+    this.registrationForm.patchValue({ companyCity: '', companyAddress: '' });
+    this.getIndustries();
+  }
+
+  industrySelected(event: any) {
+    const selectedValue = event.value;
+  }
+
+  vatNumberChanged(event: any) {
+    const vatNumber = event.target.value;
+    this.isValidVatNumber = false;
+    this.showCompanyDetails = false;
+    this.errorMessage = '';
+    if (vatNumber && vatNumber.trim() !== '') {
+      this.getDataFromOutside();
+    }
+  }
+
+  private _filter(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.countries.filter(option => option.toLowerCase().includes(filterValue));
   }
 }

@@ -7,10 +7,11 @@ import { MatCardModule, MatCardContent, } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { CompanyRequestService } from '../../service/company-request.service';
 import { filter } from 'rxjs';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-user-requests',
-  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatCardContent],
+  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatCardContent, MatIcon],
   templateUrl: './user-requests.component.html',
   styleUrl: './user-requests.component.scss',
   standalone: true
