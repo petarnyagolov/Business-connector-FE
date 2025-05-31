@@ -115,3 +115,10 @@ mat-card-actions {
   justify-content: flex-end;
   gap: 10px;
 }
+
+.company-card {
+  margin: 0 10% 0 10% !important;
+  padding: 0 10% 0 10% !important;
+  /* top right bottom left */
+  /* Може да коригираш px по желание */
+}

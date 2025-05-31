@@ -2,11 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, Observable, shareReplay, tap, throwError } from 'rxjs';
 import { Company } from '../model/company';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CompanyService {
+getLogoByPath(path: string): Observable<Blob> {
+  // Replace with your actual HTTP call, for example:
+  return this.http.get(`${environment.apiUrl}/files/${path}`, { responseType: 'blob' });
+}
 
   private api = 'http://localhost:8080';
 

@@ -1,10 +1,18 @@
 <h4 style="text-align: center;">Моите Компании</h4>
 <div class="card-grid">
-  <mat-card class="example-card" *ngFor="let company of companies" appearance="outlined">
+  <mat-card class="example-card company-card" *ngFor="let company of companies" appearance="outlined">
 
     <mat-card-header>
-      <!-- <img src="/small-business-svgrepo-com.svg" alt="Company Logo" class="company-logo" /> -->
-       <mat-icon>business</mat-icon>
+      <ng-container *ngIf="company.logo && company.logo !== ''; else defaultLogo">
+        <img [src]="getLogoUrl(company.logo)"
+             alt="Company Logo"
+             class="company-logo"
+             style="width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;display:block;"
+             (error)="logoLoadError($event)" />
+      </ng-container>
+      <ng-template #defaultLogo>
+        <mat-icon>business</mat-icon>
+      </ng-template>
     </mat-card-header>
 
     <mat-card-content>

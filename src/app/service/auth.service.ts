@@ -26,8 +26,6 @@ export class AuthService {
       formData.append('logo', logo, logo.name);
     }
 
-    // HttpClient will automatically set Content-Type to multipart/form-data
-    // when FormData is used, so no need to set headers manually here.
     return this.http.post(`${this.apiUrl}/register`, formData);
   }
 

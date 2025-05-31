@@ -7,6 +7,7 @@ export interface Company {
     address: string;
     creatorPosition?: string; // Added
     logoPath?: string; // Added
+    logo?: string; // Added for backend compatibility
     industry: string;
     description: string;
     phone: string;

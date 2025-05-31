@@ -8,7 +8,7 @@ import { Company } from '../../model/company';
 import { CompanyService } from '../../service/company.service';
 import { filter } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
-
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-user-companies',
@@ -20,6 +20,7 @@ import { MatIcon } from '@angular/material/icon';
 export class UserCompaniesComponent {
   companies: Company[] = [];
   showCancelButton: boolean = false; 
+  logoUrls: { [key: string]: string } = {};
 
 
   
@@ -44,13 +45,46 @@ ngOnInit(): void {
 loadCompanies(): void {
   this.companyService.getAllCompaniesByUser().subscribe({
     next: (data: Company[]) => {
-      this.companies = data; 
+      // Сортирай така, че компаниите с лого да са най-отгоре
+      this.companies = data.sort((a, b) => {
+        const aHasLogo = !!(a.logo && this.logoUrls[a.logo]);
+        const bHasLogo = !!(b.logo && this.logoUrls[b.logo]);
+        if (aHasLogo === bHasLogo) return 0;
+        return bHasLogo ? 1 : -1;
+      });
+      this.loadAllLogos();
+      console.log('Loaded companies:', this.companies);
     },
     error: (error) => {
-      console.error('Error fetching companies:', error); 
+      console.error('Error fetching companies:', error);
     }
   });
 }
+
+loadAllLogos(): void {
+  for (const company of this.companies) {
+    const logoPath = company.logo;
+    if (logoPath && !this.logoUrls[logoPath]) {
+      const cleanPath = logoPath.replace(/\\/g, '/');
+      this.companyService.getLogoByPath(cleanPath).subscribe({
+        next: (blob: Blob) => {
+          const objectUrl = URL.createObjectURL(blob);
+          this.logoUrls[logoPath] = objectUrl;
+        },
+        error: (error: unknown) => {
+          console.error('Error loading logo:', error);
+          this.logoUrls[logoPath] = '';
+        }
+      });
+    }
+  }
+}
+
+getLogoUrl(logoPath?: string): string {
+  if (!logoPath) return '';
+  return this.logoUrls[logoPath] || '';
+}
+
   createCompany() {
     console.log('createCompany() called'); // Debugging
     // this.showCancelButton = true;
@@ -104,5 +138,9 @@ loadCompanies(): void {
     } else {
       return 2; // беше 1, но това ще даде повече височина
     }
+  }
+
+  logoLoadError(event: Event) {
+    (event.target as HTMLImageElement).style.display = 'none';
   }
 }
