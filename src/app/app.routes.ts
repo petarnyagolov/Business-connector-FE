@@ -12,11 +12,13 @@ import { CompanyRequestsComponent } from './component/company-requests/company-r
 import { RequestDetailsComponent } from './component/request-details/request-details.component';
 import { UserRequestsComponent } from './component/user-requests/user-requests.component';
 import { UserResponsesComponent } from './component/user-responses/user-responses.component';
+import { EmailVerificationComponent } from './component/email-verification/email-verification.component'; // Added
 
 export const routes: Routes = [
   // { path: 'home', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'auth/verify/email', component: EmailVerificationComponent }, // Added route for email verification
   { path: 'about', component: AboutComponent },
   { path: '', pathMatch: 'full', redirectTo: '/companies' },
   { path: 'list', component: CompanyListComponent },

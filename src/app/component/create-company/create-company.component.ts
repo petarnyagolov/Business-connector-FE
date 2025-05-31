@@ -42,13 +42,19 @@ export class CreateCompanyComponent {
   errorMessage: any;
   showCompanyDetails: boolean = false;
   industries: Industry[] = [];
+  selectedLogo: File | null = null;
 
   constructor(private fb: FormBuilder, private companyService: CompanyService, private industryService: IndustryService, private router: Router) {
     this.getCountryNames();
   }
 
   onCompanyFormSubmit(companyData: any) {
-    this.companyService.createCompany(companyData).pipe(
+    const formData = new FormData();
+    formData.append('company', new Blob([JSON.stringify(companyData)], { type: 'application/json' }));
+    if (this.selectedLogo) {
+      formData.append('logo', this.selectedLogo);
+    }
+    this.companyService.createCompany(formData).pipe(
       tap({
         next: (response: any) => {
           alert('You have a company!');
@@ -124,5 +130,9 @@ export class CreateCompanyComponent {
   onCountryChanged(event: any) {
     const selectedCountry = event.value;
     this.getIndustries(selectedCountry);
+  }
+
+  onLogoChange(logo: File | null) {
+    this.selectedLogo = logo;
   }
 }

@@ -102,6 +102,7 @@ export class CompanyFormComponent {
       if (allowedTypes.includes(file.type)) {
         this.selectedLogo = file;
         this.logoChange.emit(this.selectedLogo);
+        console.log('CompanyFormComponent: Logo selected and emitted:', this.selectedLogo); // DEBUG
       } else {
         alert('Invalid file type. Please select a PNG, JPG, or JPEG file.');
         this.selectedLogo = null;
@@ -109,10 +110,15 @@ export class CompanyFormComponent {
         if (this.logoInputRef) {
           this.logoInputRef.nativeElement.value = ''; // Clear the file input
         }
+        console.log('CompanyFormComponent: Invalid logo type, emitted null'); // DEBUG
       }
     } else {
       this.selectedLogo = null;
       this.logoChange.emit(null);
+      if (this.logoInputRef) { // Also clear input if no file is selected (e.g., user cancels dialog)
+        this.logoInputRef.nativeElement.value = '';
+      }
+      console.log('CompanyFormComponent: No file selected or input.files is null, emitted null'); // DEBUG
     }
   }
 
@@ -123,6 +129,7 @@ export class CompanyFormComponent {
     if (this.logoInputRef) {
       this.logoInputRef.nativeElement.value = ''; // Clear the file input
     }
+    console.log('CompanyFormComponent: Logo cleared, emitted null'); // DEBUG
   }
 
   onSubmit() {

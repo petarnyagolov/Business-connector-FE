@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Company } from '../model/company';
 import { ActivatedRoute } from '@angular/router';
 import { CompanyService } from '../service/company.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-company-detail',
@@ -13,6 +14,7 @@ import { CompanyService } from '../service/company.service';
 })
 export class CompanyDetailComponent implements OnInit {
   company: Company | null = null;
+  backendUrl = environment.apiUrl;
 
   constructor(private route: ActivatedRoute, private companyService: CompanyService) {}
   ngOnInit(): void {
@@ -27,5 +29,10 @@ export class CompanyDetailComponent implements OnInit {
         }
       });
     }
+  }
+
+  getLogoUrl(logoPath: string): string {
+    const path = logoPath.startsWith('/') ? logoPath : `/${logoPath}`;
+    return `${this.backendUrl}${path}`;
   }
 }

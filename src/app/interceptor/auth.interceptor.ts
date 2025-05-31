@@ -15,13 +15,24 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler) {
     const token = localStorage.getItem('accessToken');  
+    // Ако е FormData, не слагай Content-Type, само Authorization
     if (token) {
-      const cloned = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      return next.handle(cloned);
+      if (req.body instanceof FormData) {
+        const cloned = req.clone({
+          setHeaders: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        return next.handle(cloned);
+      } else {
+        const cloned = req.clone({
+          setHeaders: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        return next.handle(cloned);
+      }
     }
     return next.handle(req);
   }

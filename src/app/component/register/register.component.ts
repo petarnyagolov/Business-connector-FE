@@ -47,6 +47,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   industries: any[] = [];
   isValidVatNumber: boolean = false;
   showCompanyDetails: boolean = false;
+  registrationSuccess = false; // Added
 
   constructor(private fb: FormBuilder, private authService: AuthService, private companyService: CompanyService, private industryService: IndustryService, private router: Router) {
     this.registrationForm = this.fb.group({
@@ -64,6 +65,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   onLogoChanged(logo: File | null): void {
     this.selectedCompanyLogo = logo;
+    console.log('RegisterComponent: onLogoChanged called, selectedCompanyLogo:', this.selectedCompanyLogo); // DEBUG
   }
 
   onCompanyFormSubmit(companyData: any) {
@@ -115,17 +117,21 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       this.authService.register(requestPayload, logoToUpload).pipe(
         tap({
           next: (registerResponse: any) => { 
-            console.log('Registration successful:', registerResponse);
-            
-            this.authService.login({ email: registrationData.email, password: registrationData.password }).subscribe({
-              next: (loginResponse: any) => { 
-                console.log('Login successful:', loginResponse);
-                alert('User registered and logged in successfully! Redirecting to home...');
-                this.router.navigate(['/companies']);
+           const loginCredentials = {
+              email: requestPayload.email,
+              password: requestPayload.password // Уверете се, че requestPayload.password е оригиналната парола
+            };
+            this.authService.login(loginCredentials).subscribe({
+              next: (loginResponse) => {
+                console.log('Auto-login successful after registration:', loginResponse);
+                // AuthService.login вече пренасочва към /companies при успех
+                // this.registrationSuccess = true; // Може да остане, ако е нужно за други цели
               },
               error: (loginError) => {
-                console.error('Login failed after registration:', loginError);
-                alert('Registration was successful, but login failed. Please try to log in manually.');
+                console.error('Auto-login failed after registration:', loginError);
+                // Показване на съобщение, че регистрацията е успешна, но автоматичното логване не е
+                // и потребителят трябва да се логне ръчно.
+                alert('Registration successful, but auto-login failed. Please log in manually.');
                 this.router.navigate(['/login']);
               }
             });
@@ -142,7 +148,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       ).subscribe();
     } else {
       alert('Please fill out all required fields correctly in both user and company forms.');
-      
     }
   }
 

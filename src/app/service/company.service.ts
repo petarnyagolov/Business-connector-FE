@@ -63,8 +63,8 @@ export class CompanyService {
     return this.http.get<Company>(`${this.apiUrl}/${id}`);
   }
 
-  createCompany(company: Company): Observable<Company> {
-    return this.http.post<Company>(this.apiUserUrl, company);
+  createCompany(formData: FormData): Observable<Company> {
+    return this.http.post<Company>(this.apiUserUrl, formData);
   }
 
   updateCompany(company: Company): Observable<Company> {

@@ -1,68 +1,67 @@
-<h2>User Registration</h2>
-<div class="container">
-<form class="form full-width" [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
-  <!-- Username -->
-  <!-- <div class="form-group"> -->
-  <mat-form-field>
-    <mat-label for="firstName">Name:</mat-label>
-    <input matInput id="firstName" formControlName="firstName" placeholder="Ex. John" value="firstName" />
-    <div *ngIf="registrationForm.get('firstName')?.invalid && registrationForm.get('firstName')?.touched">
-      Name is required.
-    </div>
-  </mat-form-field>
-
-  <mat-form-field>
-    <mat-label for="lastName">Last Name:</mat-label>
-    <input matInput id="lastName" formControlName="lastName" placeholder="Ex. Doe" value="lastName" />
-    <div *ngIf="registrationForm.get('lastName')?.invalid && registrationForm.get('lastName')?.touched">
-      Last Name is required.
-    </div>
-  </mat-form-field>
-  <!-- </div> -->
-
-  <!-- Email -->
-
-  <mat-form-field>
-    <mat-label for="email">Email:</mat-label>
-    <!-- <label for="email">Email:</label> -->
-    <input matInput id="email" formControlName="email" />
-    <div *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched">
-      A valid email is required.
-    </div>
-  </mat-form-field>
-
-
-  <!-- Password -->
-  <mat-form-field>
-    <mat-label for="password">Password:</mat-label>
-    <!-- <label for="password">Password:</label> -->
-    <input matInput id="password" type="password" formControlName="password" />
-    <div *ngIf="registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched">
-      Password must be at least 6 characters long.
-    </div>
-  </mat-form-field>
-
-  <mat-form-field>
-    <mat-label for="lang">Language:</mat-label>
-    <mat-select id="lang" formControlName="lang">
-      <mat-option value="bg">🇧🇬 Bulgarian</mat-option>
-      <mat-option value="en">🇬🇧 English</mat-option>
-      <mat-option value="de">🇩🇪 German</mat-option>
-    </mat-select>
-  </mat-form-field>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div> 
+          <h2>User Registration</h2>
+          <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+            <!-- User registration fields -->
+            <mat-form-field appearance="fill" class="w-100 mb-3">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName" required>
+              <mat-error *ngIf="registrationForm.get('firstName')?.hasError('required')">
+                First name is required.
+              </mat-error>
+            </mat-form-field>
   
-  <h3>Данни за фирмата</h3>
-  <app-company-form
-    #companyFormComponent
-    [mode]="'create'"
-    [countries]="countries"
-    [industries]="industries"
-    (formSubmit)="onCompanyFormSubmit($event)"
-    (validateCompany)="onCompanyValidate($event)"
-    (countryChange)="countriesSelected($event)">
-  </app-company-form>
-  <div class="button-row">
-    <button mat-raised-button color="primary" type="submit" [disabled]="!registrationForm.valid || !companyFormComponentRef.companyForm.valid" style="margin-top: 16px;">Register</button>
+            <mat-form-field appearance="fill" class="w-100 mb-3">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" required>
+                <mat-error *ngIf="registrationForm.get('lastName')?.hasError('required')">
+                  Last name is required.
+                </mat-error>
+              </mat-form-field>
+    
+              <mat-form-field appearance="fill" class="w-100 mb-3">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" required email>
+                <mat-error *ngIf="registrationForm.get('email')?.hasError('required')">
+                  Email is required.
+                </mat-error>
+                <mat-error *ngIf="registrationForm.get('email')?.hasError('email')">
+                  Please enter a valid email address.
+                </mat-error>
+              </mat-form-field>
+    
+              <mat-form-field appearance="fill" class="w-100 mb-3">
+                <mat-label>Password</mat-label>
+                <input matInput formControlName="password" type="password" required minlength="6">
+                <mat-error *ngIf="registrationForm.get('password')?.hasError('required')">
+                  Password is required.
+                </mat-error>
+                <mat-error *ngIf="registrationForm.get('password')?.hasError('minlength')">
+                  Password must be at least 6 characters long.
+                </mat-error>
+              </mat-form-field>
+  
+            <mat-divider class="my-4"></mat-divider>
+  
+            <!-- Company Form Component -->
+            <app-company-form #companyFormComponent 
+                              (logoChange)="onLogoChanged($event)"
+                              (formSubmit)="onCompanyFormSubmit($event)"
+                              (validateCompany)="onCompanyValidate($event)"
+                              [countries]="countries"
+                              [industries]="industries">
+            </app-company-form>
+  
+            <div class="d-flex justify-content-end mt-4">
+              <button mat-raised-button color="primary" type="submit" 
+                      [disabled]="!registrationForm.valid || !companyFormComponentRef.companyForm.valid">
+                Register
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
-</form>
-</div>

@@ -1,1 +1,19 @@
-<p>company-detail works!</p>
+<div *ngIf="company">
+  <h1>{{ company.name }}</h1>
+  <p>VAT Number: {{ company.vatNumber }}</p>
+  <p>Address: {{ company.address }}</p>
+  <p>Creator Position: {{ company.creatorPosition }}</p>
+  
+  <div *ngIf="company.logoPath">
+    <h2>Company Logo</h2>
+    <img [src]="getLogoUrl(company.logoPath)" alt="{{ company.name }} Logo" style="max-width: 200px; max-height: 200px;">
+  </div>
+  
+  <div *ngIf="!company.logoPath">
+    <p>No logo available.</p>
+  </div>
+</div>
+
+<div *ngIf="!company">
+  <p>Loading company details...</p>
+</div>

@@ -1,0 +1,31 @@
+<div class="verification-container">
+  <mat-card>
+    <mat-card-title>Email Verification</mat-card-title>
+    <mat-card-content>
+      <div *ngIf="isLoading" class="spinner-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Verifying your email...</p>
+      </div>
+
+      <div *ngIf="!isLoading && isVerified">
+        <p class="success-message">Your email has been successfully verified!</p>
+        <button *ngIf="shouldShowLoginButton" mat-raised-button color="primary" (click)="navigateToLogin()">
+          Proceed to Login
+        </button>
+        <button *ngIf="shouldShowCompaniesButton" mat-raised-button color="primary" (click)="navigateToCompanies()">
+          Go to Companies
+        </button>
+      </div>
+
+      <div *ngIf="!isLoading && errorMessage">
+        <p class="error-message">{{ errorMessage }}</p>
+        <!-- <button mat-stroked-button color="warn" (click)="resendVerificationLink()">
+          Resend Verification Link
+        </button> -->
+        <button mat-stroked-button (click)="navigateToLogin()">
+          Back to Login
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
