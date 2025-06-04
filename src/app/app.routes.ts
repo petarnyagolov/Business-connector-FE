@@ -18,7 +18,7 @@ export const routes: Routes = [
   // { path: 'home', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'auth/verify/email', component: EmailVerificationComponent }, // Added route for email verification
+  { path: 'verify-email', component: EmailVerificationComponent }, // route за email verification
   { path: 'about', component: AboutComponent },
   { path: '', pathMatch: 'full', redirectTo: '/companies' },
   { path: 'list', component: CompanyListComponent },

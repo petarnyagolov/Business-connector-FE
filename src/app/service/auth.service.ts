@@ -93,4 +93,14 @@ export class AuthService {
   getAccessToken(): string | null {
     return window.localStorage.getItem('accessToken');
   }
+
+  verifyEmailWithToken(token: string) {
+    // Хардкоднат бекенд URL за тест
+    return this.http.get(`http://localhost:8080/api/verify/email/verify?t=${token}`, { observe: 'response', responseType: 'text' });
+  }
+
+  resendVerificationLink(email: string) {
+    // Изпраща POST заявка към бекенда за повторно изпращане на верификационен линк
+    return this.http.post('/api/verify/email/resend-verification', null, { params: { email } });
+  }
 }

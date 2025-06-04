@@ -28,7 +28,31 @@
       <a mat-button routerLink="/about">За нас</a>
       <a mat-button routerLink="/login" *ngIf="!isAuthenticated">Login</a>
       <a mat-button routerLink="/register" *ngIf="!isAuthenticated">Register</a>
-      <a mat-button href="#" *ngIf="isAuthenticated" (click)="onLogout(); $event.preventDefault()">Logout</a>
+      <!-- Account icon and menu for authenticated users -->
+      <button mat-icon-button [matMenuTriggerFor]="accountMenu" *ngIf="isAuthenticated">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <mat-menu #accountMenu="matMenu">
+        <ng-container *ngFor="let notification of notifications">
+          <button mat-menu-item disabled style="white-space: normal; opacity: 1;">
+            <mat-icon color="primary" style="margin-right:8px;">notifications</mat-icon>
+            <span>{{ notification.text }}</span>
+          </button>
+        </ng-container>
+        <button mat-menu-item (click)="onSeeAllNotifications()">
+          <mat-icon>list</mat-icon>
+          <span>Виж всички</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="onSettings()">
+          <mat-icon>settings</mat-icon>
+          <span>Настройки</span>
+        </button>
+        <button mat-menu-item (click)="onLogout()">
+          <mat-icon>logout</mat-icon>
+          <span>Излез</span>
+        </button>
+      </mat-menu>
     </nav>
   </mat-toolbar>
 </mat-sidenav-container>

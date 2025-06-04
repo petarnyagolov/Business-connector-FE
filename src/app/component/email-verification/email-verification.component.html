@@ -19,9 +19,16 @@
 
       <div *ngIf="!isLoading && errorMessage">
         <p class="error-message">{{ errorMessage }}</p>
-        <!-- <button mat-stroked-button color="warn" (click)="resendVerificationLink()">
-          Resend Verification Link
-        </button> -->
+        <form (ngSubmit)="resendVerificationLink()" style="margin-bottom: 10px;">
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Email</mat-label>
+            <input matInput [(ngModel)]="resendEmail" name="resendEmail" type="email" required [disabled]="isResending">
+          </mat-form-field>
+          <button mat-stroked-button color="primary" type="submit" [disabled]="isResending">
+            {{ isResending ? 'Изпраща се...' : 'Изпрати повторно линк' }}
+          </button>
+        </form>
+        <div *ngIf="resendMessage" style="text-align:center; color: #1976d2;">{{ resendMessage }}</div>
         <button mat-stroked-button (click)="navigateToLogin()">
           Back to Login
         </button>
