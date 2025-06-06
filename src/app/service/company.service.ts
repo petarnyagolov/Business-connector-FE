@@ -90,11 +90,11 @@ getLogoByPath(path: string): Observable<Blob> {
   }
 
   getCompanyByVatNumber(vatNumber: string) {
-    return this.http.get<Company>(`${this.apiUserUrl}/${vatNumber}`);
+    return this.http.get<Company>(`${this.apiUrl}/${vatNumber}`);
   }
 
     getCompanyByVatNumberAndUser(vatNumber: string) {
-    return this.http.get<Company>(`${this.apiUrl}/${vatNumber}`);
+    return this.http.get<Company>(`${this.apiUserUrl}/${vatNumber}`);
   }
 
   cacheUserCompanies(companies: Company[]): void {

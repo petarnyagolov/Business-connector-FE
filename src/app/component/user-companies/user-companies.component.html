@@ -7,8 +7,8 @@
         <img [src]="getLogoUrl(company.logo)"
              alt="Company Logo"
              class="company-logo"
-             style="width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;display:block;"
              (error)="logoLoadError($event)" />
+        <!-- <div style=";">src: {{ getLogoUrl(company.logo) }}</div> -->
       </ng-container>
       <ng-template #defaultLogo>
         <mat-icon>business</mat-icon>
@@ -16,7 +16,7 @@
     </mat-card-header>
 
     <mat-card-content>
-      <p><span class="label">фирма: </span> <span class="value">{{ company.name | uppercase }}</span></p>
+      <p><span class="label">фирма: </span> <span class="value">{{ company.name | uppercase }} ({{ company.vatNumber }})</span></p>
       <p><span class="label">описание: </span> <span class="value">{{ company.description }}</span></p>
       <p><span class="label">индустрия: </span> <span class="value">{{ company.industry }}</span></p>
       <p><span class="label">държава: </span> <span class="value">{{ company.country }}</span></p>

@@ -1,74 +1,31 @@
-// mat-grid-tile {
-//   background: lightblue;
-// }
-// mat-grid-tile {
-//   padding: 15px 15px 15px 15px;
-//   margin: 15px 15px 15px 15px; /* Add a small padding around each tile */
-// }
-
-// mat-card {
-//   height: 80%; /* Ensure the card fills the grid tile */
-//   width: 80%;
-// }
-
-// .card-grid {
-//   display: grid;
-//   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-//   gap: 16px;
-//   padding: 16px;
-// }
-
-// mat-card {
-//   display: flex;
-//   flex-direction: column;
-//   height: 100%;
-// }
-
-// mat-card-content {
-//   flex-grow: 1;
-// }
-
-// mat-card-actions {
-//   display: flex;
-//   flex-wrap: wrap;
-//   justify-content: flex-end;
-//   gap: 8px;
-//   margin-top: auto;
-// }
-
-// @media (max-width: 600px) {
-//   .card-grid {
-//     grid-template-columns: 1fr;
-//   }
-
-//   mat-card-actions {
-//     justify-content: center;
-//   }
-// }
+/* Header Section */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-
-  h2 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: bold;
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 10px;
-  }
 }
 
+.header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.header .action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Responsive Card Grid */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
+  padding: 16px;
 }
 
+/* Company Card Styling */
 mat-card {
   padding: 20px;
   display: flex;
@@ -79,46 +36,75 @@ mat-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Logo Styles */
 .company-logo {
   display: block;
   margin: 0 auto 20px auto;
   width: 80px;
   height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
 }
 
+/* Optional debug class for troubleshooting */
+.company-logo.debug-logo {
+  border: 2px solid red;
+  background: #ffe;
+  word-break: break-all;
+}
+
+/* Company Details */
 .company-details {
   font-size: 14px;
-
-  p {
-    margin: 5px 0;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .label {
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: capitalize;
-    color: gray;
-  }
-
-  .value {
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: black;
-  }
 }
 
+.company-details p {
+  margin: 5px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.company-details .label {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+  color: gray;
+}
+
+.company-details .value {
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: black;
+}
+
+/* Actions Section */
 mat-card-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
+  margin-top: auto;
 }
 
+/* Individual Company Card Margin/Padding */
 .company-card {
-  margin: 0 10% 0 10% !important;
-  padding: 0 10% 0 10% !important;
-  /* top right bottom left */
-  /* Може да коригираш px по желание */
+  margin: 0 10%;
+  padding: 0 10%;
+}
+
+/* Responsive Behavior for Mobile */
+@media (max-width: 600px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  mat-card-actions {
+    justify-content: center;
+  }
+
+  .company-card {
+    margin: 0 5%;
+    padding: 0 5%;
+  }
 }

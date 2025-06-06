@@ -28,7 +28,7 @@ import { debounceTime } from 'rxjs/operators';
 })
 export class CompanyListComponent implements OnInit {
   companies: MatTableDataSource<Company> = new MatTableDataSource<Company>();
-  displayedColumns: string[] = ['vatNumber', 'name', 'industry', 'country'];
+  displayedColumns: string[] = ['name', 'description',  'industry', 'country'];
   totalCompanies: number = 0;
   pageSize: number = 20;
   currentPage: number = 0;
@@ -69,6 +69,6 @@ export class CompanyListComponent implements OnInit {
   }
 
   viewCompanyDetails(vatNumber: string): void {
-    this.router.navigate(['/company', vatNumber]);
+    this.router.navigate(['/companies', vatNumber]);
   }
 }

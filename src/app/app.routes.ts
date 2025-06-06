@@ -15,7 +15,7 @@ import { UserResponsesComponent } from './component/user-responses/user-response
 import { EmailVerificationComponent } from './component/email-verification/email-verification.component'; // Added
 
 export const routes: Routes = [
-  // { path: 'home', component: HomeComponent },
+  // { path: 'companies', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'verify-email', component: EmailVerificationComponent }, // route за email verification
@@ -32,13 +32,15 @@ export const routes: Routes = [
       { path: 'create', component: CreateCompanyComponent, canActivate: [AuthGuard] }
     ]
   },
-  { path: 'requests', component: CompanyRequestsComponent, canActivate: [AuthGuard],
+  {
+    path: 'requests', component: CompanyRequestsComponent, canActivate: [AuthGuard],
     children: [
       { path: 'requests/:id', component: RequestDetailsComponent, canActivate: [AuthGuard] },
     ]
-   },
-  
-  { path: 'requests/my-requests', component: UserRequestsComponent, canActivate: [AuthGuard],
+  },
+
+  {
+    path: 'requests/my-requests', component: UserRequestsComponent, canActivate: [AuthGuard],
     children: [
       { path: 'create', loadComponent: () => import('./component/create-request/create-request.component').then(m => m.CreateRequestComponent), canActivate: [AuthGuard] }
     ]

@@ -8,20 +8,21 @@
 
 <div class="table-container">
   <table mat-table [dataSource]="companies" class="mat-elevation-z8">
-    <!-- VAT Number Column -->
-    <ng-container matColumnDef="vatNumber">
-      <th mat-header-cell *matHeaderCellDef> VAT </th>
-      <td mat-cell *matCellDef="let company">
-        <button mat-button color="primary" (click)="viewCompanyDetails(company.vatNumber)">
-          {{ company.vatNumber }}
-        </button>
-      </td>
-    </ng-container>
 
-    <!-- Name Column -->
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef> Име </th>
-      <td mat-cell *matCellDef="let company"> {{ company.name }} </td>
+      <td mat-cell *matCellDef="let company"> 
+      <button mat-button color="primary" (click)="viewCompanyDetails(company.vatNumber)">
+          {{ company.name }}
+        </button>
+        </td>
+    </ng-container>
+
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef> Описание</th>
+      <td mat-cell *matCellDef="let company">
+         {{ company.description }}
+      </td>
     </ng-container>
 
     <!-- Industry Column -->
@@ -41,5 +42,6 @@
   </table>
 </div>
 
-<mat-paginator [length]="totalCompanies" [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">
+<mat-paginator [length]="totalCompanies" [pageSize]="pageSize" [pageSizeOptions]="[10, 20, 50]"
+  (page)="onPageChange($event)">
 </mat-paginator>
