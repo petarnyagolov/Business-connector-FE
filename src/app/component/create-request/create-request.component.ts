@@ -13,6 +13,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Company } from '../../model/company';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'app-create-request',
@@ -26,7 +28,9 @@ import { Company } from '../../model/company';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatCheckboxModule,
+    MatRadioModule
   ],
   templateUrl: './create-request.component.html',
   styleUrl: './create-request.component.scss'
@@ -50,7 +54,14 @@ export class CreateRequestComponent {
       description: [''],
       status: ['', Validators.required],
       activeFrom: ['', Validators.required],
-      activeTo: ['', Validators.required]
+      activeTo: ['', Validators.required],
+      urgent: [false],
+      serviceType: [''],
+      capacity: [''],
+      workMode: [''],
+      priceFrom: [''],
+      priceTo: [''],
+      unit: ['']
     });
     this.loadUserCompanies();
   }

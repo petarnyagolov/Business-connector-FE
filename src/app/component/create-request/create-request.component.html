@@ -63,6 +63,49 @@
           <mat-error *ngIf="requestForm.get('activeTo')?.hasError('required')">Крайна дата е задължителна</mat-error>
         </mat-form-field>
 
+        <!-- Чекбокс Спешно -->
+        <mat-checkbox formControlName="urgent">Спешно</mat-checkbox>
+
+        <!-- Допълнителни полета според типа заявка -->
+        <ng-container *ngIf="requestForm.get('requestType')?.value === 'SHARE_SERVICE' || requestForm.get('requestType')?.value === 'LOOKING_FOR_SERVICE' || requestForm.get('requestType')?.value === 'BUY' || requestForm.get('requestType')?.value === 'SELL'">
+          <mat-label style="margin-top:10px;display:block;">Тип услуга</mat-label>
+          <mat-radio-group formControlName="serviceType">
+            <mat-radio-button value="one_time">Еднократна</mat-radio-button>
+            <mat-radio-button value="permanent">Постоянна</mat-radio-button>
+          </mat-radio-group>
+
+          <mat-form-field appearance="fill">
+            <mat-label>Капацитет (брой, оборудване или количество)</mat-label>
+            <input matInput formControlName="capacity">
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>Режим работно време</mat-label>
+            <mat-select formControlName="workMode">
+              <mat-option value="standard">Стандартно делнично</mat-option>
+              <mat-option value="extended">Удължено</mat-option>
+              <mat-option value="continuous">Непрекъснато</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+
+        <ng-container *ngIf="requestForm.get('requestType')?.value === 'BUY' || requestForm.get('requestType')?.value === 'SELL'">
+          <div style="display:flex; gap:10px; align-items: flex-end;">
+            <mat-form-field appearance="fill" style="flex:1;">
+              <mat-label>Цена от</mat-label>
+              <input matInput type="number" formControlName="priceFrom">
+            </mat-form-field>
+            <mat-form-field appearance="fill" style="flex:1;">
+              <mat-label>Цена до</mat-label>
+              <input matInput type="number" formControlName="priceTo">
+            </mat-form-field>
+          </div>
+          <mat-form-field appearance="fill">
+            <mat-label>Единица (брой, кашон, кутия, дузина и др.)</mat-label>
+            <input matInput formControlName="unit">
+          </mat-form-field>
+        </ng-container>
+
         <div class="file-upload">
           <label for="pictures">Снимки</label>
           <input type="file" id="pictures" (change)="onFileSelected($event)" multiple accept="image/*">
