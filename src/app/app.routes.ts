@@ -13,9 +13,10 @@ import { RequestDetailsComponent } from './component/request-details/request-det
 import { UserRequestsComponent } from './component/user-requests/user-requests.component';
 import { UserResponsesComponent } from './component/user-responses/user-responses.component';
 import { EmailVerificationComponent } from './component/email-verification/email-verification.component'; // Added
+import { HomeComponent } from './component/home/home.component';
 
 export const routes: Routes = [
-  // { path: 'companies', component: HomeComponent },
+  { path: 'home', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'verify-email', component: EmailVerificationComponent }, // route за email verification

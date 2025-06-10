@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import {MatGridListModule} from '@angular/material/grid-list';
@@ -21,10 +21,11 @@ export class UserCompaniesComponent {
   companies: Company[] = [];
   showCancelButton: boolean = false; 
   logoUrls: { [key: string]: string } = {};
+  private logoObjectUrls: string[] = []; // За освобождаване на blob-ове
 
 
   
-constructor(private router: Router, private companyService: CompanyService) {
+constructor(private router: Router, private companyService: CompanyService, private cdr: ChangeDetectorRef) {
   this.loadCompanies();
 
 }
@@ -45,6 +46,8 @@ ngOnInit(): void {
 loadCompanies(): void {
   this.companyService.getAllCompaniesByUser().subscribe({
     next: (data: Company[]) => {
+      // Изчистване на logoUrls, за да се презаредят blob-овете при всяко зареждане
+      this.logoUrls = {};
       // Сортирай така, че компаниите с лого да са най-отгоре
       this.companies = data.sort((a, b) => {
         const aHasLogo = !!(a.logo && this.logoUrls[a.logo]);
@@ -62,27 +65,50 @@ loadCompanies(): void {
 }
 
 loadAllLogos(): void {
-  for (const company of this.companies) {
-    const logoPath = company.logo;
-    if (logoPath && !this.logoUrls[logoPath]) {
-      const cleanPath = logoPath.replace(/\\/g, '/');
-      this.companyService.getLogoByPath(cleanPath).subscribe({
-        next: (blob: Blob) => {
-          const objectUrl = URL.createObjectURL(blob);
-          this.logoUrls[logoPath] = objectUrl;
-        },
-        error: (error: unknown) => {
-          console.error('Error loading logo:', error);
-          this.logoUrls[logoPath] = '';
-        }
-      });
+  // Събиране на vatNumber-ите на текущите компании
+  const currentVatNumbers = this.companies.map(c => c.vatNumber);
+  // Премахване на blob URL-и, които вече не са нужни
+  Object.keys(this.logoUrls).forEach(vat => {
+    if (!currentVatNumbers.includes(vat)) {
+      URL.revokeObjectURL(this.logoUrls[vat]);
+      delete this.logoUrls[vat];
     }
-  }
+  });
+
+  const logoPromises = this.companies.map(company => {
+    const logoPath = company.logo;
+    // Ако вече има blob за този vatNumber, не прави нова заявка
+    if (!logoPath) {
+      this.logoUrls[company.vatNumber] = '';
+      return Promise.resolve(undefined);
+    }
+    if (this.logoUrls[company.vatNumber]) {
+      return Promise.resolve(undefined);
+    }
+    const cleanPath = logoPath.replace(/\\/g, '/');
+    return this.companyService.getLogoByPath(cleanPath).toPromise()
+      .then((blob) => {
+        if (blob) {
+          const objectUrl = URL.createObjectURL(blob);
+          this.logoUrls[company.vatNumber] = objectUrl;
+        } else {
+          this.logoUrls[company.vatNumber] = '';
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Error loading logo:', error);
+        this.logoUrls[company.vatNumber] = '';
+      });
+  });
+
+  Promise.all(logoPromises).then(() => {
+    this.cdr.detectChanges();
+  });
 }
 
-getLogoUrl(logoPath?: string): string {
-  if (!logoPath) return '';
-  return this.logoUrls[logoPath] || '';
+getLogoUrl(logoPath?: string, vatNumber?: string): string {
+  if (!logoPath || !vatNumber) return '';
+  return this.logoUrls[vatNumber] || '';
 }
 
   createCompany() {
@@ -141,6 +167,6 @@ getLogoUrl(logoPath?: string): string {
   }
 
   logoLoadError(event: Event) {
-    (event.target as HTMLImageElement).style.display = 'none';
+    (event.target as HTMLImageElement).src = '/assets/images/logo-fallback.png';
   }
 }
