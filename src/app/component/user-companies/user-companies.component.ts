@@ -9,6 +9,7 @@ import { CompanyService } from '../../service/company.service';
 import { filter } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-user-companies',
@@ -46,8 +47,6 @@ ngOnInit(): void {
 loadCompanies(): void {
   this.companyService.getAllCompaniesByUser().subscribe({
     next: (data: Company[]) => {
-      // Изчистване на logoUrls, за да се презаредят blob-овете при всяко зареждане
-      this.logoUrls = {};
       // Сортирай така, че компаниите с лого да са най-отгоре
       this.companies = data.sort((a, b) => {
         const aHasLogo = !!(a.logo && this.logoUrls[a.logo]);
@@ -65,50 +64,56 @@ loadCompanies(): void {
 }
 
 loadAllLogos(): void {
-  // Събиране на vatNumber-ите на текущите компании
-  const currentVatNumbers = this.companies.map(c => c.vatNumber);
-  // Премахване на blob URL-и, които вече не са нужни
-  Object.keys(this.logoUrls).forEach(vat => {
-    if (!currentVatNumbers.includes(vat)) {
-      URL.revokeObjectURL(this.logoUrls[vat]);
-      delete this.logoUrls[vat];
+  const currentIds = this.companies.map(c => c.id?.toString()).filter(Boolean);
+  Object.keys(this.logoUrls).forEach(id => {
+    if (!currentIds.includes(id)) {
+      URL.revokeObjectURL(this.logoUrls[id]);
+      delete this.logoUrls[id];
     }
   });
 
-  const logoPromises = this.companies.map(company => {
-    const logoPath = company.logo;
-    // Ако вече има blob за този vatNumber, не прави нова заявка
+  const logoObservables = this.companies.map(company => {
+    const id = company.id?.toString();
+    const logoPath = company.logo || company.logoPath;
+    if (!id) return of(null);
     if (!logoPath) {
-      this.logoUrls[company.vatNumber] = '';
-      return Promise.resolve(undefined);
+      this.logoUrls[id] = '';
+      return of(null);
     }
-    if (this.logoUrls[company.vatNumber]) {
-      return Promise.resolve(undefined);
+    if (this.logoUrls[id]) {
+      return of(null);
     }
     const cleanPath = logoPath.replace(/\\/g, '/');
-    return this.companyService.getLogoByPath(cleanPath).toPromise()
-      .then((blob) => {
-        if (blob) {
-          const objectUrl = URL.createObjectURL(blob);
-          this.logoUrls[company.vatNumber] = objectUrl;
-        } else {
-          this.logoUrls[company.vatNumber] = '';
-        }
-      })
-      .catch((error: unknown) => {
-        console.error('Error loading logo:', error);
-        this.logoUrls[company.vatNumber] = '';
-      });
+    return this.companyService.getLogoByPath(cleanPath).pipe(
+      // Ако има грешка, върни null
+      // catchError(() => of(null))
+    );
   });
 
-  Promise.all(logoPromises).then(() => {
+  forkJoin(logoObservables).subscribe((blobs) => {
+    this.companies.forEach((company, idx) => {
+      const id = company.id?.toString();
+      const blob = blobs[idx];
+      if (!id) return;
+      if (blob instanceof Blob) {
+        const objectUrl = URL.createObjectURL(blob);
+        this.logoUrls[id] = objectUrl;
+      } else if (!this.logoUrls[id]) {
+        this.logoUrls[id] = '';
+      }
+    });
+    // Принудително създай нов обект, за да тригърнеш Angular change detection
+    this.logoUrls = { ...this.logoUrls };
     this.cdr.detectChanges();
   });
 }
 
-getLogoUrl(logoPath?: string, vatNumber?: string): string {
-  if (!logoPath || !vatNumber) return '';
-  return this.logoUrls[vatNumber] || '';
+getLogoUrl(company: Company): string {
+  const logoPath = company.logo || company.logoPath;
+  if (!logoPath) return '';
+  if (logoPath.startsWith('http')) return logoPath;
+  // Връща абсолютния URL към бекенда
+  return `http://localhost:8080/files/${logoPath.replace(/^\\+|\\+$/g, '').replace(/\\/g, '/')}`;
 }
 
   createCompany() {
@@ -167,6 +172,6 @@ getLogoUrl(logoPath?: string, vatNumber?: string): string {
   }
 
   logoLoadError(event: Event) {
-    (event.target as HTMLImageElement).src = '/assets/images/logo-fallback.png';
+    (event.target as HTMLImageElement).style.display = 'none';
   }
 }

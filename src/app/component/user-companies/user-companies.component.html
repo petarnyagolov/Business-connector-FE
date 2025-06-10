@@ -3,12 +3,12 @@
   <mat-card class="example-card company-card" *ngFor="let company of companies" appearance="outlined">
 
     <mat-card-header>
-      <ng-container *ngIf="company.logo && company.logo !== ''; else defaultLogo">
-        <img [src]="getLogoUrl(company.logo, company.vatNumber)"
+      <ng-container *ngIf="(company.logo || company.logoPath) && (company.logo || company.logoPath) !== ''; else defaultLogo">
+        <img [src]="getLogoUrl(company)"
              alt="Company Logo"
              class="company-logo"
              (error)="logoLoadError($event)" />
-        <!-- <div style=";">src: {{ getLogoUrl(company.logo, company.vatNumber) }}</div> -->
+        <!-- <div style="font-size:10px;word-break:break-all;">src: {{ getLogoUrl(company) }}</div> -->
       </ng-container>
       <ng-template #defaultLogo>
         <mat-icon>business</mat-icon>
