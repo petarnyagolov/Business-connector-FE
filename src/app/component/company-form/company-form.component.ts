@@ -52,6 +52,8 @@ export class CompanyFormComponent {
   showCompanyDetails = false;
   isValidVatNumber = false;
 
+  @Input() showSaveButton: boolean = true; // New input property to control save button visibility
+
   constructor(private fb: FormBuilder) {
     // Use disabled state at creation time for controls
     const controlsConfig: any = {

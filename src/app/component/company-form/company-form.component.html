@@ -79,6 +79,6 @@
   <div class="company-form-action-bar" *ngIf="showCompanyDetails && isValidVatNumber">
     <!-- <button mat-stroked-button color="warn" type="button" (click)="cancel.emit()" class="action-cancel">Откажи</button> -->
     <span class="action-bar-spacer"></span>
-    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="!companyForm.valid">Запази</button>
+    <button *ngIf="showSaveButton !== false" mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="!companyForm.valid">Запази</button>
   </div>
 </form>
