@@ -35,6 +35,7 @@ export class CompanyFormComponent {
   @Output() validateCompany = new EventEmitter<{ vatNumber: string, country: string }>();
   @Output() countryChange = new EventEmitter<any>();
   @Output() logoChange = new EventEmitter<File | null>(); // EventEmitter for logo changes
+  @Output() cancel = new EventEmitter<void>(); // EventEmitter for cancel action
 
   @ViewChild('logoInput') logoInputRef!: ElementRef; // Reference to the logo input element
 
@@ -54,15 +55,16 @@ export class CompanyFormComponent {
   constructor(private fb: FormBuilder) {
     // Use disabled state at creation time for controls
     const controlsConfig: any = {
-      country: [{ value: '', disabled: this.disabledFields.includes('country') }, Validators.required],
-      vatNumber: [{ value: '', disabled: this.disabledFields.includes('vatNumber') }, Validators.required],
-      name: [{ value: '', disabled: this.disabledFields.includes('name') }],
-      industry: [{ value: '', disabled: this.disabledFields.includes('industry') }],
-      city: [''],
-      address: [''],
-      description: [''],
-      employeesSize: [''],
-      creatorPosition: [{ value: '', disabled: this.disabledFields.includes('creatorPosition') }, Validators.required],
+      country: [{ value: '', disabled: this.disabledFields.includes('country') }, [Validators.required , Validators.maxLength(50)]],
+      vatNumber: [{ value: '', disabled: this.disabledFields.includes('vatNumber') }, [Validators.required, Validators.maxLength(50)]],
+      name: [{ value: '', disabled: this.disabledFields.includes('name') }, [Validators.required, Validators.maxLength(255)]],
+      industry: [{ value: '', disabled: this.disabledFields.includes('industry') }, [Validators.required, Validators.maxLength(50)]],
+      city: ['', [Validators.required, Validators.maxLength(50)]],
+      address: ['', [Validators.required, Validators.maxLength(50)]],
+      description: ['', [Validators.required, Validators.maxLength(350)]],
+      employeesSize: ['', [Validators.required, Validators.maxLength(10)]],
+      creatorPosition: [{ value: '', disabled: this.disabledFields.includes('creatorPosition') }, [Validators.required, Validators.maxLength(50)]],
+      logo: ['', [Validators.maxLength(255)]],
     };
 
     this.companyForm = this.fb.group(controlsConfig);
@@ -136,6 +138,10 @@ export class CompanyFormComponent {
     if (this.companyForm.valid) {
       this.formSubmit.emit(this.companyForm.getRawValue());
     }
+  }
+
+  onCancel() {
+    this.cancel.emit(); // Emit the cancel event
   }
 
   setCompanyDetailsVisible(visible: boolean) {

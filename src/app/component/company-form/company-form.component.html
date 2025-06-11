@@ -5,10 +5,13 @@
       <mat-select formControlName="country" (selectionChange)="countryChange.emit($event)">
         <mat-option *ngFor="let country of countries" [value]="country">{{ country }}</mat-option>
       </mat-select>
+      <mat-error *ngIf="companyForm.get('country')?.hasError('required')">Държавата е задължителна</mat-error>
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>ЕИК/VAT</mat-label>
       <input matInput formControlName="vatNumber" />
+      <mat-error *ngIf="companyForm.get('vatNumber')?.hasError('required')">ЕИК/VAT е задължителен</mat-error>
+      <mat-error *ngIf="companyForm.get('vatNumber')?.hasError('maxlength')">ЕИК/VAT трябва да е до 50 символа</mat-error>
     </mat-form-field>
     <button mat-raised-button color="primary" type="button" (click)="onValidate()" style="align-self: flex-end; margin-left: 16px;">Validate</button>
   </div>
@@ -17,49 +20,65 @@
       <mat-form-field appearance="fill">
         <mat-label>Име на фирма</mat-label>
         <input matInput formControlName="name" />
+        <mat-error *ngIf="companyForm.get('name')?.hasError('required')">Името е задължително</mat-error>
+        <mat-error *ngIf="companyForm.get('name')?.hasError('maxlength')">Името трябва да е до 255 символа</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Индустрия</mat-label>
         <mat-select formControlName="industry">
           <mat-option *ngFor="let industry of industries" [value]="industry.value">{{ industry.viewValue }}</mat-option>
         </mat-select>
+        <mat-error *ngIf="companyForm.get('industry')?.hasError('required')">Индустрията е задължителна</mat-error>
       </mat-form-field>
     </div>
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Град</mat-label>
         <input matInput formControlName="city" />
+        <mat-error *ngIf="companyForm.get('city')?.hasError('required')">Градът е задължителен</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Адрес</mat-label>
         <input matInput formControlName="address" />
+        <mat-error *ngIf="companyForm.get('address')?.hasError('required')">Адресът е задължителен</mat-error>
       </mat-form-field>
     </div>
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Описание</mat-label>
         <textarea matInput formControlName="description"></textarea>
+        <mat-error *ngIf="companyForm.get('description')?.hasError('required')">Описанието е задължително</mat-error>
+        <mat-error *ngIf="companyForm.get('description')?.hasError('maxlength')">Описанието трябва да е до 350 символа</mat-error>
       </mat-form-field>
       <mat-form-field appearance="fill">
         <mat-label>Брой служители</mat-label>
         <mat-select formControlName="employeesSize">
           <mat-option *ngFor="let size of employeesSizes" [value]="size.value">{{ size.viewValue }}</mat-option>
         </mat-select>
+        <mat-error *ngIf="companyForm.get('employeesSize')?.hasError('required')">Броят служители е задължителен</mat-error>
       </mat-form-field>
     </div>
     <div class="form-row">
       <mat-form-field appearance="fill">
         <mat-label>Вашата длъжност във фирмата</mat-label>
         <input matInput formControlName="creatorPosition" />
+        <mat-error *ngIf="companyForm.get('creatorPosition')?.hasError('required')">Длъжността е задължителна</mat-error>
+        <mat-error *ngIf="companyForm.get('creatorPosition')?.hasError('maxlength')">Длъжността трябва да е до 255 символа</mat-error>
       </mat-form-field>
       <div>
         <label for="logoInputId">Лого на фирмата</label>
         <input id="logoInputId" type="file" (change)="onLogoSelected($event)" #logoInput>
+        <mat-error *ngIf="companyForm.get('logo')?.hasError('maxlength')">Пътят до логото трябва да е до 512 символа</mat-error>
         <button mat-icon-button *ngIf="selectedLogo" (click)="clearLogo()" type="button" aria-label="Clear logo">
           <mat-icon>clear</mat-icon>
         </button>
       </div>
     </div>
   </ng-container>
-  <!-- Removed the submit button and its div.button-row -->
+  <!-- Fixed Action Bar: Only visible when form is active -->
+  <div class="company-form-action-bar" *ngIf="showCompanyDetails && isValidVatNumber">
+    <!-- <button mat-stroked-button color="warn" type="button" (click)="cancel.emit()" class="action-cancel">Откажи</button> -->
+    <span class="action-bar-spacer"></span>
+    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="!companyForm.valid">Запази</button>
+  </div>
 </form>

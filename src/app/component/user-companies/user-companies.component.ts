@@ -117,10 +117,13 @@ getLogoUrl(company: Company): string {
 }
 
   createCompany() {
-    console.log('createCompany() called'); // Debugging
-    // this.showCancelButton = true;
-    console.log('showCancelButton:', this.showCancelButton); // Debugging
     this.router.navigate(['/user/companies/create']);
+    setTimeout(() => {
+      const formEl = document.querySelector('.company-form');
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 200);
   }
   
   onCancel() {
@@ -131,7 +134,7 @@ getLogoUrl(company: Company): string {
     
   }
   editCompany(company: Company) {
-    this.router.navigate(['/user/companies/update', company.vatNumber]);
+    this.router.navigate(['/user/companies/update', company.id]);
   }
   getGridColumns(): number {
     if (this.companies.length === 1) {
@@ -173,5 +176,9 @@ getLogoUrl(company: Company): string {
 
   logoLoadError(event: Event) {
     (event.target as HTMLImageElement).style.display = 'none';
+  }
+
+  getEmployeesSize(company: any): string {
+    return company && company.employeesSize ? company.employeesSize : '-';
   }
 }

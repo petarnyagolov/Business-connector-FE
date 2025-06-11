@@ -7,8 +7,6 @@
   (formSubmit)="onCompanyFormSubmit($event)"
   (validateCompany)="onCompanyValidate($event)"
   (countryChange)="onCountryChanged($event)"
-  (logoChange)="onLogoChange($event)">
-</app-company-form>
-<div class="button-row" style="margin-top: 16px;">
-  <button mat-raised-button color="primary" (click)="companyFormComponent.onSubmit()" [disabled]="!companyFormComponent?.companyForm?.valid || !isValidVatNumber">Запази</button>
-</div>
+  (logoChange)="onLogoChange($event)"
+  (cancel)="onCancelCompanyForm()"
+></app-company-form>

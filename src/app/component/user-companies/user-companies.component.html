@@ -1,39 +1,37 @@
-<h4 style="text-align: center;">Моите Компании</h4>
-<div class="card-grid">
-  <mat-card class="example-card company-card" *ngFor="let company of companies" appearance="outlined">
-
-    <mat-card-header>
-      <ng-container *ngIf="(company.logo || company.logoPath) && (company.logo || company.logoPath) !== ''; else defaultLogo">
-        <img [src]="getLogoUrl(company)"
-             alt="Company Logo"
-             class="company-logo"
-             (error)="logoLoadError($event)" />
-        <!-- <div style="font-size:10px;word-break:break-all;">src: {{ getLogoUrl(company) }}</div> -->
+<h4 style="text-align: center;">Моите Фирми</h4>
+<div class="user-companies-container" style="padding-bottom: 90px;">
+  <mat-card class="company-detail-card" *ngFor="let company of companies">
+    <div class="company-logo-container">
+      <ng-container *ngIf="getLogoUrl(company); else noLogo">
+        <img [src]="getLogoUrl(company)" alt="{{ company.name }} Logo" class="company-logo-img" />
       </ng-container>
-      <ng-template #defaultLogo>
-        <mat-icon>business</mat-icon>
+      <ng-template #noLogo>
+        <mat-icon style="font-size: 64px;">business</mat-icon>
       </ng-template>
-    </mat-card-header>
-
+    </div>
+    <mat-card-title class="company-title">{{ company.name }}</mat-card-title>
     <mat-card-content>
-      <p><span class="label">фирма: </span> <span class="value">{{ company.name | uppercase }} ({{ company.vatNumber }})</span></p>
-      <p><span class="label">описание: </span> <span class="value">{{ company.description }}</span></p>
-      <p><span class="label">индустрия: </span> <span class="value">{{ company.industry }}</span></p>
-      <p><span class="label">държава: </span> <span class="value">{{ company.country }}</span></p>
-      <p><span class="label">град: </span> <span class="value">{{ company.city }}</span></p>
-      <p><span class="label">адрес: </span> <span class="value">{{ company.address }}</span></p>
+      <div class="company-detail-list">
+        <div class="detail-row"><span class="detail-label">Описание:</span> <span>{{ company.description }}</span></div>
+        <div class="detail-row"><span class="detail-label">Индустрия:</span> <span>{{ company.industry }}</span></div>
+        <div class="detail-row"><span class="detail-label">Държава:</span> <span>{{ company.country }}</span></div>
+        <div class="detail-row"><span class="detail-label">Град:</span> <span>{{ company.city }}</span></div>
+        <div class="detail-row"><span class="detail-label">Адрес:</span> <span>{{ company.address }}</span></div>
+        <div class="detail-row"><span class="detail-label">Брой служители:</span> <span>{{ getEmployeesSize(company) }}</span></div>
+        <div class="detail-row"><span class="detail-label">Позиция на създателя:</span> <span>{{ company.creatorPosition }}</span></div>
+      </div>
     </mat-card-content>
     <mat-card-actions>
       <button mat-button (click)="editCompany(company)">Редактирай</button>
     </mat-card-actions>
   </mat-card>
 </div>
-<div style="margin-top: auto;padding: 10px;">
-  <button *ngIf="!showCancelButton" mat-raised-button color="accent" routerLink="create">
-    Добави нова фирма
-  </button>
-  <button *ngIf="showCancelButton" mat-raised-button color="warn" (click)="onCancel()">
+<div class="bottom-action-bar">
+  <button *ngIf="showCancelButton" mat-raised-button color="warn" (click)="onCancel()" style="margin-right:auto;">
     Откажи Добавяне нова фирма
   </button>
-  <router-outlet></router-outlet>
+  <button *ngIf="!showCancelButton" mat-raised-button color="accent" routerLink="create" style="margin-left:auto;">
+    Добави нова фирма
+  </button>
 </div>
+<router-outlet></router-outlet>

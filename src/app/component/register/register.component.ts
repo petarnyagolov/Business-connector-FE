@@ -51,10 +51,20 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   constructor(private fb: FormBuilder, private authService: AuthService, private companyService: CompanyService, private industryService: IndustryService, private router: Router) {
     this.registrationForm = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      firstName: ['', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(50),
+        Validators.pattern("^[A-Za-zА-Яа-яЁёІіЇїЄєҐґ .'-]{2,50}$") // Латиница и кирилица
+      ]],
+      lastName: ['', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(50),
+        Validators.pattern("^[A-Za-zА-Яа-яЁёІіЇїЄєҐґ .'-]{2,50}$") // Латиница и кирилица
+      ]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
       lang: ['bg', Validators.required]
     });
   }

@@ -57,7 +57,7 @@ export class CreateCompanyComponent {
     this.companyService.createCompany(formData).pipe(
       tap({
         next: (response: any) => {
-          alert('You have a company!');
+          alert('Имате нова фирма!');
           this.router.navigate(['/user/companies']);
         },
         error: (error: any) => {
@@ -134,5 +134,10 @@ export class CreateCompanyComponent {
 
   onLogoChange(logo: File | null) {
     this.selectedLogo = logo;
+  }
+
+  onCancelCompanyForm() {
+    // Navigate back or hide the form as appropriate
+    this.router.navigate(['/user/companies']);
   }
 }

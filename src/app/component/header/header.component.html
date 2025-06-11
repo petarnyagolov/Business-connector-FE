@@ -7,13 +7,13 @@
     <nav class="nav-links">
       <a mat-button routerLink="/home">Начало</a>
       <a mat-button routerLink="/companies">Фирми</a>
-      <a mat-button routerLink="/requests" *ngIf="isAuthenticated">Обяви</a>
+      <a mat-button routerLink="/requests" *ngIf="isAuthenticated">Заявления</a>
       <a mat-button routerLink="/user/companies" *ngIf="isAuthenticated">Моите фирми</a>
-      <a mat-button routerLink="/requests/my-requests" *ngIf="isAuthenticated">Моите Обяви</a>
+      <a mat-button routerLink="/requests/my-requests" *ngIf="isAuthenticated">Моите Заявления</a>
       <a mat-button routerLink="/requests/my-responses" *ngIf="isAuthenticated">Моите Отговори</a>
       <a mat-button routerLink="/about">За нас</a>
-      <a mat-button routerLink="/login" *ngIf="!isAuthenticated">Login</a>
-      <a mat-button routerLink="/register" *ngIf="!isAuthenticated">Register</a>
+      <a mat-button routerLink="/login" *ngIf="!isAuthenticated">Влез</a>
+      <a mat-button routerLink="/register" *ngIf="!isAuthenticated">Регистрация</a>
       <!-- Account icon and menu for authenticated users -->
       <button mat-icon-button [matMenuTriggerFor]="accountMenu" *ngIf="isAuthenticated">
         <mat-icon>account_circle</mat-icon>

@@ -24,7 +24,7 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/companies' },
   { path: 'list', component: CompanyListComponent },
   { path: 'companies', component: CompanyListComponent },
-  { path: 'companies/:vatNumber', component: CompanyDetailComponent },
+  { path: 'companies/:id', component: CompanyDetailComponent },
   {
     path: 'user/companies',
     component: UserCompaniesComponent,

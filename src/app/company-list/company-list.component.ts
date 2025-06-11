@@ -68,7 +68,7 @@ export class CompanyListComponent implements OnInit {
     this.loadCompanies();
   }
 
-  viewCompanyDetails(vatNumber: string): void {
-    this.router.navigate(['/companies', vatNumber]);
+  viewCompanyDetails(id: string): void {
+    this.router.navigate(['/companies', id]);
   }
 }
