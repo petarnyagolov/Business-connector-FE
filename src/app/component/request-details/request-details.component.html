@@ -2,7 +2,7 @@
   <h2>{{ request.title }}</h2>
   <p><b>Описание:</b> {{ request.description }}</p>
   <p><b>Тип:</b> {{ request.requestType }}</p>
-  <p><b>Фирма:</b> {{ request.requesterName }} ({{ request.requesterVatNumber }})</p>
+  <p><b>Фирма:</b> {{ request.requesterName }} ({{ request.requesterCompanyId }})</p>
   <p><b>Статус:</b> {{ request.status }}</p>
   <p><b>Активна от:</b> {{ request.activeFrom | date:'dd.MM.yyyy HH:mm' }}</p>
   <p><b>Активна до:</b> {{ request.activeTo | date:'dd.MM.yyyy HH:mm' }}</p>

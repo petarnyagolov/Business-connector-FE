@@ -77,8 +77,8 @@
   </ng-container>
   <!-- Fixed Action Bar: Only visible when form is active -->
   <div class="company-form-action-bar" *ngIf="showCompanyDetails && isValidVatNumber">
-    <!-- <button mat-stroked-button color="warn" type="button" (click)="cancel.emit()" class="action-cancel">Откажи</button> -->
     <span class="action-bar-spacer"></span>
     <button *ngIf="showSaveButton !== false" mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="!companyForm.valid">Запази</button>
+    <button *ngIf="showRegisterButton" mat-raised-button color="accent" type="button" style="margin-left:16px; font-weight:bold; font-size:18px;" (click)="onRegister()" [disabled]="!companyForm.valid">Register</button>
   </div>
 </form>

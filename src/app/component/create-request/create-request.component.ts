@@ -49,10 +49,10 @@ export class CreateRequestComponent {
   ) {
     this.requestForm = this.fb.group({
       company: ['', Validators.required],
-      title: ['', Validators.required],
-      requestType: ['', Validators.required],
-      description: [''],
-      status: ['', Validators.required],
+      region: ['', [Validators.required, Validators.maxLength(50)]],
+      title: ['', [Validators.required, Validators.maxLength(255)]],
+      requestType: ['', [Validators.required, Validators.maxLength(50)]],
+      description: ['', [Validators.required, Validators.maxLength(500)]],
       activeFrom: ['', Validators.required],
       activeTo: ['', Validators.required],
       urgent: [false],
@@ -91,19 +91,32 @@ export class CreateRequestComponent {
     if (this.requestForm.invalid) return;
     const formData = new FormData();
     const formValue = this.requestForm.value;
-    // company е vatNumber
     const selectedCompany = this.userCompanies.find(c => c.vatNumber === formValue.company);
     if (selectedCompany) {
-      // Създаваме обект за requestCompany
+      const toLocalDateString = (date: any) => {
+        if (!date) return null;
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const day = d.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}T00:00:00`;
+      };
       const requestCompany = {
         requesterName: selectedCompany.name,
-        requesterVatNumber: selectedCompany.vatNumber,
+        requesterCompanyId: selectedCompany.id,
+        region: formValue.region,
         title: formValue.title,
         requestType: formValue.requestType,
         description: formValue.description,
-        status: formValue.status,
-        activeFrom: formValue.activeFrom,
-        activeTo: formValue.activeTo
+        activeFrom: toLocalDateString(formValue.activeFrom),
+        activeTo: toLocalDateString(formValue.activeTo),
+        urgent: formValue.urgent,
+        serviceType: formValue.serviceType,
+        capacity: formValue.capacity,
+        workMode: formValue.workMode,
+        priceFrom: formValue.priceFrom,
+        priceTo: formValue.priceTo,
+        unit: formValue.unit
       };
       formData.append('requestCompany', new Blob([JSON.stringify(requestCompany)], { type: 'application/json' }));
     }

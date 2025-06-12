@@ -73,15 +73,10 @@
                               (validateCompany)="onCompanyValidate($event)"
                               [countries]="countries"
                               [industries]="industries"
-                              [showSaveButton]="false">
+                              [showSaveButton]="false"
+                              [showRegisterButton]="true"
+                              (register)="onSubmit()">
             </app-company-form>
-  
-            <div class="d-flex justify-content-end mt-4">
-              <button mat-raised-button color="primary" type="submit" 
-                      [disabled]="!registrationForm.valid || !companyFormComponentRef.companyForm.valid">
-                Register
-              </button>
-            </div>
           </form>
         </div>
       </div>

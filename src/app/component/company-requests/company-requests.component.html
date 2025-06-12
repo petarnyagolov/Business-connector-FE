@@ -22,7 +22,7 @@
         </div>
         <p class="description">{{ request.description }}</p>
         <div class="company">
-          <mat-icon>business</mat-icon> {{ request.requesterName }} <span *ngIf="request.requesterVatNumber">({{ request.requesterVatNumber }})</span>
+          <mat-icon>business</mat-icon> {{ request.requesterName }} <span *ngIf="request.requesterCompanyId">({{ request.requesterCompanyId }})</span>
         </div>
         <div class="actions">
           <button mat-stroked-button color="primary" (click)="viewRequestDetails(request.id)" [disabled]="showReplyFormId === request.id">Виж</button>

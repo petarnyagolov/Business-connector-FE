@@ -15,9 +15,17 @@
         </mat-form-field>
 
         <mat-form-field appearance="fill">
+          <mat-label>Регион</mat-label>
+          <input matInput formControlName="region" required maxlength="50">
+          <mat-error *ngIf="requestForm.get('region')?.hasError('required')">Регионът е задължителен</mat-error>
+          <mat-error *ngIf="requestForm.get('region')?.hasError('maxlength')">Регионът трябва да е до 50 символа</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
           <mat-label>Заглавие</mat-label>
-          <input matInput formControlName="title" required>
+          <input matInput formControlName="title" required maxlength="255">
           <mat-error *ngIf="requestForm.get('title')?.hasError('required')">Заглавието е задължително</mat-error>
+          <mat-error *ngIf="requestForm.get('title')?.hasError('maxlength')">Заглавието трябва да е до 255 символа</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
@@ -28,23 +36,16 @@
             <mat-option value="BUY">Купувам</mat-option>
             <mat-option value="SELL">Продавам</mat-option>
             <mat-option value="OTHER">Друго</mat-option>
-
           </mat-select>
           <mat-error *ngIf="requestForm.get('requestType')?.hasError('required')">Типът е задължителен</mat-error>
+          <mat-error *ngIf="requestForm.get('requestType')?.hasError('maxlength')">Типът трябва да е до 50 символа</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Описание</mat-label>
-          <textarea matInput formControlName="description" rows="3"></textarea>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Статус</mat-label>
-          <mat-select formControlName="status" required>
-            <mat-option value="ACTIVE">Активна</mat-option>
-            <mat-option value="INACTIVE">Неактивна</mat-option>
-          </mat-select>
-          <mat-error *ngIf="requestForm.get('status')?.hasError('required')">Статусът е задължителен</mat-error>
+          <textarea matInput formControlName="description" rows="3" required maxlength="500"></textarea>
+          <mat-error *ngIf="requestForm.get('description')?.hasError('required')">Описанието е задължително</mat-error>
+          <mat-error *ngIf="requestForm.get('description')?.hasError('maxlength')">Описанието трябва да е до 500 символа</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
@@ -74,14 +75,25 @@
             <mat-radio-button value="permanent">Постоянна</mat-radio-button>
           </mat-radio-group>
 
-          <mat-form-field appearance="fill">
-            <mat-label>Капацитет (брой, оборудване или количество)</mat-label>
-            <input matInput formControlName="capacity">
-          </mat-form-field>
+          <div style="display: flex; gap: 16px; align-items: flex-end;">
+            <mat-form-field appearance="fill" style="flex:1;">
+              <mat-label>Капацитет (брой, оборудване или количество)</mat-label>
+              <input matInput type="number" formControlName="capacity" placeholder="Въведете число">
+            </mat-form-field>
+            <mat-form-field appearance="fill" style="flex:1;">
+              <mat-label>Единица</mat-label>
+              <mat-select formControlName="unit">
+                <mat-option value="брой">Брой</mat-option>
+                <mat-option value="кашон">Кашон</mat-option>
+                <mat-option value="пале">Пале</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
 
-          <mat-form-field appearance="fill">
+          <mat-form-field appearance="fill" *ngIf="requestForm.get('requestType')?.value !== 'BUY' && requestForm.get('requestType')?.value !== 'SELL'">
             <mat-label>Режим работно време</mat-label>
             <mat-select formControlName="workMode">
+              <mat-option value="nomatter">Без значение</mat-option>
               <mat-option value="standard">Стандартно делнично</mat-option>
               <mat-option value="extended">Удължено</mat-option>
               <mat-option value="continuous">Непрекъснато</mat-option>
@@ -100,10 +112,6 @@
               <input matInput type="number" formControlName="priceTo">
             </mat-form-field>
           </div>
-          <mat-form-field appearance="fill">
-            <mat-label>Единица (брой, кашон, кутия, дузина и др.)</mat-label>
-            <input matInput formControlName="unit">
-          </mat-form-field>
         </ng-container>
 
         <div class="file-upload">

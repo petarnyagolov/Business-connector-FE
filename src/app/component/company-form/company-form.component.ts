@@ -36,6 +36,7 @@ export class CompanyFormComponent {
   @Output() countryChange = new EventEmitter<any>();
   @Output() logoChange = new EventEmitter<File | null>(); // EventEmitter for logo changes
   @Output() cancel = new EventEmitter<void>(); // EventEmitter for cancel action
+  @Output() register = new EventEmitter<any>(); // EventEmitter for register action
 
   @ViewChild('logoInput') logoInputRef!: ElementRef; // Reference to the logo input element
 
@@ -53,6 +54,7 @@ export class CompanyFormComponent {
   isValidVatNumber = false;
 
   @Input() showSaveButton: boolean = true; // New input property to control save button visibility
+  @Input() showRegisterButton: boolean = false; // New input property to control register button visibility
 
   constructor(private fb: FormBuilder) {
     // Use disabled state at creation time for controls
@@ -139,6 +141,12 @@ export class CompanyFormComponent {
   onSubmit() {
     if (this.companyForm.valid) {
       this.formSubmit.emit(this.companyForm.getRawValue());
+    }
+  }
+
+  onRegister() {
+    if (this.companyForm.valid) {
+      this.register.emit(this.companyForm.getRawValue());
     }
   }
 

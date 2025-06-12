@@ -24,7 +24,7 @@ export class UserRequestsComponent {
     id: '',
     title: '',
     description: '',
-    requesterVatNumber: '',
+    requesterCompanyId: '',
     requesterName: '',
     pictures: [],
     requestType: '',

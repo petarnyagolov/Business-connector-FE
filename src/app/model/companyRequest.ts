@@ -1,7 +1,7 @@
 export interface CompanyRequest {
   id: string
   title: string
-  requesterVatNumber: string
+  requesterCompanyId: string
   requesterName: string
   requestType: string
   description: string
