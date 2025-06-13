@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { CompanyRequestService } from '../../service/company-request.service';
 import { filter } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
+import { Company } from '../../model/company';
+import { CompanyService } from '../../service/company.service';
 
 @Component({
   selector: 'app-user-requests',
@@ -19,6 +21,7 @@ import { MatIcon } from '@angular/material/icon';
 export class UserRequestsComponent {
     companyRequests: CompanyRequest[] = [];
     showCancelButton: boolean = false; 
+    userCompanies: Company[] = [];
 
   companyRequest: CompanyRequest = {
     id: '',
@@ -34,12 +37,20 @@ export class UserRequestsComponent {
 
   };
 
-  constructor(private router: Router, private companyRequestService: CompanyRequestService) {
+  constructor(private router: Router, private companyRequestService: CompanyRequestService, private companyService: CompanyService) {
     // this.loadRequests(); // Remove initial call from constructor
   }
 
   ngOnInit(): void {
     this.loadRequests();
+    this.companyService.getAllCompaniesByUser().subscribe({
+      next: (companies) => {
+        this.userCompanies = companies;
+      },
+      error: (err) => {
+        this.userCompanies = [];
+      }
+    });
     // Listen to route changes and toggle the button visibility
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -47,6 +58,11 @@ export class UserRequestsComponent {
         this.loadRequests();
         this.showCancelButton = this.router.url.includes('/create');
       });
+  }
+
+  getCompanyNameById(id: string): string {
+    const company = this.userCompanies.find(c => String(c.id) === String(id));
+    return company ? company.name +  ' (' + company.vatNumber + ')' : '';
   }
 
   loadRequests(): void {

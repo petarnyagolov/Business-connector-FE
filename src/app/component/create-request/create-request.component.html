@@ -64,10 +64,8 @@
           <mat-error *ngIf="requestForm.get('activeTo')?.hasError('required')">Крайна дата е задължителна</mat-error>
         </mat-form-field>
 
-        <!-- Чекбокс Спешно -->
         <mat-checkbox formControlName="urgent">Спешно</mat-checkbox>
 
-        <!-- Допълнителни полета според типа заявка -->
         <ng-container *ngIf="requestForm.get('requestType')?.value === 'SHARE_SERVICE' || requestForm.get('requestType')?.value === 'LOOKING_FOR_SERVICE' || requestForm.get('requestType')?.value === 'BUY' || requestForm.get('requestType')?.value === 'SELL'">
           <mat-label style="margin-top:10px;display:block;">Тип услуга</mat-label>
           <mat-radio-group formControlName="serviceType">

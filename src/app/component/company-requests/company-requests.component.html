@@ -32,9 +32,9 @@
         <div *ngIf="showReplyFormId === request.id" class="reply-form">
           <mat-form-field appearance="fill" style="width: 100%;">
             <mat-label>Компания</mat-label>
-            <mat-select [(ngModel)]="replyFormData[request.id].responserVatNumber" required>
+            <mat-select [(ngModel)]="replyFormData[request.id].responserCompanyId" required>
               <mat-option [value]="''">-- Избери компания --</mat-option>
-              <mat-option *ngFor="let company of userCompanies" [value]="company.vatNumber">
+              <mat-option *ngFor="let company of userCompanies" [value]="company.id">
                 {{ company.name }} ({{ company.vatNumber }})
               </mat-option>
             </mat-select>

@@ -17,13 +17,13 @@
     <h3>Създай отговор</h3>
     <mat-form-field appearance="fill">
       <mat-label>Компания</mat-label>
-      <mat-select formControlName="companyVatNumber" required>
+      <mat-select formControlName="responserCompanyId" required>
         <mat-option [value]="''">-- Избери компания --</mat-option>
-        <mat-option *ngFor="let company of companies" [value]="company.vatNumber">
+        <mat-option *ngFor="let company of companies" [value]="company.id">
           {{ company.name }} ({{ company.vatNumber }})
         </mat-option>
       </mat-select>
-      <mat-error *ngIf="responseForm.get('companyVatNumber')?.hasError('required')">Компанията е задължителна</mat-error>
+      <mat-error *ngIf="responseForm.get('responserCompanyId')?.hasError('required')">Компанията е задължителна</mat-error>
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>Съобщение</mat-label>

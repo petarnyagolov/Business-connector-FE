@@ -35,7 +35,7 @@ export class RequestDetailsComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.responseForm = this.fb.group({
-      companyVatNumber: ['', Validators.required],
+      responserCompanyId: ['', Validators.required],
       message: ['', Validators.required]
     });
   }

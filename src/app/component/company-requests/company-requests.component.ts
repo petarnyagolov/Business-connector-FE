@@ -46,7 +46,7 @@ export class CompanyRequestsComponent implements OnInit {
   searchQuery: string = '';
   searchSubject: Subject<string> = new Subject<string>();
   showReplyFormId: string | null = null;
-  replyFormData: { [key: string]: { responserVatNumber: string; responseText: string } } = {};
+  replyFormData: { [key: string]: { responserCompanyId: string; responseText: string } } = {};
   userCompanies: Company[] = [];
 
   constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef, private companyService: CompanyService, private responseService: ResponseService) {
@@ -89,7 +89,7 @@ export class CompanyRequestsComponent implements OnInit {
   onReply(request: CompanyRequest): void {
     this.showReplyFormId = request.id;
     if (!this.replyFormData[request.id]) {
-      this.replyFormData[request.id] = { responserVatNumber: '', responseText: '' };
+      this.replyFormData[request.id] = { responserCompanyId: '', responseText: '' };
     }
   }
 
@@ -99,12 +99,12 @@ export class CompanyRequestsComponent implements OnInit {
 
   onSubmitReply(request: CompanyRequest): void {
     const data = this.replyFormData[request.id];
-    if (!data.responserVatNumber || !data.responseText) return;
+    if (!data.responserCompanyId || !data.responseText) return;
     this.responseService.createResponse(request.id, data).subscribe({
       next: () => {
         alert('Отговорът е изпратен успешно!');
         this.showReplyFormId = null;
-        this.replyFormData[request.id] = { responserVatNumber: '', responseText: '' };
+        this.replyFormData[request.id] = { responserCompanyId: '', responseText: '' };
       },
       error: () => alert('Грешка при изпращане на отговор!')
     });
