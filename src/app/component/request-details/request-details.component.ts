@@ -26,6 +26,7 @@ export class RequestDetailsComponent implements OnInit {
   companies: Company[] = [];
   responseForm: FormGroup;
   responseSuccess: boolean = false;
+  showResponseForm: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -54,7 +55,10 @@ export class RequestDetailsComponent implements OnInit {
   onSubmit(): void {
     if (!this.request || this.responseForm.invalid) return;
     this.responseService.createResponse(this.request.id, this.responseForm.value).subscribe({
-      next: () => this.responseSuccess = true,
+      next: () => {
+        this.responseSuccess = true;
+        this.showResponseForm = false;
+      },
       error: () => this.responseSuccess = false
     });
   }

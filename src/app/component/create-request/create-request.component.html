@@ -1,17 +1,17 @@
 <form [formGroup]="requestForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data" class="request-form">
   <mat-card>
-    <mat-card-title>Създай заявка</mat-card-title>
+    <mat-card-title>Създай публикация</mat-card-title>
     <mat-card-content>
       <div class="form-fields">
         <mat-form-field appearance="fill">
-          <mat-label>Компания</mat-label>
+          <mat-label>Фирма</mat-label>
           <mat-select formControlName="company" required>
-            <mat-option [value]="''">-- Избери компания --</mat-option>
+            <mat-option [value]="''">-- Избери Фирма --</mat-option>
             <mat-option *ngFor="let company of userCompanies" [value]="company.vatNumber">
               {{ company.name }} ({{ company.vatNumber }})
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="requestForm.get('company')?.hasError('required')">Компанията е задължителна</mat-error>
+          <mat-error *ngIf="requestForm.get('company')?.hasError('required')">Фирмата е задължителна</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
@@ -29,7 +29,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="fill">
-          <mat-label>Тип заявка</mat-label>
+          <mat-label>Тип публикация</mat-label>
           <mat-select formControlName="requestType" required>
             <mat-option value="LOOKING_FOR_SERVICE">Търся услуга</mat-option>
             <mat-option value="SHARE_SERVICE">Предлагам услуга</mat-option>

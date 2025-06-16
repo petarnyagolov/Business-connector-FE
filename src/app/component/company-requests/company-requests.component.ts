@@ -112,7 +112,7 @@ export class CompanyRequestsComponent implements OnInit {
 
   onSave(request: CompanyRequest): void {
     // Placeholder: тук може да се имплементира логика за запазване на обявата (например в любими)
-    alert('Заявлението е запазено успешно!');
+    alert('Публикацията е запазено успешно!');
   }
 
 

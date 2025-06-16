@@ -92,7 +92,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           this.companyFormComponentRef.setCompanyDetailsVisible(true);
           this.companyFormComponentRef.setVatValid(true);
         }
-        alert('Компанията е валидирана успешно!');
+        alert('Фирмата е валидирана успешно!');
       },
       error: (error) => {
         this.isValidVatNumber = false;
@@ -102,9 +102,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
           this.companyFormComponentRef.setVatValid(false);
         }
         if (error.status === 404) {
-          alert('Компанията не е намерена в регистъра.');
+          alert('Фирмата не е намерена в регистъра.');
         } else if (error.status === 400) {
-          alert('Компанията вече съществува в базата данни.');
+          alert('Фирмата вече съществува в базата данни.');
         } else {
           alert('Възникна неочаквана грешка. Опитайте отново.');
         }
@@ -185,9 +185,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         this.isValidVatNumber = false;
         this.showCompanyDetails = false;
         if (error.status === 404) {
-          this.errorMessage = 'Компанията не е намерена в регистъра.';
+          this.errorMessage = 'Фирмата не е намерена в регистъра.';
         } else if (error.status === 400) {
-          this.errorMessage = 'Компанията вече съществува в базата данни.';
+          this.errorMessage = 'Фирмата вече съществува в базата данни.';
         } else {
           this.errorMessage = 'Възникна неочаквана грешка. Опитайте отново.';
         }

@@ -13,17 +13,17 @@
     </ng-container>
   </div>
 
-  <form [formGroup]="responseForm" (ngSubmit)="onSubmit()" style="margin-top:2rem;">
+  <form *ngIf="showResponseForm" [formGroup]="responseForm" (ngSubmit)="onSubmit()" style="margin-top:2rem;">
     <h3>Създай отговор</h3>
     <mat-form-field appearance="fill">
-      <mat-label>Компания</mat-label>
+      <mat-label>Фирма</mat-label>
       <mat-select formControlName="responserCompanyId" required>
-        <mat-option [value]="''">-- Избери компания --</mat-option>
+        <mat-option [value]="''">-- Избери Фирма --</mat-option>
         <mat-option *ngFor="let company of companies" [value]="company.id">
           {{ company.name }} ({{ company.vatNumber }})
         </mat-option>
       </mat-select>
-      <mat-error *ngIf="responseForm.get('responserCompanyId')?.hasError('required')">Компанията е задължителна</mat-error>
+      <mat-error *ngIf="responseForm.get('responserCompanyId')?.hasError('required')">Фирмата е задължителна</mat-error>
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>Съобщение</mat-label>
@@ -31,8 +31,8 @@
       <mat-error *ngIf="responseForm.get('message')?.hasError('required')">Съобщението е задължително</mat-error>
     </mat-form-field>
     <button mat-raised-button color="primary" type="submit" [disabled]="responseForm.invalid">Изпрати отговор</button>
-    <div *ngIf="responseSuccess" style="color:green; margin-top:10px;">Отговорът е изпратен успешно!</div>
   </form>
+  <div *ngIf="responseSuccess && !showResponseForm" style="color:green; margin-top:10px;">Отговорът е изпратен успешно!</div>
 </div>
 <ng-template #loading>
   <p>Зареждане...</p>

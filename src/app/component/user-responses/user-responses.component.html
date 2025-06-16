@@ -1,3 +1,93 @@
 <p>user-responses works!</p>
 <title>Моите Отговори</title>
 <mat-icon>announcement</mat-icon>
+<h4 style="text-align: center; margin-bottom: 24px;">Моите Отговори</h4>
+<div class="card-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
+  <mat-card class="example-card" *ngFor="let item of userResponses" appearance="outlined" style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px;">
+    <mat-card-header>
+      <mat-icon mat-card-avatar color="primary" style="background: #e3f2fd; border-radius: 50%;">campaign</mat-icon>
+      <mat-card-title style="font-weight: 600; font-size: 1.2rem;">{{ item.requestCompany?.title }}</mat-card-title>
+      <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">
+        <ng-container *ngIf="item.requestCompany?.requesterCompanyId">
+          {{ getCompanyName(item.requestCompany.requesterCompanyId) }}
+        </ng-container>
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="request-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+        <div *ngIf="item.requestCompany?.description" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">description</mat-icon>
+          <span class="label">Описание:&nbsp;</span> <span class="value">{{ item.requestCompany.description }}</span>
+        </div>
+        <div *ngIf="item.requestCompany?.requestType" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">category</mat-icon>
+          <span class="label">Тип:&nbsp;</span>
+          <span class="value">{{ getRequestTypeLabel(item.requestCompany.requestType) }}</span>
+        </div>
+        <div *ngIf="item.requestCompany?.region" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">place</mat-icon>
+          <span class="label">Регион:&nbsp;</span> <span class="value">{{ item.requestCompany.region }}</span>
+        </div>
+        <div *ngIf="item.requestCompany?.capacity" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">inventory_2</mat-icon>
+          <span class="label">Количество:&nbsp;</span> <span class="value">{{ item.requestCompany.capacity }}{{ item.requestCompany.unit ? ' ' + getUnitLabel(item.requestCompany.unit) : '' }}</span>
+        </div>
+        <div *ngIf="item.requestCompany?.serviceType" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">build</mat-icon>
+          <span class="label">Тип услуга:&nbsp;</span> 
+          <span class="value">{{ getServiceTypeLabel(item.requestCompany.serviceType) }}</span>
+        </div>
+        <div *ngIf="item.requestCompany?.priceFrom || item.requestCompany?.priceTo" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">euro_symbol</mat-icon>
+          <span class="label">Цена:&nbsp;</span>
+          <span class="value">
+            <ng-container *ngIf="item.requestCompany.priceFrom">от {{ item.requestCompany.priceFrom }}</ng-container>
+            <ng-container *ngIf="item.requestCompany.priceTo">&nbsp;до {{ item.requestCompany.priceTo }}</ng-container>
+          </span>
+        </div>
+        <div *ngIf="item.requestCompany?.workMode && item.requestCompany?.workMode !== 'nomatter'" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">work</mat-icon>
+          <span class="label">Режим:&nbsp;</span> 
+          <span class="value">{{ getWorkModeLabel(item.requestCompany.workMode) }}</span>
+        </div>
+        <div *ngIf="item.requestCompany?.urgent !== undefined" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">priority_high</mat-icon>
+          <span class="label">Спешно:&nbsp;</span> <span class="value">{{ item.requestCompany.urgent ? 'Да' : 'Не' }}</span>
+        </div>
+        <div *ngIf="item.requestCompany?.activeFrom || item.requestCompany?.activeTo" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
+          <span class="label">Период:&nbsp;</span>
+          <span class="value">
+            <ng-container *ngIf="item.requestCompany.activeFrom">от {{ item.requestCompany.activeFrom ? (item.requestCompany.activeFrom | formatDateArray) : '' }}</ng-container>
+            <ng-container *ngIf="item.requestCompany.activeTo"> &nbsp;до {{ item.requestCompany.activeTo ? (item.requestCompany.activeTo | formatDateArray) : '' }}</ng-container>
+          </span>
+        </div>
+        <div *ngIf="item.requestCompany?.pictureUrls && item.requestCompany.pictureUrls.length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">image</mat-icon>
+          <span class="label" style="margin-right: 6px;">Снимки:</span>
+          <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+            <ng-container *ngFor="let pic of item.requestCompany.pictureUrls">
+              <img *ngIf="pic" [src]="pictureBlobs[pic] || getPictureUrl(pic)" alt="Снимка" style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" (click)="onImageClick(pic)" />
+            </ng-container>
+          </div>
+        </div>
+      </div>
+      <div class="response-details" style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px;">
+        <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2; vertical-align: middle;">reply</mat-icon>
+        <span style="font-weight: 500; color: #1976d2;">
+          Моят отговор
+          <ng-container *ngIf="item.responserCompanyId">
+            — {{ getCompanyName(item.responserCompanyId) }}<ng-container *ngIf="getCompanyVat(item.responserCompanyId)"> ({{ getCompanyVat(item.responserCompanyId) }})</ng-container>
+          </ng-container>:
+        </span>
+        <div style="margin-top: 6px; color: #333;">{{ item.responseText }}</div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Диалог за голяма снимка -->
+<div *ngIf="showImageDialog" class="image-dialog-overlay" (click)="closeImageDialog()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+  <img [src]="selectedImage" alt="Голяма снимка" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 4px 32px #0008; background: #fff; padding: 8px;" (click)="$event.stopPropagation()" />
+  <button (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2;">&times;</button>
+</div>

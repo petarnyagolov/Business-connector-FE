@@ -76,7 +76,7 @@ export class CreateCompanyComponent {
           this.companyFormComponentRef.setCompanyDetailsVisible(true);
           this.companyFormComponentRef.setVatValid(true);
         }
-        alert('Компанията е валидирана успешно!');
+        alert('Фирмата е валидирана успешно!');
       },
       error: (error) => {
         this.isValidVatNumber = false;
@@ -86,11 +86,11 @@ export class CreateCompanyComponent {
           this.companyFormComponentRef.setVatValid(false);
         }
         if (error.status === 404) {
-          alert('Компанията не е намерена в регистъра.');
+          alert('Фирмата не е намерена в регистъра.');
         } else if (error.status === 400) {
-          alert('Компанията вече съществува в базата данни.');
+          alert('Фирмата вече съществува в базата данни.');
         } else {
-          alert('Възникна неочаквана грешка. Опитайте отново.');
+          alert('Фирмата неочаквана грешка. Опитайте отново.');
         }
       }
     });

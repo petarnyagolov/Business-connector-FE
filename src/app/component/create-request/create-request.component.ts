@@ -123,7 +123,7 @@ export class CreateRequestComponent {
     this.selectedFiles.forEach(file => formData.append('pictures', file));
     this.companyRequestService.createRequest(formData).subscribe({
       next: () => this.router.navigate(['/requests/my-requests']),
-      error: err => alert('Грешка при създаване на заявка!')
+      error: err => alert('Грешка при създаване на публикация!')
     });
   }
 

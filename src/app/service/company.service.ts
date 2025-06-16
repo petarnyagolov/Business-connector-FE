@@ -60,8 +60,9 @@ getLogoByPath(path: string): Observable<Blob> {
     );
   }
 
+  // Заменям getAllCompanies да използва apiUserUrl вместо apiUrl
   getAllCompanies(): Observable<Company[]> {
-    return this.http.get<Company[]>(this.apiUrl);
+    return this.http.get<Company[]>(this.apiUserUrl);
   }
 
   getCompany(id: number): Observable<Company> {

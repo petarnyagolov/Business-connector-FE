@@ -22,6 +22,8 @@ export class UserRequestsComponent {
     companyRequests: CompanyRequest[] = [];
     showCancelButton: boolean = false; 
     userCompanies: Company[] = [];
+    responsesByRequestId: { [requestId: string]: any[] } = {};
+    expandedRequestId: string | null = null;
 
   companyRequest: CompanyRequest = {
     id: '',
@@ -67,13 +69,13 @@ export class UserRequestsComponent {
 
   loadRequests(): void {
     this.companyRequestService.getAllRequestsByUser().subscribe({
-      next: (data: CompanyRequest[]) => {
-        this.companyRequests = data.map(req => {
+      next: (data: any[]) => {
+        // data is now array of {request, responses}
+        this.companyRequests = data.map(item => {
+          const req = item.request;
           let activeFrom = req.activeFrom;
           let activeTo = req.activeTo;
-          // Ако е масив, конвертирай в Date, иначе остави както е
           if (Array.isArray(activeFrom) && activeFrom.length >= 3) {
-            // JS Date: месеците са 0-based
             activeFrom = new Date(activeFrom[0], activeFrom[1] - 1, activeFrom[2], activeFrom[3] || 0, activeFrom[4] || 0);
           } else if (typeof activeFrom === 'string' || typeof activeFrom === 'number') {
             activeFrom = new Date(activeFrom);
@@ -83,17 +85,25 @@ export class UserRequestsComponent {
           } else if (typeof activeTo === 'string' || typeof activeTo === 'number') {
             activeTo = new Date(activeTo);
           }
+          // Store responses by request id
+          this.responsesByRequestId[req.id] = item.responses || [];
           return {
             ...req,
             activeFrom,
             activeTo
           };
         });
+        // If you want to keep responses for each request:
+        // this.responsesByRequestId = Object.fromEntries(data.map(item => [item.request.id, item.responses]));
       },
       error: (error: Error) => {
         console.error('Error fetching companies:', error);
       }
     });
+  }
+
+  toggleResponses(requestId: string): void {
+    this.expandedRequestId = this.expandedRequestId === requestId ? null : requestId;
   }
 
   onFileSelected(event: Event): void {
@@ -152,6 +162,15 @@ export class UserRequestsComponent {
       return 2;
     } else {
       return 2; // беше 1, но това ще даде повече височина
+    }
+  }
+
+  getUnitLabel(unit: string): string {
+    switch (unit) {
+      case 'count': return 'Бр.';
+      case 'box': return 'Кашон/и';
+      case 'pallet': return 'Пале/та';
+      default: return unit || '';
     }
   }
 }

@@ -12,6 +12,10 @@ export class ResponseService {
 
   createResponse(requestId: string, responseData: any): Observable<any> {
     // responseData може да съдържа: { companyVatNumber, message }
-    return this.http.post(`${this.api}/${requestId}/response`, responseData);
+    return this.http.post(`${this.api}/${requestId}/responses`, responseData);
+  }
+
+  getResponsesByUser(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/responses/user`);
   }
 }

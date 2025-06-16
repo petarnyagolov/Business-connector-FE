@@ -1,5 +1,5 @@
 <div class="header">
-  <h2>Списък с заявления</h2>
+  <h2>Списък с публикации</h2>
   <mat-form-field class="search-bar" appearance="outline">
     <mat-label>Търсене</mat-label>
     <input matInput (keyup)="onSearch($event)" placeholder="Търсене по стока, услуга, ключова дума..." />
@@ -31,9 +31,9 @@
         </div>
         <div *ngIf="showReplyFormId === request.id" class="reply-form">
           <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Компания</mat-label>
+            <mat-label>Фирма</mat-label>
             <mat-select [(ngModel)]="replyFormData[request.id].responserCompanyId" required>
-              <mat-option [value]="''">-- Избери компания --</mat-option>
+              <mat-option [value]="''">-- Избери фирма --</mat-option>
               <mat-option *ngFor="let company of userCompanies" [value]="company.id">
                 {{ company.name }} ({{ company.vatNumber }})
               </mat-option>
