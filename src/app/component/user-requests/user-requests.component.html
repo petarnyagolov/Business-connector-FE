@@ -72,12 +72,12 @@
             <ng-container *ngIf="request.activeTo"> &nbsp;до {{ request.activeTo | date:'dd.MM.yyyy' }}</ng-container>
           </span>
         </div>
-        <div *ngIf="request.pictures && request.pictures.length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
+        <div *ngIf="getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">image</mat-icon>
           <span class="label" style="margin-right: 6px;">Снимки:</span>
           <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-            <ng-container *ngFor="let pic of request.pictures">
-              <img *ngIf="pic" [src]="pic" alt="Снимка" style="max-width: 80px; max-height: 80px; border-radius: 6px; box-shadow: 0 2px 8px #0001;" />
+            <ng-container *ngFor="let pic of getPictureUrls(request)">
+              <img *ngIf="pic" [src]="pictureBlobs[pic] || getPictureUrl(pic)" alt="Снимка" style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" (click)="onImageClick(pic)" />
             </ng-container>
           </div>
         </div>
@@ -119,4 +119,10 @@
     Откажи Публикация
   </button>
   <router-outlet></router-outlet>
+</div>
+
+<!-- Диалог за голяма снимка -->
+<div *ngIf="showImageDialog" class="image-dialog-overlay" (click)="closeImageDialog()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+  <img [src]="selectedImage" alt="Голяма снимка" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 4px 32px #0008; background: #fff; padding: 8px;" (click)="$event.stopPropagation()" />
+  <button (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2;">&times;</button>
 </div>

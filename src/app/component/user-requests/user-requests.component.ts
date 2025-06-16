@@ -10,6 +10,8 @@ import { filter } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { Company } from '../../model/company';
 import { CompanyService } from '../../service/company.service';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-user-requests',
@@ -39,7 +41,17 @@ export class UserRequestsComponent {
 
   };
 
-  constructor(private router: Router, private companyRequestService: CompanyRequestService, private companyService: CompanyService) {
+  pictureBlobs: { [key: string]: SafeUrl } = {};
+  selectedImage: SafeUrl | null = null;
+  showImageDialog: boolean = false;
+
+  constructor(
+    private router: Router,
+    private companyRequestService: CompanyRequestService,
+    private companyService: CompanyService,
+    private sanitizer: DomSanitizer,
+    private http: HttpClient
+  ) {
     // this.loadRequests(); // Remove initial call from constructor
   }
 
@@ -172,5 +184,49 @@ export class UserRequestsComponent {
       case 'pallet': return 'Пале/та';
       default: return unit || '';
     }
+  }
+
+  loadAllPictures(): void {
+    this.companyRequests.forEach(request => {
+      // Ако заявката има поле pictureUrls (от бекенда), го използваме, иначе пропускаме
+      const urls = (request as any).pictureUrls || [];
+      if (Array.isArray(urls)) {
+        urls.forEach((pic: string) => {
+          if (pic && !this.pictureBlobs[pic]) {
+            this.fetchPicture(pic);
+          }
+        });
+      }
+    });
+  }
+
+  fetchPicture(pic: string): void {
+    const url = this.getPictureUrl(pic);
+    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+      const safeUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
+      this.pictureBlobs[pic] = safeUrl;
+    });
+  }
+
+  getPictureUrl(pic: string): string {
+    if (!pic) return '';
+    if (pic.startsWith('http')) {
+      return pic;
+    }
+    return 'http://localhost:8080/files/' + pic.replace(/\\/g, '/');
+  }
+
+  onImageClick(pic: string): void {
+    this.selectedImage = this.pictureBlobs[pic] || this.getPictureUrl(pic);
+    this.showImageDialog = true;
+  }
+
+  closeImageDialog(): void {
+    this.showImageDialog = false;
+    this.selectedImage = null;
+  }
+
+  getPictureUrls(request: any): string[] {
+    return Array.isArray(request.pictureUrls) ? request.pictureUrls : [];
   }
 }
