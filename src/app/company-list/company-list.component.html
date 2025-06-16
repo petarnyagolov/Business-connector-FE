@@ -1,6 +1,9 @@
-<div class="header">
-  <h2>Списък с фирми</h2>
-  <mat-form-field class="search-bar" appearance="outline">
+<div class="header" style="display: flex; flex-direction: column; align-items: center;">
+  <h2 style="text-align: center; margin-bottom: 24px; display: flex; align-items: center; justify-content: center;">
+    Всички фирми
+    <mat-icon style="font-size: 20px; margin-left: 8px; color: #1976d2; vertical-align: middle;">business</mat-icon>
+  </h2>
+  <mat-form-field class="search-bar" appearance="outline" style="width: 350px; max-width: 100%;">
     <mat-label>Търсене</mat-label>
     <input matInput (keyup)="onSearch($event)" placeholder="Търсене по име, VAT, държава, индустрия и др." />
   </mat-form-field>

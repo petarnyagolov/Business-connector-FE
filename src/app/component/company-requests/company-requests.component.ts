@@ -17,7 +17,8 @@ import { CompanyService } from '../../service/company.service';
 import { ResponseService } from '../../service/response.service';
 import { Company } from '../../model/company';
 import { FormsModule } from '@angular/forms';
-import { RequestTypeTranslatePipe } from './request-type-translate.pipe';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-company-requests',
@@ -30,8 +31,7 @@ import { RequestTypeTranslatePipe } from './request-type-translate.pipe';
     MatSelectModule,
     MatOptionModule,
     FormsModule,
-    MatIconModule,
-    RequestTypeTranslatePipe],
+    MatIconModule],
   templateUrl: './company-requests.component.html',
   styleUrl: './company-requests.component.scss',
   standalone: true,
@@ -49,7 +49,7 @@ export class CompanyRequestsComponent implements OnInit {
   replyFormData: { [key: string]: { responserCompanyId: string; responseText: string } } = {};
   userCompanies: Company[] = [];
 
-  constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef, private companyService: CompanyService, private responseService: ResponseService) {
+  constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef, private companyService: CompanyService, private responseService: ResponseService, private sanitizer: DomSanitizer, private http: HttpClient) {
     this.searchSubject.pipe(debounceTime(1000)).subscribe((searchQuery) => {
       this.searchQuery = searchQuery;
       this.currentPage = 0; // Рестартиране на страницата при ново търсене
@@ -58,16 +58,58 @@ export class CompanyRequestsComponent implements OnInit {
   }
   ngOnInit(): void {
     this.loadRequests();
-    // Зареждаме компаниите на потребителя за селекта във формата за отговор
     this.companyService.getAllCompaniesByUser().subscribe(companies => this.userCompanies = companies);
+    // Зареждаме снимките за всички заявки (както в user-requests)
+    this.loadAllPictures();
   }
   loadRequests() {
     this.companyRequestService
     .searchRequests(this.searchQuery, this.currentPage, this.pageSize)
     .subscribe((response: any) => {
-      this.companyRequests = response.content;
+      // Преобразуване на датите, както в user-requests.component.ts
+      this.companyRequests = response.content.map((req: any) => {
+        let activeFrom = req.activeFrom;
+        let activeTo = req.activeTo;
+        if (Array.isArray(activeFrom) && activeFrom.length >= 3) {
+          activeFrom = new Date(activeFrom[0], activeFrom[1] - 1, activeFrom[2], activeFrom[3] || 0, activeFrom[4] || 0);
+        } else if (typeof activeFrom === 'string' || typeof activeFrom === 'number') {
+          activeFrom = new Date(activeFrom);
+        }
+        if (Array.isArray(activeTo) && activeTo.length >= 3) {
+          activeTo = new Date(activeTo[0], activeTo[1] - 1, activeTo[2], activeTo[3] || 0, activeTo[4] || 0);
+        } else if (typeof activeTo === 'string' || typeof activeTo === 'number') {
+          activeTo = new Date(activeTo);
+        }
+        return {
+          ...req,
+          activeFrom,
+          activeTo
+        };
+      });
       this.totalRequests = response.totalElements;
       this.cdr.markForCheck();
+      this.loadAllPictures(); // за да се заредят снимките след всяко търсене
+    });
+  }
+
+  loadAllPictures(): void {
+    this.companyRequests.forEach(request => {
+      const urls = this.getPictureUrls(request);
+      if (Array.isArray(urls)) {
+        urls.forEach((pic: string) => {
+          if (pic && !this.pictureBlobs[pic]) {
+            this.fetchPicture(pic);
+          }
+        });
+      }
+    });
+  }
+
+  fetchPicture(pic: string): void {
+    const url = this.getPictureUrl(pic);
+    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+      const safeUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
+      this.pictureBlobs[pic] = safeUrl;
     });
   }
 
@@ -115,5 +157,45 @@ export class CompanyRequestsComponent implements OnInit {
     alert('Публикацията е запазено успешно!');
   }
 
+  // Добавяме липсващите помощни методи за визуализация в карти
+  getCompanyNameById(id: string): string {
+    const company = this.userCompanies.find(c => String(c.id) === String(id));
+    return company ? company.name +  ' (' + company.vatNumber + ')' : '';
+  }
+
+  getUnitLabel(unit: string): string {
+    switch (unit) {
+      case 'count': return 'Бр.';
+      case 'box': return 'Кашон/и';
+      case 'pallet': return 'Пале/та';
+      default: return unit || '';
+    }
+  }
+
+  getPictureUrls(request: any): string[] {
+    return Array.isArray(request.pictureUrls) ? request.pictureUrls : (Array.isArray(request.pictures) ? request.pictures : []);
+  }
+
+  pictureBlobs: { [key: string]: any } = {};
+  selectedImage: any = null;
+  showImageDialog: boolean = false;
+
+  getPictureUrl(pic: string): string {
+    if (!pic) return '';
+    if (pic.startsWith('http')) {
+      return pic;
+    }
+    return 'http://localhost:8080/files/' + pic.replace(/\\/g, '/');
+  }
+
+  onImageClick(pic: string): void {
+    this.selectedImage = this.pictureBlobs[pic] || this.getPictureUrl(pic);
+    this.showImageDialog = true;
+  }
+
+  closeImageDialog(): void {
+    this.showImageDialog = false;
+    this.selectedImage = null;
+  }
 
 }

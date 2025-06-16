@@ -27,7 +27,6 @@ export class UserCompaniesComponent {
 
   
 constructor(private router: Router, private companyService: CompanyService, private cdr: ChangeDetectorRef) {
-  this.loadCompanies();
 
 }
 
@@ -35,7 +34,6 @@ constructor(private router: Router, private companyService: CompanyService, priv
 ngOnInit(): void {
   this.loadCompanies();
 
-  // Listen to route changes and toggle the button visibility
   this.router.events
     .pipe(filter((event) => event instanceof NavigationEnd))
     .subscribe(() => {
@@ -47,7 +45,6 @@ ngOnInit(): void {
 loadCompanies(): void {
   this.companyService.getAllCompaniesByUser().subscribe({
     next: (data: Company[]) => {
-      // Сортирай така, че компаниите с лого да са най-отгоре
       this.companies = data.sort((a, b) => {
         const aHasLogo = !!(a.logo && this.logoUrls[a.logo]);
         const bHasLogo = !!(b.logo && this.logoUrls[b.logo]);

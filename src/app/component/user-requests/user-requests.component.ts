@@ -56,7 +56,6 @@ export class UserRequestsComponent {
   }
 
   ngOnInit(): void {
-    this.loadRequests();
     this.companyService.getAllCompaniesByUser().subscribe({
       next: (companies) => {
         this.userCompanies = companies;
@@ -72,6 +71,8 @@ export class UserRequestsComponent {
         this.loadRequests();
         this.showCancelButton = this.router.url.includes('/create');
       });
+    // Добавям извикване на loadRequests() при първоначално зареждане
+    this.loadRequests();
   }
 
   getCompanyNameById(id: string): string {

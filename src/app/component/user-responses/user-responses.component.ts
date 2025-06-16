@@ -7,10 +7,15 @@ import { CompanyService } from '../../service/company.service';
 import { FormatDateArrayPipe } from './format-date-array.pipe';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-user-responses',
-  imports: [CommonModule, MatIcon, MatCardModule, MatCardContent, FormatDateArrayPipe],
+  imports: [CommonModule, MatIcon, MatCardModule, MatCardContent, FormatDateArrayPipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatOptionModule, FormsModule],
   templateUrl: './user-responses.component.html',
   styleUrl: './user-responses.component.scss',
   standalone: true
@@ -21,6 +26,9 @@ export class UserResponsesComponent implements OnInit {
   pictureBlobs: { [key: string]: SafeUrl } = {};
   selectedImage: SafeUrl | null = null;
   showImageDialog: boolean = false;
+  showEditResponseDialog = false;
+  editResponseData: any = {};
+  editResponseItem: any = null;
 
   constructor(
     private responseService: ResponseService,
@@ -133,5 +141,43 @@ export class UserResponsesComponent implements OnInit {
   closeImageDialog(): void {
     this.showImageDialog = false;
     this.selectedImage = null;
+  }
+
+  openEditResponse(item: any) {
+    this.editResponseItem = item;
+    this.editResponseData = {
+      responseText: item.responseText,
+      responserCompanyId: item.responserCompanyId,
+      id: item.id // responseId
+    };
+    this.showEditResponseDialog = true;
+  }
+
+  closeEditResponseDialog() {
+    this.showEditResponseDialog = false;
+    this.editResponseData = {};
+    this.editResponseItem = null;
+  }
+
+  submitEditResponse() {
+    if (!this.editResponseItem) return;
+    const requestCompanyId = this.editResponseItem.requestCompany?.id;
+    const dto = {
+      id: this.editResponseData.id,
+      responseText: this.editResponseData.responseText,
+      responserCompanyId: this.editResponseData.responserCompanyId,
+      requestCompany: this.editResponseItem.requestCompany
+    };
+    this.responseService.updateResponse(requestCompanyId, dto).subscribe({
+      next: () => {
+        // Обнови локално
+        this.editResponseItem.responseText = dto.responseText;
+        this.editResponseItem.responserCompanyId = dto.responserCompanyId;
+        this.closeEditResponseDialog();
+      },
+      error: () => {
+        alert('Грешка при редакция на отговор!');
+      }
+    });
   }
 }

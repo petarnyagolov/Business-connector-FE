@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-company-list',
@@ -20,7 +21,8 @@ import { debounceTime } from 'rxjs/operators';
     MatTableModule, 
     CommonModule,
     MatFormFieldModule,
-    MatInputModule],
+    MatInputModule,
+    MatIconModule],
   templateUrl: './company-list.component.html',
   styleUrl: './company-list.component.scss',
   standalone: true,

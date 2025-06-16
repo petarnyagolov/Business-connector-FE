@@ -18,4 +18,9 @@ export class ResponseService {
   getResponsesByUser(): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/responses/user`);
   }
+
+  updateResponse(requestCompanyId: string, dto: any): Observable<any> {
+    // dto трябва да съдържа: { id, responseText, responserCompanyId }
+    return this.http.put(`${this.api}/${requestCompanyId}/responses/update`, dto);
+  }
 }

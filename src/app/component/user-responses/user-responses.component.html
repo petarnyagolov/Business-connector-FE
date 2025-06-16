@@ -1,7 +1,8 @@
-<p>user-responses works!</p>
 <title>Моите Отговори</title>
-<mat-icon>announcement</mat-icon>
-<h4 style="text-align: center; margin-bottom: 24px;">Моите Отговори</h4>
+<h4 style="text-align: center; margin-bottom: 24px;">
+  Моите Отговори
+    <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2; vertical-align: middle;">reply</mat-icon>
+</h4>
 <div class="card-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
   <mat-card class="example-card" *ngFor="let item of userResponses" appearance="outlined" style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px;">
     <mat-card-header>
@@ -72,7 +73,9 @@
           </div>
         </div>
       </div>
-      <div class="response-details" style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px;">
+      <div class="response-details editable-response"
+           (click)="openEditResponse(item)"
+           style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px; border: 2px dashed #1976d2; cursor: pointer; position: relative; transition: box-shadow 0.2s; box-shadow: 0 2px 8px #1976d220;">
         <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2; vertical-align: middle;">reply</mat-icon>
         <span style="font-weight: 500; color: #1976d2;">
           Моят отговор
@@ -80,6 +83,7 @@
             — {{ getCompanyName(item.responserCompanyId) }}<ng-container *ngIf="getCompanyVat(item.responserCompanyId)"> ({{ getCompanyVat(item.responserCompanyId) }})</ng-container>
           </ng-container>:
         </span>
+        <mat-icon style="position: absolute; top: 10px; right: 14px; color: #1976d2; font-size: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #1976d220; padding: 2px;">edit</mat-icon>
         <div style="margin-top: 6px; color: #333;">{{ item.responseText }}</div>
       </div>
     </mat-card-content>
@@ -89,5 +93,42 @@
 <!-- Диалог за голяма снимка -->
 <div *ngIf="showImageDialog" class="image-dialog-overlay" (click)="closeImageDialog()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
   <img [src]="selectedImage" alt="Голяма снимка" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 4px 32px #0008; background: #fff; padding: 8px;" (click)="$event.stopPropagation()" />
-  <button (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2;">&times;</button>
+  <button mat-fab color="warn" (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2; min-width: 0; min-height: 0; line-height: 1; padding: 0;">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<!-- Диалог за редакция на отговор -->
+<ng-template #editResponseDialog>
+  <div class="edit-response-dialog" style="background: #fff; padding: 24px 18px; border-radius: 12px; min-width: 320px; max-width: 95vw; box-shadow: 0 2px 16px #0003;">
+    <h3 style="margin-bottom: 18px; color: #1976d2;">Редакция на отговор</h3>
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Фирма</mat-label>
+      <mat-select [(ngModel)]="editResponseData.responserCompanyId" required>
+        <mat-option *ngFor="let company of companies" [value]="company.id">
+          {{ company.name }} ({{ company.vatNumber }})
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill" style="width: 100%; margin-top: 16px;">
+      <mat-label>Отговор</mat-label>
+      <textarea matInput [(ngModel)]="editResponseData.responseText" rows="4" required></textarea>
+    </mat-form-field>
+    <div style="display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end;">
+      <button mat-stroked-button color="primary" (click)="submitEditResponse()"
+        style="min-width: 100px; font-weight: 500; font-size: 1em; border-radius: 6px; padding: 7px 18px; display: flex; align-items: center; gap: 6px; text-transform: none; background: #fff; border: 2px solid #1976d2; color: #1976d2;">
+        <mat-icon style="font-size: 20px; margin-right: 4px; color: #1976d2;">check</mat-icon>
+        <span style="color: #1976d2;">Запази</span>
+      </button>
+      <button mat-stroked-button color="primary" (click)="closeEditResponseDialog()"
+        style="min-width: 100px; font-weight: 500; font-size: 1em; border-radius: 6px; padding: 7px 18px; display: flex; align-items: center; gap: 6px; text-transform: none; background: #fff; border: 2px solid #1976d2; color: #1976d2;">
+        <mat-icon style="font-size: 20px; margin-right: 4px; color: #1976d2;">close</mat-icon>
+        <span style="color: #1976d2;">Отказ</span>
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<div *ngIf="showEditResponseDialog" class="edit-response-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center;">
+  <ng-container *ngTemplateOutlet="editResponseDialog"></ng-container>
 </div>
