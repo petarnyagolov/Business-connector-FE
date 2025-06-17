@@ -97,7 +97,7 @@
       </div>
     </mat-card-content>
     <mat-card-actions align="end">
-      <button mat-stroked-button color="primary" (click)="viewRequestDetails(request.id)">
+      <button mat-stroked-button color="primary" (click)="$event.stopPropagation(); navigateToRequest(request.id)">
         <mat-icon style="margin-right: 4px;">visibility</mat-icon>
         Виж
       </button>
@@ -105,9 +105,10 @@
         <mat-icon style="margin-right: 4px;">reply</mat-icon>
         Отговори
       </button>
-      <button mat-stroked-button color="primary" (click)="onSave(request)">
-        <mat-icon style="margin-right: 4px;">bookmark</mat-icon>
-        Запази
+      <button mat-stroked-button color="primary" (click)="shareRequest(request.id)" [matTooltip]="copyTooltipRequestId === request.id ? 'Линка е копиран!' : 'Сподели линк'" matTooltipPosition="above" #shareBtn="matTooltip" (mouseleave)="shareBtn.hide()">
+        <mat-icon style="margin-right: 4px;">share</mat-icon>
+        <span *ngIf="copyTooltipRequestId === request.id" style="color: #43a047; font-weight: 500; margin-left: 6px; font-size: 0.98em;">Линка е копиран!</span>
+        <span *ngIf="copyTooltipRequestId !== request.id">Сподели</span>
       </button>
     </mat-card-actions>
     <div *ngIf="showReplyFormId === request.id" class="reply-form">

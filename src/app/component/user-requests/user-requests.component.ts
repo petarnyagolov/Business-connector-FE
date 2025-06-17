@@ -130,14 +130,14 @@ export class UserRequestsComponent {
     console.log('createRequest() called'); // Debugging
     // this.showCancelButton = true;
     console.log('showCancelButton:', this.showCancelButton); // Debugging
-    this.router.navigate(['/requests/my-requests/create']);
+    this.router.navigate(['/my-requests/create']);
   }
   
   onCancel() {
     console.log('onCancel() called'); // Debugging
     // this.showCancelButton = false;
     console.log('showCancelButton:', this.showCancelButton); // Debugging
-    this.router.navigate(['/requests/my-requests']);
+    this.router.navigate(['/my-requests']);
     
   }
   getGridColumns(): number {

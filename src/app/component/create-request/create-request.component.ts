@@ -122,12 +122,12 @@ export class CreateRequestComponent {
     }
     this.selectedFiles.forEach(file => formData.append('pictures', file));
     this.companyRequestService.createRequest(formData).subscribe({
-      next: () => this.router.navigate(['/requests/my-requests']),
+      next: () => this.router.navigate(['/my-requests']),
       error: err => alert('Грешка при създаване на публикация!')
     });
   }
 
   onCancel(): void {
-    this.router.navigate(['/requests/my-requests']);
+    this.router.navigate(['/my-requests']);
   }
 }

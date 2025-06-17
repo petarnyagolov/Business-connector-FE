@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CompanyRequest } from '../model/companyRequest';
 import { Observable, shareReplay } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -31,5 +32,28 @@ export class CompanyRequestService {
 
     createRequest(formData: FormData): Observable<any> {
       return this.http.post(`${this.apiUrl}`, formData);
+    }
+
+    getRequestById(id: string): Observable<any> {
+      return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+        map((res: any) => {
+          // Винаги очакваме новия формат: { request, responses }
+          const req = res.request;
+          let pictures: string[] = [];
+          if (Array.isArray(req.pictureUrls)) {
+            pictures = req.pictureUrls.map((pic: string) =>
+              pic.startsWith('http') ? pic : `http://localhost:8080/files/${pic.replace(/\\/g, '/')}`
+            );
+          } else if (Array.isArray(req.pictures)) {
+            pictures = req.pictures.map((pic: string) =>
+              pic.startsWith('http') ? pic : `http://localhost:8080/files/${pic.replace(/\\/g, '/')}`
+            );
+          }
+          return {
+            ...res,
+            request: { ...req, pictures }
+          };
+        })
+      );
     }
 }

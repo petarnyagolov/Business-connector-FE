@@ -34,19 +34,18 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'requests', component: CompanyRequestsComponent, canActivate: [AuthGuard],
-    children: [
-      { path: 'requests/:id', component: RequestDetailsComponent, canActivate: [AuthGuard] },
-    ]
+    path: 'requests', component: CompanyRequestsComponent, canActivate: [AuthGuard]
   },
-
   {
-    path: 'requests/my-requests', component: UserRequestsComponent, canActivate: [AuthGuard],
+    path: 'requests/:id', component: RequestDetailsComponent, canActivate: [AuthGuard]
+  },
+  {
+    path: 'my-requests', component: UserRequestsComponent, canActivate: [AuthGuard],
     children: [
       { path: 'create', loadComponent: () => import('./component/create-request/create-request.component').then(m => m.CreateRequestComponent), canActivate: [AuthGuard] }
     ]
   },
-  { path: 'requests/my-responses', component: UserResponsesComponent, canActivate: [AuthGuard] },
+  { path: 'my-responses', component: UserResponsesComponent, canActivate: [AuthGuard] },
   {
     path: 'user/companies/update/:vatNumber',
     loadComponent: () => import('./component/company-form/company-form-update-wrapper.component').then(m => m.CompanyFormUpdateWrapperComponent)

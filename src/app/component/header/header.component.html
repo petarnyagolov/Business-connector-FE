@@ -9,8 +9,8 @@
       <a mat-button routerLink="/companies">Фирми</a>
       <a mat-button routerLink="/requests" *ngIf="isAuthenticated">Публикации</a>
       <a mat-button routerLink="/user/companies" *ngIf="isAuthenticated">Моите фирми</a>
-      <a mat-button routerLink="/requests/my-requests" *ngIf="isAuthenticated">Моите Публикации</a>
-      <a mat-button routerLink="/requests/my-responses" *ngIf="isAuthenticated">Моите Отговори</a>
+      <a mat-button routerLink="/my-requests" *ngIf="isAuthenticated">Моите Публикации</a>
+      <a mat-button routerLink="/my-responses" *ngIf="isAuthenticated">Моите Отговори</a>
       <a mat-button routerLink="/about">За нас</a>
       <a mat-button routerLink="/login" *ngIf="!isAuthenticated">Влез</a>
       <a mat-button routerLink="/register" *ngIf="!isAuthenticated">Регистрация</a>

@@ -19,6 +19,7 @@ import { Company } from '../../model/company';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-company-requests',
@@ -31,7 +32,8 @@ import { HttpClient } from '@angular/common/http';
     MatSelectModule,
     MatOptionModule,
     FormsModule,
-    MatIconModule],
+    MatIconModule,
+    MatTooltipModule],
   templateUrl: './company-requests.component.html',
   styleUrl: './company-requests.component.scss',
   standalone: true,
@@ -124,10 +126,6 @@ export class CompanyRequestsComponent implements OnInit {
     this.loadRequests();
   }
 
-  viewRequestDetails(id: string): void {
-    this.router.navigate(['/requests', id]);
-  }
-
   onReply(request: CompanyRequest): void {
     this.showReplyFormId = request.id;
     if (!this.replyFormData[request.id]) {
@@ -185,7 +183,7 @@ export class CompanyRequestsComponent implements OnInit {
     if (pic.startsWith('http')) {
       return pic;
     }
-    return 'http://localhost:8080/files/' + pic.replace(/\\/g, '/');
+    return 'http://localhost:8080/files' + pic.replace(/\\/g, '/');
   }
 
   onImageClick(pic: string): void {
@@ -196,6 +194,44 @@ export class CompanyRequestsComponent implements OnInit {
   closeImageDialog(): void {
     this.showImageDialog = false;
     this.selectedImage = null;
+  }
+
+  openRequestInNewTab(requestId: string) {
+    window.open('/requests/' + requestId, '_blank');
+  }
+
+  public navigateToRequest(requestId: string) {
+    this.router.navigate(['/requests', requestId]);
+  }
+
+  shareRequest(requestId: string): void {
+    const url = `${window.location.origin}/requests/${requestId}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        this.showCopyTooltip(requestId);
+      });
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        this.showCopyTooltip(requestId);
+      } catch {}
+      document.body.removeChild(textarea);
+    }
+  }
+
+  copyTooltipRequestId: string | null = null;
+
+  showCopyTooltip(requestId: string) {
+    this.copyTooltipRequestId = requestId;
+    setTimeout(() => {
+      if (this.copyTooltipRequestId === requestId) {
+        this.copyTooltipRequestId = null;
+      }
+    }, 1500);
   }
 
 }
