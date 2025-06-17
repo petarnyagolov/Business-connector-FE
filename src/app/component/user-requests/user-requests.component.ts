@@ -45,6 +45,11 @@ export class UserRequestsComponent {
   selectedImage: SafeUrl | null = null;
   showImageDialog: boolean = false;
 
+  selectedResponseByRequestId: { [requestId: string]: any } = {};
+  acceptLoadingByRequestId: { [requestId: string]: boolean } = {};
+  acceptSuccessByRequestId: { [requestId: string]: boolean } = {};
+  acceptErrorByRequestId: { [requestId: string]: boolean } = {};
+
   constructor(
     private router: Router,
     private companyRequestService: CompanyRequestService,
@@ -229,5 +234,38 @@ export class UserRequestsComponent {
 
   getPictureUrls(request: any): string[] {
     return Array.isArray(request.pictureUrls) ? request.pictureUrls : [];
+  }
+
+  /** Called when a response is selected for a request */
+  selectResponse(requestId: string, response: any) {
+    this.selectedResponseByRequestId[requestId] = response;
+    this.acceptSuccessByRequestId[requestId] = false;
+    this.acceptErrorByRequestId[requestId] = false;
+  }
+
+  /** Called when the user clicks the Accept button */
+  acceptResponse(requestId: string) {
+    const response = this.selectedResponseByRequestId[requestId];
+    if (!response) return;
+    this.acceptLoadingByRequestId[requestId] = true;
+    this.acceptSuccessByRequestId[requestId] = false;
+    this.acceptErrorByRequestId[requestId] = false;
+    // Prepare payload for backend
+    const payload = {
+      requestId: requestId,
+      responseId: response.id,
+      responserCompanyId: response.responserCompanyId
+    };
+    this.companyRequestService.confirmResponse(payload).subscribe({
+      next: () => {
+        this.acceptLoadingByRequestId[requestId] = false;
+        this.acceptSuccessByRequestId[requestId] = true;
+        // Optionally, refresh the request/responses or update status
+      },
+      error: () => {
+        this.acceptLoadingByRequestId[requestId] = false;
+        this.acceptErrorByRequestId[requestId] = true;
+      }
+    });
   }
 }

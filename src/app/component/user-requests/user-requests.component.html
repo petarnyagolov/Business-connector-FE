@@ -99,15 +99,41 @@
         Виж отговорите
       </button>
     </mat-card-actions>
-    <div *ngIf="expandedRequestId === request.id" style="margin: 0 16px 16px 16px;">
+    <div *ngIf="expandedRequestId === request.id" style="margin: 0 16px 16px 16px; min-height: 80px;">
       <div *ngIf="responsesByRequestId[request.id]?.length; else noResponses">
         <h4 style="margin: 8px 0 4px 0; font-size: 1.08em; color: #1976d2;">Отговори:</h4>
-        <mat-card *ngFor="let resp of responsesByRequestId[request.id]" style="margin-bottom: 8px; padding: 8px 12px; background: #f5faff;">
-          <div style="font-size: 0.98em; color: #333;">
-            <b>Фирма:</b> {{ getCompanyNameById(resp.responserCompanyId) }}
-          </div>
-          <div style="margin-top: 4px;">{{ resp.responseText }}</div>
-        </mat-card>
+        <hr style="margin: 0 0 12px 0; border: none; border-top: 1.5px solid #e0e0e0; width: 100%;" />
+        <div [ngStyle]="selectedResponseByRequestId[request.id] ? {'padding-bottom': '48px'} : {}"
+             style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%;">
+          <ng-container *ngFor="let resp of responsesByRequestId[request.id]; let last = last">
+            <button mat-button
+                    (click)="selectResponse(request.id, resp)"
+                    [ngClass]="{'selected-response': selectedResponseByRequestId[request.id]?.id === resp.id}"
+                    class="response-btn"
+                    style="width: 90%; margin: 0 auto 16px auto; display: block; background: transparent; box-shadow: none; border: none; padding: 0; text-align: left;">
+              <div style="display: flex; flex-direction: column; align-items: flex-start; border: 2px solid #1976d2; border-radius: 8px; background: #f5faff; width: 100%; max-width: 100%; padding: 12px 16px 14px 16px; box-sizing: border-box; gap: 2px;"
+                   [ngClass]="{'response-selected-card': selectedResponseByRequestId[request.id]?.id === resp.id}">
+                <div style="font-size: 1em; color: #222; font-weight: 600; margin-bottom: 2px;">
+                  <span style="font-weight: bold; color: #222;">Фирма:</span>
+                  <span style="font-weight: 400; color: #222;">{{ getCompanyNameById(resp.responserCompanyId) }}</span>
+                </div>
+                <div style="margin-top: 2px; font-size: 1em; color: #1976d2; white-space: pre-line; word-break: break-word; overflow-wrap: anywhere;">
+                  {{ resp.responseText }}
+                </div>
+              </div>
+            </button>
+            <hr *ngIf="!last" style="margin: 0 0 0 0; border: none; border-top: 1.5px solid #e0e0e0; width: 100%;" />
+          </ng-container>
+        </div>
+        <div *ngIf="selectedResponseByRequestId[request.id]" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; justify-content: center;">
+          <button mat-raised-button color="accent" (click)="acceptResponse(request.id)" [disabled]="acceptLoadingByRequestId[request.id]">
+            <mat-icon *ngIf="!acceptLoadingByRequestId[request.id]" style="margin-right: 4px;">check_circle</mat-icon>
+            <mat-icon *ngIf="acceptLoadingByRequestId[request.id]" class="spin" style="margin-right: 4px;">autorenew</mat-icon>
+            Приеми
+          </button>
+          <span *ngIf="acceptSuccessByRequestId[request.id]" style="color: green; font-weight: 500;">Успешно прието!</span>
+          <span *ngIf="acceptErrorByRequestId[request.id]" style="color: red; font-weight: 500;">Грешка при приемане!</span>
+        </div>
       </div>
       <ng-template #noResponses>
         <div style="color: #888; font-size: 0.98em; margin: 8px 0;">Няма отговори.</div>
@@ -130,3 +156,22 @@
   <img [src]="selectedImage" alt="Голяма снимка" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 4px 32px #0008; background: #fff; padding: 8px;" (click)="$event.stopPropagation()" />
   <button (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2;">&times;</button>
 </div>
+<style>
+.response-btn {
+  transition: box-shadow 0.2s, background 0.2s;
+  border-radius: 8px;
+}
+.response-btn:hover {
+  background: #e3f2fd !important;
+  box-shadow: 0 2px 8px #1976d2aa;
+}
+.selected-response .mat-button-focus-overlay {
+  background: #bbdefb !important;
+}
+.response-selected-card {
+  border: 2.5px solid #1565c0 !important;
+  background: #e3f2fd !important;
+  box-shadow: 0 2px 12px #1976d2aa;
+  transition: border 0.2s, background 0.2s;
+}
+</style>

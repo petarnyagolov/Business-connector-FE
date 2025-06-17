@@ -56,4 +56,12 @@ export class CompanyRequestService {
         })
       );
     }
+
+    /**
+   * Confirm a response for a request (accept a response)
+   * @param confirmData The data to send to the backend (should include requestId, responseId, etc.)
+   */
+  confirmResponse(confirmData: any): Observable<any> {
+    return this.http.put(`${this.api}/confirm`, confirmData);
+  }
 }
