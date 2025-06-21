@@ -48,6 +48,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   isValidVatNumber: boolean = false;
   showCompanyDetails: boolean = false;
   registrationSuccess = false; // Added
+  isLoading = false; // Loading spinner for register
 
   constructor(private fb: FormBuilder, private authService: AuthService, private companyService: CompanyService, private industryService: IndustryService, private router: Router) {
     this.registrationForm = this.fb.group({
@@ -114,16 +115,14 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   onSubmit(): void {
     if (this.registrationForm.valid && this.companyFormComponentRef && this.companyFormComponentRef.companyForm.valid) {
+      this.isLoading = true;
       const registrationData = this.registrationForm.value;
       const companyData = this.companyFormComponentRef.companyForm.getRawValue();
-
       const requestPayload = {
         ...registrationData, 
         companyInfo: companyData 
       };
-
       const logoToUpload = this.selectedCompanyLogo ? this.selectedCompanyLogo : undefined;
-
       this.authService.register(requestPayload, logoToUpload).pipe(
         tap({
           next: (registerResponse: any) => { 
@@ -133,20 +132,20 @@ export class RegisterComponent implements OnInit, AfterViewInit {
             };
             this.authService.login(loginCredentials).subscribe({
               next: (loginResponse) => {
+                this.isLoading = false;
                 console.log('Auto-login successful after registration:', loginResponse);
                 // AuthService.login вече пренасочва към /companies при успех
-                // this.registrationSuccess = true; // Може да остане, ако е нужно за други цели
               },
               error: (loginError) => {
+                this.isLoading = false;
                 console.error('Auto-login failed after registration:', loginError);
-                // Показване на съобщение, че регистрацията е успешна, но автоматичното логване не е
-                // и потребителят трябва да се логне ръчно.
                 alert('Registration successful, but auto-login failed. Please log in manually.');
                 this.router.navigate(['/login']);
               }
             });
           },
           error: (registerError) => {
+            this.isLoading = false;
             console.error('Registration failed:', registerError);
             let errorMessage = 'Registration failed. Please try again.';
             if (registerError.error && registerError.error.message) {

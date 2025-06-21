@@ -87,13 +87,11 @@
       </div>
     </mat-card-content>
   </mat-card>
-
-  <!-- ВИЗУАЛИЗАЦИЯ НА ОТГОВОРИТЕ (над формата за отговор) -->
   <div *ngIf="responses && responses.length" style="max-width: 500px; margin: 24px auto 0 auto;">
     <mat-card appearance="outlined" style="margin-top: 0; border-radius: 14px; box-shadow: 0 2px 8px #0001; background: #f9f9fb;">
       <mat-card-title style="font-size: 1.1rem; font-weight: 600; color: #1976d2; display: flex; align-items: center; gap: 8px;">
         <mat-icon color="primary">question_answer</mat-icon>
-        Отговори
+        Предложения
       </mat-card-title>
       <mat-card-content>
         <div *ngFor="let resp of responses" style="margin-bottom: 12px; padding: 8px 12px; background: #f5faff; border-radius: 8px; position: relative;">

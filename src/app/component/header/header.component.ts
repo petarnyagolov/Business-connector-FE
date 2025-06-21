@@ -66,4 +66,8 @@ export class HeaderComponent {
     // Навигирай към страница с всички нотификации (dummy)
     this.router.navigate(['/notifications']);
   }
+
+  onInvoices() {
+    this.router.navigate(['/invoices']);
+  }
 }

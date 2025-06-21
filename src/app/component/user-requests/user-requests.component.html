@@ -96,12 +96,12 @@
       <button mat-stroked-button color="primary">Редактирай</button>
       <button mat-stroked-button color="accent" (click)="toggleResponses(request.id)">
         <mat-icon>{{ expandedRequestId === request.id ? 'expand_less' : 'expand_more' }}</mat-icon>
-        Виж отговорите
+        Виж предложенията
       </button>
     </mat-card-actions>
     <div *ngIf="expandedRequestId === request.id" style="margin: 0 16px 16px 16px; min-height: 80px;">
       <div *ngIf="responsesByRequestId[request.id]?.length; else noResponses">
-        <h4 style="margin: 8px 0 4px 0; font-size: 1.08em; color: #1976d2;">Отговори:</h4>
+        <h4 style="margin: 8px 0 4px 0; font-size: 1.08em; color: #1976d2;">Предложения:</h4>
         <hr style="margin: 0 0 12px 0; border: none; border-top: 1.5px solid #e0e0e0; width: 100%;" />
         <div [ngStyle]="selectedResponseByRequestId[request.id] ? {'padding-bottom': '48px'} : {}"
              style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%;">
@@ -136,7 +136,7 @@
         </div>
       </div>
       <ng-template #noResponses>
-        <div style="color: #888; font-size: 0.98em; margin: 8px 0;">Няма отговори.</div>
+        <div style="color: #888; font-size: 0.98em; margin: 8px 0;">Няма предложения.</div>
       </ng-template>
     </div>
   </mat-card>

@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon'; // Import MatIconModule
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-company-form',
@@ -20,7 +21,8 @@ import { MatIconModule } from '@angular/material/icon'; // Import MatIconModule
     MatSelectModule,
     MatOptionModule,
     MatButtonModule,
-    MatIconModule // Add MatIconModule to imports
+    MatIconModule, // Add MatIconModule to imports
+    MatProgressSpinnerModule // Add spinner module
   ],
   templateUrl: './company-form.component.html',
   styleUrls: ['./company-form.component.scss']
@@ -55,6 +57,7 @@ export class CompanyFormComponent {
 
   @Input() showSaveButton: boolean = true; // New input property to control save button visibility
   @Input() showRegisterButton: boolean = false; // New input property to control register button visibility
+  @Input() isLoading: boolean = false; // New input property to control loading spinner visibility
 
   constructor(private fb: FormBuilder) {
     // Use disabled state at creation time for controls
@@ -89,8 +92,12 @@ export class CompanyFormComponent {
   }
 
   onValidate() {
+    // Trim vatNumber before emitting
+    const rawVat = this.companyForm.get('vatNumber')?.value;
+    const trimmedVat = typeof rawVat === 'string' ? rawVat.trim() : rawVat;
+    this.companyForm.get('vatNumber')?.setValue(trimmedVat, { emitEvent: false });
     this.validateCompany.emit({
-      vatNumber: this.companyForm.get('vatNumber')?.value,
+      vatNumber: trimmedVat,
       country: this.companyForm.get('country')?.value
     });
     // These will be set by the parent component after actual validation
@@ -145,6 +152,10 @@ export class CompanyFormComponent {
   }
 
   onRegister() {
+    // Trim vatNumber before emitting
+    const rawVat = this.companyForm.get('vatNumber')?.value;
+    const trimmedVat = typeof rawVat === 'string' ? rawVat.trim() : rawVat;
+    this.companyForm.get('vatNumber')?.setValue(trimmedVat, { emitEvent: false });
     if (this.companyForm.valid) {
       this.register.emit(this.companyForm.getRawValue());
     }

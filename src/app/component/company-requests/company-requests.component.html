@@ -103,7 +103,7 @@
       </button>
       <button mat-stroked-button color="primary" (click)="onReply(request)" [class.active-reply]="showReplyFormId === request.id">
         <mat-icon style="margin-right: 4px;">reply</mat-icon>
-        Отговори
+        Предложи
       </button>
       <button mat-stroked-button color="primary" (click)="shareRequest(request.id)" [matTooltip]="copyTooltipRequestId === request.id ? 'Линка е копиран!' : 'Сподели линк'" matTooltipPosition="above" #shareBtn="matTooltip" (mouseleave)="shareBtn.hide()">
         <mat-icon style="margin-right: 4px;">share</mat-icon>
@@ -122,11 +122,11 @@
         </mat-select>
       </mat-form-field>
       <mat-form-field appearance="fill" style="width: 100%; margin-top: 16px;">
-        <mat-label>Отговор</mat-label>
+        <mat-label>Предложи</mat-label>
         <textarea matInput [(ngModel)]="replyFormData[request.id].responseText" rows="4" required></textarea>
       </mat-form-field>
       <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <button mat-raised-button color="primary" (click)="onSubmitReply(request)">Отговори</button>
+        <button mat-raised-button color="primary" (click)="onSubmitReply(request)">Предложи</button>
         <button mat-button color="warn" (click)="onCancelReply()">Отказ</button>
       </div>
     </div>

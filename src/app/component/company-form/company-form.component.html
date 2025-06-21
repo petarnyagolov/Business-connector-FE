@@ -79,6 +79,9 @@
   <div class="company-form-action-bar" *ngIf="showCompanyDetails && isValidVatNumber">
     <span class="action-bar-spacer"></span>
     <button *ngIf="showSaveButton !== false" mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="!companyForm.valid">Запази</button>
-    <button *ngIf="showRegisterButton" mat-raised-button color="accent" type="button" style="margin-left:16px; font-weight:bold; font-size:18px;" (click)="onRegister()" [disabled]="!companyForm.valid">Register</button>
+    <button *ngIf="showRegisterButton" mat-raised-button color="accent" type="button" style="margin-left:16px; font-weight:bold; font-size:18px; min-width:120px; min-height:40px; position:relative;" (click)="onRegister()" [disabled]="!companyForm.valid || isLoading">
+      <mat-progress-spinner *ngIf="isLoading" diameter="22" mode="indeterminate" color="primary" style="position:absolute; left:10px; top:9px; z-index:2;" [style.visibility]="isLoading ? 'visible' : 'hidden'" strokeWidth="3"></mat-progress-spinner>
+      <span [style.opacity]="isLoading ? 0.5 : 1">Register</span>
+    </button>
   </div>
 </form>
