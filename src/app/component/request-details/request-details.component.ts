@@ -33,6 +33,7 @@ export class RequestDetailsComponent implements OnInit {
   editResponseData: any = {};
   editResponseItem: any = null;
   showEditResponseDialog: boolean = false;
+  picturePreview: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -43,7 +44,13 @@ export class RequestDetailsComponent implements OnInit {
   ) {
     this.responseForm = this.fb.group({
       responserCompanyId: ['', Validators.required],
-      message: ['', Validators.required]
+      message: ['', Validators.required],
+      fixedPrice: [''],
+      priceFrom: [''],
+      priceTo: [''],
+      availableFrom: [''],
+      availableTo: [''],
+      picture: [null]
     });
   }
 
@@ -59,14 +66,58 @@ export class RequestDetailsComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.request || this.responseForm.invalid) return;
-    this.responseService.createResponse(this.request.id, this.responseForm.value).subscribe({
+    if (!this.request) return;
+    // Валидация на requiredFields
+    if (this.request.requiredFields && Array.isArray(this.request.requiredFields)) {
+      for (const field of this.request.requiredFields) {
+        if (field === 'picture') {
+          if (!this.responseForm.get('picture')?.value) {
+            alert('Снимката е задължителна!');
+            return;
+          }
+        } else if (!this.responseForm.get(field) || this.responseForm.get(field)?.value === '' || this.responseForm.get(field)?.value == null) {
+          alert('Полето ' + this.getFieldLabel(field) + ' е задължително!');
+          return;
+        }
+      }
+    }
+    if (this.responseForm.invalid) return;
+    // Подгответе dto с всички полета, които backend очаква
+    const dto: any = {};
+    Object.keys(this.responseForm.controls).forEach(key => {
+      if (key !== 'picture') {
+        // Преименуваме message -> responseText
+        if (key === 'message') {
+          dto['responseText'] = this.responseForm.get('message')?.value;
+        } else {
+          dto[key] = this.responseForm.get(key)?.value;
+        }
+      }
+    });
+    // Съберете файловете (ако има)
+    const pictures: File[] = [];
+    if (this.responseForm.get('picture')?.value) {
+      pictures.push(this.responseForm.get('picture')?.value);
+    }
+    this.responseService.createResponse(this.request.id, dto, pictures).subscribe({
       next: () => {
         this.responseSuccess = true;
         this.showResponseForm = false;
       },
       error: () => this.responseSuccess = false
     });
+  }
+
+  getFieldLabel(field: string): string {
+    switch (field) {
+      case 'fixedPrice': return 'Фиксирана цена';
+      case 'priceFrom': return 'Цена от';
+      case 'priceTo': return 'Цена до';
+      case 'availableFrom': return 'Налично от';
+      case 'availableTo': return 'Налично до';
+      case 'picture': return 'Снимка';
+      default: return field;
+    }
   }
 
   editResponse(resp: any) {
@@ -101,7 +152,7 @@ export class RequestDetailsComponent implements OnInit {
         this.closeEditResponseDialog();
       },
       error: () => {
-        alert('Грешка при редакция на отговор!');
+        alert('Грешка при редакция на предложение!');
       }
     });
   }
@@ -128,5 +179,21 @@ export class RequestDetailsComponent implements OnInit {
 
   canEditResponse(resp: any): boolean {
     return !!resp.responserCompanyId && this.companies.some(c => c.id === resp.responserCompanyId);
+  }
+
+  onPictureChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.responseForm.get('picture')?.setValue(file);
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.picturePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      this.responseForm.get('picture')?.setValue(null);
+      this.picturePreview = null;
+    }
   }
 }

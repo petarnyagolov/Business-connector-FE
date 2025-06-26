@@ -85,7 +85,6 @@ export class AuthService {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('accessToken');
     this.authStatusSubject.next(false);
-    // Clear cached companies on logout
     this.companyService.clearUserCompaniesCache();
     this.router.navigate(['/login']);
   }
@@ -95,12 +94,10 @@ export class AuthService {
   }
 
   verifyEmailWithToken(token: string) {
-    // Хардкоднат бекенд URL за тест
     return this.http.get(`http://localhost:8080/api/verify/email/verify?t=${token}`, { observe: 'response', responseType: 'text' });
   }
 
   resendVerificationLink(email: string) {
-    // Изпраща POST заявка към бекенда за повторно изпращане на верификационен линк
-    return this.http.post('/api/verify/email/resend-verification', null, { params: { email } });
+    return this.http.post('http://localhost:8080/api/verify/email/resend-verification', null, { params: { email } });
   }
 }

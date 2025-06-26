@@ -29,6 +29,7 @@ export class UserResponsesComponent implements OnInit {
   showEditResponseDialog = false;
   editResponseData: any = {};
   editResponseItem: any = null;
+  editResponseRequiredFields: string[] = [];
 
   constructor(
     private responseService: ResponseService,
@@ -146,10 +147,18 @@ export class UserResponsesComponent implements OnInit {
   openEditResponse(item: any) {
     this.editResponseItem = item;
     this.editResponseData = {
-      responseText: item.responseText,
+      oldResponseText: item.responseText || '',
+      newResponseText: '',
       responserCompanyId: item.responserCompanyId,
       id: item.id // responseId
     };
+    this.editResponseRequiredFields = item.requestCompany?.requiredFields || [];
+    // Попълни всички налични стойности за requiredFields
+    for (const field of this.editResponseRequiredFields) {
+      if (item[field] !== undefined) {
+        this.editResponseData[field] = item[field];
+      }
+    }
     this.showEditResponseDialog = true;
   }
 
@@ -160,24 +169,49 @@ export class UserResponsesComponent implements OnInit {
   }
 
   submitEditResponse() {
+    // Валидация на requiredFields (само текстът е активен)
+    if (!this.editResponseData.newResponseText || this.editResponseData.newResponseText.trim() === '') {
+      alert('Моля, въведете нов текст към предложението!');
+      return;
+    }
     if (!this.editResponseItem) return;
     const requestCompanyId = this.editResponseItem.requestCompany?.id;
+    // Добави новия текст към стария
+    const combinedText = (this.editResponseData.oldResponseText ? this.editResponseData.oldResponseText + '\n' : '') + this.editResponseData.newResponseText;
     const dto = {
       id: this.editResponseData.id,
-      responseText: this.editResponseData.responseText,
+      responseText: combinedText,
       responserCompanyId: this.editResponseData.responserCompanyId,
       requestCompany: this.editResponseItem.requestCompany
     };
+    // Добавяме requiredFields към dto
+    for (const field of this.editResponseRequiredFields) {
+      (dto as any)[field] = this.editResponseData[field];
+    }
     this.responseService.updateResponse(requestCompanyId, dto).subscribe({
       next: () => {
         // Обнови локално
         this.editResponseItem.responseText = dto.responseText;
         this.editResponseItem.responserCompanyId = dto.responserCompanyId;
+        for (const field of this.editResponseRequiredFields) {
+          (this.editResponseItem as any)[field] = (dto as any)[field];
+        }
         this.closeEditResponseDialog();
       },
       error: () => {
-        alert('Грешка при редакция на отговор!');
+        alert('Грешка при редакция на предложението!');
       }
     });
+  }
+
+  getFieldLabel(field: string): string {
+    switch (field) {
+      case 'fixedPrice': return 'Фиксирана цена';
+      case 'priceFrom': return 'Цена от';
+      case 'priceTo': return 'Цена до';
+      case 'availableFrom': return 'Налично от';
+      case 'availableTo': return 'Налично до';
+      default: return field;
+    }
   }
 }

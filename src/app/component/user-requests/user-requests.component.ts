@@ -36,9 +36,9 @@ export class UserRequestsComponent {
     pictures: [],
     requestType: '',
     status: '',
-    activeFrom: new Date(),
-    activeTo: new Date()
-
+    availableFrom: new Date(),
+    availableTo: new Date(),
+    requiredFields: []
   };
 
   pictureBlobs: { [key: string]: SafeUrl } = {};

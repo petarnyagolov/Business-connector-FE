@@ -114,6 +114,24 @@
           <label for="pictures">Снимки</label>
           <input type="file" id="pictures" (change)="onFileSelected($event)" multiple accept="image/*">
         </div>
+
+        <mat-form-field appearance="fill" style="width: 100%; margin-top: 18px;">
+          <mat-label>Задължителни полета за да ви направят предложение</mat-label>
+          <mat-select formControlName="requiredFields" multiple>
+            <mat-option *ngFor="let field of ['fixedPrice','priceFrom','priceTo','availableFrom','availableTo','picture']" [value]="field">
+              {{
+                field === 'fixedPrice' ? 'Фиксирана цена' :
+                field === 'priceFrom' ? 'Цена от' :
+                field === 'priceTo' ? 'Цена до' :
+                (field === 'availableFrom' && (requestForm.get('requestType')?.value === 'LOOKING_FOR_SERVICE' || requestForm.get('requestType')?.value === 'SHARE_SERVICE')) ? 'Свободен от' :
+                (field === 'availableTo' && (requestForm.get('requestType')?.value === 'LOOKING_FOR_SERVICE' || requestForm.get('requestType')?.value === 'SHARE_SERVICE')) ? 'Свободен до' :
+                field === 'availableFrom' ? 'Налично от' :
+                field === 'availableTo' ? 'Налично до' :
+                field === 'picture' ? 'Снимка' : field
+              }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
     </mat-card-content>
     <mat-card-actions>

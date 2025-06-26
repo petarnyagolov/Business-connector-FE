@@ -73,12 +73,12 @@
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">priority_high</mat-icon>
           <span class="label">Спешно:&nbsp;</span> <span class="value">{{ request.urgent ? 'Да' : 'Не' }}</span>
         </div>
-        <div *ngIf="request.activeFrom || request.activeTo" style="display: flex; align-items: center;">
+        <div *ngIf="request.availableFrom || request.availableTo" style="display: flex; align-items: center;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
           <span class="label">Период:&nbsp;</span>
           <span class="value">
-            <ng-container *ngIf="request.activeFrom">от {{ request.activeFrom | date:'dd.MM.yyyy' }}</ng-container>
-            <ng-container *ngIf="request.activeTo"> &nbsp;до {{ request.activeTo | date:'dd.MM.yyyy' }}</ng-container>
+            <ng-container *ngIf="request.availableFrom">от {{ request.availableFrom | date:'dd.MM.yyyy' }}</ng-container>
+            <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | date:'dd.MM.yyyy' }}</ng-container>
           </span>
         </div>
         <div *ngIf="getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">

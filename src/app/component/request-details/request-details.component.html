@@ -63,12 +63,12 @@
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">priority_high</mat-icon>
           <span class="label">Спешно:&nbsp;</span> <span class="value">{{ request.urgent ? 'Да' : 'Не' }}</span>
         </div>
-        <div *ngIf="request.activeFrom || request.activeTo" style="display: flex; align-items: center;">
+        <div *ngIf="request.availableFrom || request.availableTo" style="display: flex; align-items: center;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
           <span class="label">Период:&nbsp;</span>
           <span class="value">
-            <ng-container *ngIf="request.activeFrom">от {{ formatDateArray(request.activeFrom) }}</ng-container>
-            <ng-container *ngIf="request.activeTo"> &nbsp;до {{ formatDateArray(request.activeTo) }}</ng-container>
+            <ng-container *ngIf="request.availableFrom">от {{ formatDateArray(request.availableFrom) }}</ng-container>
+            <ng-container *ngIf="request.availableTo"> &nbsp;до {{ formatDateArray(request.availableTo) }}</ng-container>
           </span>
         </div>
         <div *ngIf="request.pictures && request.pictures.length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
@@ -112,7 +112,7 @@
     <mat-card appearance="outlined" style="margin-top: 0; border-radius: 14px; box-shadow: 0 2px 8px #0001; background: #f5faff;">
       <mat-card-title style="font-size: 1.1rem; font-weight: 600; color: #1976d2; display: flex; align-items: center; gap: 8px;">
         <mat-icon color="primary">question_answer</mat-icon>
-        Отговор
+        Предложи
       </mat-card-title>
       <mat-card-content>
         <form *ngIf="showResponseForm" [formGroup]="responseForm" (ngSubmit)="onSubmit()" style="display: flex; flex-direction: column; gap: 16px;">
@@ -131,15 +131,40 @@
             <textarea matInput formControlName="message" rows="3"></textarea>
             <mat-error *ngIf="responseForm.get('message')?.hasError('required')">Съобщението е задължително</mat-error>
           </mat-form-field>
+          <mat-form-field appearance="fill" style="width: 100%;" *ngIf="request?.requiredFields?.includes('fixedPrice')">
+            <mat-label>Фиксирана цена</mat-label>
+            <input matInput type="number" formControlName="fixedPrice" required>
+          </mat-form-field>
+          <mat-form-field appearance="fill" style="width: 100%;" *ngIf="request?.requiredFields?.includes('priceFrom')">
+            <mat-label>Цена от</mat-label>
+            <input matInput type="number" formControlName="priceFrom" required>
+          </mat-form-field>
+          <mat-form-field appearance="fill" style="width: 100%;" *ngIf="request?.requiredFields?.includes('priceTo')">
+            <mat-label>Цена до</mat-label>
+            <input matInput type="number" formControlName="priceTo" required>
+          </mat-form-field>
+          <mat-form-field appearance="fill" style="width: 100%;" *ngIf="request?.requiredFields?.includes('availableFrom')">
+            <mat-label>Налично от</mat-label>
+            <input matInput type="date" formControlName="availableFrom" required>
+          </mat-form-field>
+          <mat-form-field appearance="fill" style="width: 100%;" *ngIf="request?.requiredFields?.includes('availableTo')">
+            <mat-label>Налично до</mat-label>
+            <input matInput type="date" formControlName="availableTo" required>
+          </mat-form-field>
+          <div *ngIf="request?.requiredFields?.includes('picture')">
+            <label style="font-weight: 500;">Снимка</label>
+            <input type="file" (change)="onPictureChange($event)" accept="image/*">
+            <img *ngIf="picturePreview" [src]="picturePreview" alt="Преглед" style="max-width: 120px; max-height: 120px; display: block; margin-top: 8px; border-radius: 8px; box-shadow: 0 2px 8px #0002;">
+          </div>
           <div style="display: flex; justify-content: flex-end; gap: 12px;">
             <button mat-stroked-button color="primary" type="submit" [disabled]="responseForm.invalid">
-              <mat-icon style="margin-right: 4px;">send</mat-icon>Изпрати отговор
+              <mat-icon style="margin-right: 4px;">send</mat-icon>Изпрати предложение
             </button>
           </div>
         </form>
         <div *ngIf="responseSuccess && !showResponseForm" style="color:green; margin-top:10px; text-align:center; font-weight: 500;">
           <mat-icon color="primary" style="vertical-align: middle;">check_circle</mat-icon>
-          Отговорът е изпратен успешно!
+          Предложението е изпратен успешно!
         </div>
       </mat-card-content>
     </mat-card>
@@ -148,7 +173,7 @@
   <!-- ДИАЛОГ ЗА РЕДАКЦИЯ НА ОТГОВОР -->
   <div *ngIf="showEditResponseDialog && editResponseData" class="edit-response-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center;">
     <div class="edit-response-dialog" style="background: #fff; padding: 24px 18px; border-radius: 12px; min-width: 320px; max-width: 95vw; box-shadow: 0 2px 16px #0003;">
-      <h3 style="margin-bottom: 18px; color: #1976d2;">Редакция на отговор</h3>
+      <h3 style="margin-bottom: 18px; color: #1976d2;">Редакция на предложението</h3>
       <mat-form-field appearance="fill" style="width: 100%;">
         <mat-label>Фирма</mat-label>
         <mat-select [(ngModel)]="editResponseData.responserCompanyId" name="editResponserCompanyId" required>
@@ -158,7 +183,7 @@
         </mat-select>
       </mat-form-field>
       <mat-form-field appearance="fill" style="width: 100%; margin-top: 16px;">
-        <mat-label>Отговор</mat-label>
+        <mat-label>Предложение</mat-label>
         <textarea matInput [(ngModel)]="editResponseData.responseText" name="editResponseText" rows="4" required></textarea>
       </mat-form-field>
       <div style="display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end;">

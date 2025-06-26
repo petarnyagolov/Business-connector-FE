@@ -6,8 +6,8 @@ export interface CompanyRequest {
   requestType: string;
   description: string;
   status: string;
-  activeFrom: Date;
-  activeTo: Date;
+  availableFrom: Date;
+  availableTo: Date;
   pictures: File[];
   region?: string;
   capacity?: number;
@@ -17,4 +17,5 @@ export interface CompanyRequest {
   priceTo?: number;
   workMode?: string;
   urgent?: boolean;
+  requiredFields: string[];
 }

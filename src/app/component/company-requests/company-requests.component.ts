@@ -142,11 +142,11 @@ export class CompanyRequestsComponent implements OnInit {
     if (!data.responserCompanyId || !data.responseText) return;
     this.responseService.createResponse(request.id, data).subscribe({
       next: () => {
-        alert('Отговорът е изпратен успешно!');
+        alert('Предложението е изпратен успешно!');
         this.showReplyFormId = null;
         this.replyFormData[request.id] = { responserCompanyId: '', responseText: '' };
       },
-      error: () => alert('Грешка при изпращане на отговор!')
+      error: () => alert('Грешка при изпращане на предложението!')
     });
   }
 

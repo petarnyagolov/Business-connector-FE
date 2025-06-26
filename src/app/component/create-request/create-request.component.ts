@@ -61,7 +61,8 @@ export class CreateRequestComponent {
       workMode: [''],
       priceFrom: [''],
       priceTo: [''],
-      unit: ['']
+      unit: [''],
+      requiredFields: [[]]
     });
     this.loadUserCompanies();
   }
@@ -116,7 +117,8 @@ export class CreateRequestComponent {
         workMode: formValue.workMode,
         priceFrom: formValue.priceFrom,
         priceTo: formValue.priceTo,
-        unit: formValue.unit
+        unit: formValue.unit,
+        requiredFields: formValue.requiredFields || []
       };
       formData.append('requestCompany', new Blob([JSON.stringify(requestCompany)], { type: 'application/json' }));
     }
@@ -129,5 +131,16 @@ export class CreateRequestComponent {
 
   onCancel(): void {
     this.router.navigate(['/my-requests']);
+  }
+
+  onRequiredFieldChange(event: any, field: string) {
+    const current = this.requestForm.get('requiredFields')?.value || [];
+    if (event.checked) {
+      if (!current.includes(field)) {
+        this.requestForm.get('requiredFields')?.setValue([...current, field]);
+      }
+    } else {
+      this.requestForm.get('requiredFields')?.setValue(current.filter((f: string) => f !== field));
+    }
   }
 }

@@ -68,12 +68,12 @@
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">priority_high</mat-icon>
           <span class="label">Спешно:&nbsp;</span> <span class="value">{{ request.urgent ? 'Да' : 'Не' }}</span>
         </div>
-        <div *ngIf="request.activeFrom || request.activeTo" style="display: flex; align-items: center;">
+        <div *ngIf="request.availableFrom || request.availableTo" style="display: flex; align-items: center;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
           <span class="label">Период:&nbsp;</span>
           <span class="value">
-            <ng-container *ngIf="request.activeFrom">от {{ request.activeFrom | date:'dd.MM.yyyy' }}</ng-container>
-            <ng-container *ngIf="request.activeTo"> &nbsp;до {{ request.activeTo | date:'dd.MM.yyyy' }}</ng-container>
+            <ng-container *ngIf="request.availableFrom">от {{ request.availableFrom | date:'dd.MM.yyyy' }}</ng-container>
+            <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | date:'dd.MM.yyyy' }}</ng-container>
           </span>
         </div>
         <div *ngIf="getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
@@ -120,6 +120,39 @@
                 <div style="margin-top: 2px; font-size: 1em; color: #1976d2; white-space: pre-line; word-break: break-word; overflow-wrap: anywhere;">
                   {{ resp.responseText }}
                 </div>
+                <!-- Required fields visualization -->
+                <div *ngIf="request.requiredFields?.length" style="margin-top: 8px;">
+                  <div *ngFor="let field of request.requiredFields">
+                    <ng-container [ngSwitch]="field">
+                      <div *ngSwitchCase="'fixedPrice'" style="color: #333; font-size: 0.98em;">
+                        <b>Фиксирана цена:</b> {{ resp.fixedPrice || '—' }}
+                      </div>
+                      <div *ngSwitchCase="'priceFrom'" style="color: #333; font-size: 0.98em;">
+                        <b>Цена от:</b> {{ resp.priceFrom || '—' }}
+                      </div>
+                      <div *ngSwitchCase="'priceTo'" style="color: #333; font-size: 0.98em;">
+                        <b>Цена до:</b> {{ resp.priceTo || '—' }}
+                      </div>
+                      <div *ngSwitchCase="'availableFrom'" style="color: #333; font-size: 0.98em;">
+                        <b>Налично от:</b> {{ resp.availableFrom ? (resp.availableFrom | date:'dd.MM.yyyy') : '—' }}
+                      </div>
+                      <div *ngSwitchCase="'availableTo'" style="color: #333; font-size: 0.98em;">
+                        <b>Налично до:</b> {{ resp.availableTo ? (resp.availableTo | date:'dd.MM.yyyy') : '—' }}
+                      </div>
+                      <div *ngSwitchCase="'picture'" style="color: #333; font-size: 0.98em; display: flex; align-items: center; gap: 6px;">
+                        <b>Снимка:</b>
+                        <ng-container *ngIf="resp.pictureUrl">
+                          <img [src]="pictureBlobs[resp.pictureUrl] || resp.pictureUrl" alt="Снимка" style="max-width: 60px; max-height: 60px; border-radius: 6px; border: 1px solid #e0e0e0; object-fit: cover;" />
+                        </ng-container>
+                        <ng-container *ngIf="!resp.pictureUrl">—</ng-container>
+                      </div>
+                      <div *ngSwitchDefault style="color: #333; font-size: 0.98em;">
+                        <b>{{ field }}:</b> {{ resp[field] || '—' }}
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+                <!-- End required fields visualization -->
               </div>
             </button>
             <hr *ngIf="!last" style="margin: 0 0 0 0; border: none; border-top: 1.5px solid #e0e0e0; width: 100%;" />
