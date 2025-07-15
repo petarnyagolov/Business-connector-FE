@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import { CompanyRequest } from '../model/companyRequest';
 import { Observable, shareReplay } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CompanyRequestService {
-  private api = 'http://localhost:8080/api/request-company';
+  private api = environment.apiUrl + '/request-company';
 
   constructor(private http: HttpClient) { }
   private apiUrl = `${this.api}`; // URL на API-то за заявки
@@ -42,11 +43,11 @@ export class CompanyRequestService {
           let pictures: string[] = [];
           if (Array.isArray(req.pictureUrls)) {
             pictures = req.pictureUrls.map((pic: string) =>
-              pic.startsWith('http') ? pic : `http://localhost:8080/files/${pic.replace(/\\/g, '/')}`
+              pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${pic.replace(/\\/g, '/')}`
             );
           } else if (Array.isArray(req.pictures)) {
             pictures = req.pictures.map((pic: string) =>
-              pic.startsWith('http') ? pic : `http://localhost:8080/files/${pic.replace(/\\/g, '/')}`
+              pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${pic.replace(/\\/g, '/')}`
             );
           }
           return {

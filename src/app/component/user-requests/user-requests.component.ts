@@ -1,31 +1,33 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CompanyRequest } from '../../model/companyRequest';
 import { CommonModule } from '@angular/common';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { MatGridListModule } from '@angular/material/grid-list';
-import { MatCardModule, MatCardContent, } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { CompanyRequestService } from '../../service/company-request.service';
-import { filter } from 'rxjs';
-import { MatIcon } from '@angular/material/icon';
 import { Company } from '../../model/company';
 import { CompanyService } from '../../service/company.service';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
+import { MatIconModule } from '@angular/material/icon';
+import { environment } from '../../../environments/environment';
+import { Subject, takeUntil, filter } from 'rxjs';
 
 @Component({
   selector: 'app-user-requests',
-  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatCardContent, MatIcon],
+  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatIconModule],
   templateUrl: './user-requests.component.html',
   styleUrl: './user-requests.component.scss',
   standalone: true
 })
-export class UserRequestsComponent {
+export class UserRequestsComponent implements OnInit, OnDestroy {
     companyRequests: CompanyRequest[] = [];
     showCancelButton: boolean = false; 
     userCompanies: Company[] = [];
     responsesByRequestId: { [requestId: string]: any[] } = {};
     expandedRequestId: string | null = null;
+    private destroy$ = new Subject<void>();
 
   companyRequest: CompanyRequest = {
     id: '',
@@ -41,8 +43,8 @@ export class UserRequestsComponent {
     requiredFields: []
   };
 
-  pictureBlobs: { [key: string]: SafeUrl } = {};
-  selectedImage: SafeUrl | null = null;
+  pictureBlobs: { [key: string]: any } = {};
+  selectedImage: any | null = null;
   showImageDialog: boolean = false;
 
   selectedResponseByRequestId: { [requestId: string]: any } = {};
@@ -61,23 +63,40 @@ export class UserRequestsComponent {
   }
 
   ngOnInit(): void {
-    this.companyService.getAllCompaniesByUser().subscribe({
-      next: (companies) => {
-        this.userCompanies = companies;
-      },
-      error: (err) => {
-        this.userCompanies = [];
-      }
-    });
-    // Listen to route changes and toggle the button visibility
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.loadRequests();
-        this.showCancelButton = this.router.url.includes('/create');
+    // Зареждаме user companies само веднъж
+    this.companyService.getAllCompaniesByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (companies) => {
+          this.userCompanies = companies;
+        },
+        error: (err) => {
+          console.error('Error loading user companies:', err);
+          this.userCompanies = [];
+        }
       });
-    // Добавям извикване на loadRequests() при първоначално зареждане
+    
+    // Слушаме само за NavigationEnd events и ограничаваме броя извиквания
+    this.router.events
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(event => event instanceof NavigationEnd)
+      )
+      .subscribe(() => {
+        this.showCancelButton = this.router.url.includes('/create');
+        // Зареждаме requests само ако сме в user-requests маршрута
+        if (this.router.url.includes('/my-requests')) {
+          this.loadRequests();
+        }
+      });
+    
+    // Първоначално зареждане
     this.loadRequests();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   getCompanyNameById(id: string): string {
@@ -219,7 +238,7 @@ export class UserRequestsComponent {
     if (pic.startsWith('http')) {
       return pic;
     }
-    return 'http://localhost:8080/files/' + pic.replace(/\\/g, '/');
+    return `${environment.apiUrl}/files/` + pic.replace(/\\/g, '/');
   }
 
   onImageClick(pic: string): void {

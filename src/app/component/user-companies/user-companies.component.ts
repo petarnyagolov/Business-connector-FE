@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import {MatGridListModule} from '@angular/material/grid-list';
@@ -6,10 +6,10 @@ import { MatCardModule, MatCardContent} from '@angular/material/card';
 import {  MatButtonModule } from '@angular/material/button';
 import { Company } from '../../model/company';
 import { CompanyService } from '../../service/company.service';
-import { filter } from 'rxjs';
+import { filter, takeUntil } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-user-companies',
@@ -18,11 +18,12 @@ import { forkJoin, of } from 'rxjs';
   styleUrl: './user-companies.component.scss',
   standalone: true
 })
-export class UserCompaniesComponent {
+export class UserCompaniesComponent implements OnDestroy {
   companies: Company[] = [];
   showCancelButton: boolean = false; 
   logoUrls: { [key: string]: string } = {};
   private logoObjectUrls: string[] = []; // За освобождаване на blob-ове
+  private destroy$ = new Subject<void>();
 
 
   
@@ -35,7 +36,10 @@ ngOnInit(): void {
   this.loadCompanies();
 
   this.router.events
-    .pipe(filter((event) => event instanceof NavigationEnd))
+    .pipe(
+      filter((event) => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    )
     .subscribe(() => {
       this.loadCompanies();
       this.showCancelButton = this.router.url.includes('/create');
@@ -43,7 +47,9 @@ ngOnInit(): void {
 }
 
 loadCompanies(): void {
-  this.companyService.getAllCompaniesByUser().subscribe({
+  this.companyService.getAllCompaniesByUser()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
     next: (data: Company[]) => {
       this.companies = data.sort((a, b) => {
         const aHasLogo = !!(a.logo && this.logoUrls[a.logo]);
@@ -110,7 +116,7 @@ getLogoUrl(company: Company): string {
   if (!logoPath) return '';
   if (logoPath.startsWith('http')) return logoPath;
   // Връща абсолютния URL към бекенда
-  return `http://localhost:8080/files/${logoPath.replace(/^\\+|\\+$/g, '').replace(/\\/g, '/')}`;
+  return `${environment.apiUrl}/files/${logoPath.replace(/^\\+|\\+$/g, '').replace(/\\/g, '/')}`;
 }
 
   createCompany() {
@@ -177,5 +183,13 @@ getLogoUrl(company: Company): string {
 
   getEmployeesSize(company: any): string {
     return company && company.employeesSize ? company.employeesSize : '-';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    
+    // Освобождаване на blob URLs за памет
+    this.logoObjectUrls.forEach(url => URL.revokeObjectURL(url));
   }
 }

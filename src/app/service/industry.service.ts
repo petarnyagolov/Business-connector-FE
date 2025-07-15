@@ -3,13 +3,14 @@ import { catchError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Observable, shareReplay } from 'rxjs';
 import { Industry } from '../model/industry'
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class IndustryService {
-  private api = 'http://localhost:8080';
-  private apiGetIndustries = `${this.api}/api/utils/industries`;
+  private api = environment.apiUrl;
+  private apiGetIndustries = `${this.api}/utils/industries`;
   private industries$: Observable<any[]> | null = null;
 
   constructor(private http: HttpClient) { }

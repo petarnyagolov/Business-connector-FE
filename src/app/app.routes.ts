@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { CardPageComponent } from './card-page/card-page.component';
 import { RegisterComponent } from './component/register/register.component';
 import { LoginComponent } from './component/login/login.component';
 import { AboutComponent } from './component/about/about.component';
@@ -10,8 +9,6 @@ import { UserCompaniesComponent } from './component/user-companies/user-companie
 import { CompanyDetailComponent } from './company-detail/company-detail.component';
 import { CompanyRequestsComponent } from './component/company-requests/company-requests.component';
 import { RequestDetailsComponent } from './component/request-details/request-details.component';
-import { UserRequestsComponent } from './component/user-requests/user-requests.component';
-import { UserResponsesComponent } from './component/user-responses/user-responses.component';
 import { EmailVerificationComponent } from './component/email-verification/email-verification.component'; // Added
 import { HomeComponent } from './component/home/home.component';
 
@@ -40,12 +37,18 @@ export const routes: Routes = [
     path: 'requests/:id', component: RequestDetailsComponent, canActivate: [AuthGuard]
   },
   {
-    path: 'my-requests', component: UserRequestsComponent, canActivate: [AuthGuard],
+    path: 'my-requests',
+    loadComponent: () => import('./component/user-requests/user-requests.component').then(m => m.UserRequestsComponent),
+    canActivate: [AuthGuard],
     children: [
       { path: 'create', loadComponent: () => import('./component/create-request/create-request.component').then(m => m.CreateRequestComponent), canActivate: [AuthGuard] }
     ]
   },
-  { path: 'my-responses', component: UserResponsesComponent, canActivate: [AuthGuard] },
+  {
+    path: 'my-responses',
+    loadComponent: () => import('./component/user-responses/user-responses.component').then(m => m.UserResponsesComponent),
+    canActivate: [AuthGuard]
+  },
   {
     path: 'user/companies/update/:vatNumber',
     loadComponent: () => import('./component/company-form/company-form-update-wrapper.component').then(m => m.CompanyFormUpdateWrapperComponent)

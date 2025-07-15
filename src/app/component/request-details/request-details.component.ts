@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CompanyRequestService } from '../../service/company-request.service';
 import { CompanyRequest } from '../../model/companyRequest';
@@ -12,18 +12,33 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { MatError } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-request-details',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatOptionModule, MatCardModule, MatIconModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatOptionModule,
+    MatCardModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatMomentDateModule
+  ],
   templateUrl: './request-details.component.html',
-  styleUrl: './request-details.component.scss'
+  styleUrls: ['./request-details.component.scss']
 })
-export class RequestDetailsComponent implements OnInit {
+export class RequestDetailsComponent implements OnInit, OnDestroy {
   request: CompanyRequest | null = null;
   responses: any[] = [];
   companies: Company[] = [];
@@ -34,6 +49,7 @@ export class RequestDetailsComponent implements OnInit {
   editResponseItem: any = null;
   showEditResponseDialog: boolean = false;
   picturePreview: string | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
@@ -48,8 +64,8 @@ export class RequestDetailsComponent implements OnInit {
       fixedPrice: [''],
       priceFrom: [''],
       priceTo: [''],
-      availableFrom: [''],
-      availableTo: [''],
+      availableFrom: [null],
+      availableTo: [null],
       picture: [null]
     });
   }
@@ -62,7 +78,19 @@ export class RequestDetailsComponent implements OnInit {
         this.responses = res.responses || [];
       });
     }
-    this.companyService.getAllCompaniesByUser().subscribe(companies => this.companies = companies);
+    this.companyService.getAllCompaniesByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(companies => this.companies = companies);
+
+    // Динамично добавяне на required валидатор за availableFrom/availableTo ако са в requiredFields
+    if (this.request?.requiredFields?.includes('availableFrom')) {
+      this.responseForm.get('availableFrom')?.addValidators(Validators.required);
+      this.responseForm.get('availableFrom')?.updateValueAndValidity();
+    }
+    if (this.request?.requiredFields?.includes('availableTo')) {
+      this.responseForm.get('availableTo')?.addValidators(Validators.required);
+      this.responseForm.get('availableTo')?.updateValueAndValidity();
+    }
   }
 
   onSubmit(): void {
@@ -75,6 +103,11 @@ export class RequestDetailsComponent implements OnInit {
             alert('Снимката е задължителна!');
             return;
           }
+        } else if (field === 'availableFrom' || field === 'availableTo') {
+          if (!this.responseForm.get(field)?.value || this.responseForm.get(field)?.value === '') {
+            alert('Полето ' + this.getFieldLabel(field) + ' е задължително!');
+            return;
+          }
         } else if (!this.responseForm.get(field) || this.responseForm.get(field)?.value === '' || this.responseForm.get(field)?.value == null) {
           alert('Полето ' + this.getFieldLabel(field) + ' е задължително!');
           return;
@@ -82,11 +115,9 @@ export class RequestDetailsComponent implements OnInit {
       }
     }
     if (this.responseForm.invalid) return;
-    // Подгответе dto с всички полета, които backend очаква
     const dto: any = {};
     Object.keys(this.responseForm.controls).forEach(key => {
       if (key !== 'picture') {
-        // Преименуваме message -> responseText
         if (key === 'message') {
           dto['responseText'] = this.responseForm.get('message')?.value;
         } else {
@@ -195,5 +226,19 @@ export class RequestDetailsComponent implements OnInit {
       this.responseForm.get('picture')?.setValue(null);
       this.picturePreview = null;
     }
+  }
+
+  getUnitLabel(unit: string): string {
+    switch (unit) {
+      case 'count': return 'Бр.';
+      case 'box': return 'Кашон/и';
+      case 'pallet': return 'Пале/та';
+      default: return unit || '';
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

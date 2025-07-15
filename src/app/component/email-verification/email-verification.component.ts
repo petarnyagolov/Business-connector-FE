@@ -72,7 +72,6 @@ export class EmailVerificationComponent implements OnInit {
     }
     this.isResending = true;
     this.resendMessage = null;
-    // Изпраща заявка към /api/verify/email/resend-verification
     this.authService.resendVerificationLink(this.resendEmail).subscribe({
       next: () => {
         this.isResending = false;

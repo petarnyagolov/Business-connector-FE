@@ -4,12 +4,13 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CompanyService } from './company.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = environment.apiUrl + '/auth';
   private authStatusSubject = new BehaviorSubject<boolean>(false);
   authStatus$ = this.authStatusSubject.asObservable();
 
@@ -94,10 +95,10 @@ export class AuthService {
   }
 
   verifyEmailWithToken(token: string) {
-    return this.http.get(`http://localhost:8080/api/verify/email/verify?t=${token}`, { observe: 'response', responseType: 'text' });
+    return this.http.get(`${environment.apiUrl}/verify/email/verify?t=${token}`, { observe: 'response', responseType: 'text' });
   }
 
   resendVerificationLink(email: string) {
-    return this.http.post('http://localhost:8080/api/verify/email/resend-verification', null, { params: { email } });
+    return this.http.post(`${environment.apiUrl}/verify/email/resend-verification`, null, { params: { email } });
   }
 }

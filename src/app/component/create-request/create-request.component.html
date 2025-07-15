@@ -50,14 +50,14 @@
 
         <mat-form-field appearance="fill">
           <mat-label>Необходимо  след</mat-label>
-          <input matInput [matDatepicker]="pickerFrom" formControlName="activeFrom" >
+          <input matInput [matDatepicker]="pickerFrom" formControlName="activeFrom" placeholder="дд.мм.гггг">
           <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
           <mat-datepicker #pickerFrom></mat-datepicker>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Необходимо преди </mat-label>
-          <input matInput [matDatepicker]="pickerTo" formControlName="activeTo" >
+          <input matInput [matDatepicker]="pickerTo" formControlName="activeTo" placeholder="дд.мм.гггг">
           <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
           <mat-datepicker #pickerTo></mat-datepicker>
         </mat-form-field>

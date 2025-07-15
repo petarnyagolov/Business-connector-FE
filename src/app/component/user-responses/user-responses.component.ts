@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-user-responses',
@@ -81,6 +82,7 @@ export class UserResponsesComponent implements OnInit {
     });
   }
 
+
   getCompanyName(companyId: string): string {
     const company = this.companies.find(c => c.id === companyId);
     return company ? company.name : '';
@@ -131,7 +133,7 @@ export class UserResponsesComponent implements OnInit {
       return pic;
     }
     // Връщаме абсолютен URL към бекенда
-    return 'http://localhost:8080/files/' + pic.replace(/\\/g, '/');
+    return `${environment.apiUrl}/files/` + pic.replace(/\\/g, '/');
   }
 
   onImageClick(pic: string): void {
@@ -150,7 +152,8 @@ export class UserResponsesComponent implements OnInit {
       oldResponseText: item.responseText || '',
       newResponseText: '',
       responserCompanyId: item.responserCompanyId,
-      id: item.id // responseId
+      id: item.id, // responseId
+      date: item.date ? this.parseDateForPicker(item.date) : null // попълва датата за datepicker
     };
     this.editResponseRequiredFields = item.requestCompany?.requiredFields || [];
     // Попълни всички налични стойности за requiredFields
@@ -160,6 +163,12 @@ export class UserResponsesComponent implements OnInit {
       }
     }
     this.showEditResponseDialog = true;
+  }
+
+  // Помощна функция за преобразуване на дата към формат за datepicker (Date)
+  parseDateForPicker(dateStr: string): Date | null {
+    // Ако е във формат yyyy-MM-dd или ISO, работи директно
+    return dateStr ? new Date(dateStr) : null;
   }
 
   closeEditResponseDialog() {
@@ -178,11 +187,18 @@ export class UserResponsesComponent implements OnInit {
     const requestCompanyId = this.editResponseItem.requestCompany?.id;
     // Добави новия текст към стария
     const combinedText = (this.editResponseData.oldResponseText ? this.editResponseData.oldResponseText + '\n' : '') + this.editResponseData.newResponseText;
+    // Преобразувай датата към масив [година, месец, ден, час, минута]
+    let dateArray: number[] | null = null;
+    if (this.editResponseData.date instanceof Date) {
+      const d = this.editResponseData.date;
+      dateArray = [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()];
+    }
     const dto = {
       id: this.editResponseData.id,
       responseText: combinedText,
       responserCompanyId: this.editResponseData.responserCompanyId,
-      requestCompany: this.editResponseItem.requestCompany
+      requestCompany: this.editResponseItem.requestCompany,
+      date: dateArray // изпраща като масив
     };
     // Добавяме requiredFields към dto
     for (const field of this.editResponseRequiredFields) {
@@ -193,6 +209,7 @@ export class UserResponsesComponent implements OnInit {
         // Обнови локално
         this.editResponseItem.responseText = dto.responseText;
         this.editResponseItem.responserCompanyId = dto.responserCompanyId;
+        this.editResponseItem.date = dateArray;
         for (const field of this.editResponseRequiredFields) {
           (this.editResponseItem as any)[field] = (dto as any)[field];
         }

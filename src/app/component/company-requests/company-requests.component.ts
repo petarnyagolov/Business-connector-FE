@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginator } from '@angular/material/paginator';
@@ -9,7 +9,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { CompanyRequestService } from '../../service/company-request.service'
 import { CompanyRequest } from '../../model/companyRequest';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +20,7 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-company-requests',
@@ -39,7 +40,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CompanyRequestsComponent implements OnInit {
+export class CompanyRequestsComponent implements OnInit, OnDestroy {
   companyRequests: CompanyRequest[] = [];
   displayedColumns: string[] = ['title', 'description', 'requesterName'];
   totalRequests: number = 0;
@@ -47,28 +48,32 @@ export class CompanyRequestsComponent implements OnInit {
   currentPage: number = 0;
   searchQuery: string = '';
   searchSubject: Subject<string> = new Subject<string>();
+  private destroy$ = new Subject<void>();
   showReplyFormId: string | null = null;
   replyFormData: { [key: string]: { responserCompanyId: string; responseText: string } } = {};
   userCompanies: Company[] = [];
 
   constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef, private companyService: CompanyService, private responseService: ResponseService, private sanitizer: DomSanitizer, private http: HttpClient) {
-    this.searchSubject.pipe(debounceTime(1000)).subscribe((searchQuery) => {
+    this.searchSubject.pipe(
+      debounceTime(1000),
+      takeUntil(this.destroy$)
+    ).subscribe((searchQuery) => {
       this.searchQuery = searchQuery;
-      this.currentPage = 0; // Рестартиране на страницата при ново търсене
+      this.currentPage = 0; 
       this.loadRequests();
     });
   }
   ngOnInit(): void {
     this.loadRequests();
-    this.companyService.getAllCompaniesByUser().subscribe(companies => this.userCompanies = companies);
-    // Зареждаме снимките за всички заявки (както в user-requests)
+    this.companyService.getAllCompaniesByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(companies => this.userCompanies = companies);
     this.loadAllPictures();
   }
   loadRequests() {
     this.companyRequestService
     .searchRequests(this.searchQuery, this.currentPage, this.pageSize)
     .subscribe((response: any) => {
-      // Преобразуване на датите, както в user-requests.component.ts
       this.companyRequests = response.content.map((req: any) => {
         let activeFrom = req.activeFrom;
         let activeTo = req.activeTo;
@@ -90,7 +95,7 @@ export class CompanyRequestsComponent implements OnInit {
       });
       this.totalRequests = response.totalElements;
       this.cdr.markForCheck();
-      this.loadAllPictures(); // за да се заредят снимките след всяко търсене
+      this.loadAllPictures(); 
     });
   }
 
@@ -155,7 +160,6 @@ export class CompanyRequestsComponent implements OnInit {
     alert('Публикацията е запазено успешно!');
   }
 
-  // Добавяме липсващите помощни методи за визуализация в карти
   getCompanyNameById(id: string): string {
     const company = this.userCompanies.find(c => String(c.id) === String(id));
     return company ? company.name +  ' (' + company.vatNumber + ')' : '';
@@ -183,7 +187,7 @@ export class CompanyRequestsComponent implements OnInit {
     if (pic.startsWith('http')) {
       return pic;
     }
-    return 'http://localhost:8080/files' + pic.replace(/\\/g, '/');
+    return `${environment.apiUrl}/files` + pic.replace(/\\/g, '/');
   }
 
   onImageClick(pic: string): void {
@@ -234,4 +238,8 @@ export class CompanyRequestsComponent implements OnInit {
     }, 1500);
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, Observable, shareReplay, tap, throwError } from 'rxjs';
+import { catchError, Observable, shareReplay, tap, throwError, of } from 'rxjs';
 import { Company } from '../model/company';
 import { environment } from '../../environments/environment';
 
@@ -13,29 +13,35 @@ getLogoByPath(path: string): Observable<Blob> {
   return this.http.get(`${environment.apiUrl}/files/${path}`, { responseType: 'blob' });
 }
 
-  private api = 'http://localhost:8080';
+  private api = environment.apiUrl;
 
-  private apiUrl = `${this.api}/api/companies`; 
-  private apiUserUrl = `${this.api}/api/user/companies`; 
-  private apiCountryUrl = `${this.api}/api/utils/countries`;
-  private apiGetCompanyInfo = `${this.api}/api/utils/company`;
+  private apiUrl = `${this.api}/companies`; 
+  private apiUserUrl = `${this.api}/user/companies`; 
+  private apiCountryUrl = `${this.api}/utils/countries`;
+  private apiGetCompanyInfo = `${this.api}/utils/company`;
   private countryNames$: Observable<string[]> | null = null;
-  private userCompaniesCache: Company[] | null = null;
+  private userCompaniesCache$: Observable<Company[]> | null = null;
 
     constructor(private http: HttpClient) {}
  
      getAllCompaniesByUser() : Observable<Company[]> {
-      if (this.userCompaniesCache) {
-        return new Observable(observer => {
-          observer.next(this.userCompaniesCache!);
-          observer.complete();
-        });
+      // Ако вече имаме кеширан observable, връщаме го
+      if (this.userCompaniesCache$) {
+        return this.userCompaniesCache$;
       }
-      return this.http.get<Company[]>(this.apiUserUrl).pipe(
-        tap(companies => this.userCompaniesCache = companies),
-        shareReplay(1) // Cache the response to prevent multiple API calls
+      
+      // Създаваме и кешираме observable-а
+      this.userCompaniesCache$ = this.http.get<Company[]>(this.apiUserUrl).pipe(
+        tap(companies => console.log('Fetched user companies:', companies.length)),
+        shareReplay(1), // Кешираме резултата за споделяне между множество абонати
+        catchError(error => {
+          console.error('Error fetching user companies:', error);
+          this.userCompaniesCache$ = null; // Нулираме кеша при грешка
+          return throwError(() => error);
+        })
       );
-      throw new Error('Method not implemented.');
+      
+      return this.userCompaniesCache$;
     }
 
   getCountryNames(): Observable<string[]> {
@@ -99,10 +105,11 @@ getLogoByPath(path: string): Observable<Blob> {
   }
 
   cacheUserCompanies(companies: Company[]): void {
-    this.userCompaniesCache = companies;
+    // Метод за принудително кеширане - създаваме нов observable с данните
+    this.userCompaniesCache$ = of(companies).pipe(shareReplay(1));
   }
 
   clearUserCompaniesCache(): void {
-    this.userCompaniesCache = null;
+    this.userCompaniesCache$ = null;
   }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CompanyRequestService } from '../../service/company-request.service';
@@ -10,11 +10,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Company } from '../../model/company';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-create-request',
@@ -27,7 +28,7 @@ import { MatRadioModule } from '@angular/material/radio';
     MatButtonModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    MatMomentDateModule,
     ReactiveFormsModule,
     MatCheckboxModule,
     MatRadioModule
@@ -35,11 +36,12 @@ import { MatRadioModule } from '@angular/material/radio';
   templateUrl: './create-request.component.html',
   styleUrl: './create-request.component.scss'
 })
-export class CreateRequestComponent {
+export class CreateRequestComponent implements OnDestroy {
   requestForm: FormGroup;
   selectedFiles: File[] = [];
   userCompanies: Company[] = [];
   private userCompaniesLoaded = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -69,16 +71,23 @@ export class CreateRequestComponent {
 
   loadUserCompanies(): void {
     if (this.userCompaniesLoaded) return;
-    this.companyService.getAllCompaniesByUser().subscribe({
-      next: (companies) => {
-        this.userCompanies = companies;
-        this.userCompaniesLoaded = true;
-      },
-      error: () => {
-        this.userCompanies = [];
-        this.userCompaniesLoaded = true;
-      }
-    });
+    this.companyService.getAllCompaniesByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (companies) => {
+          this.userCompanies = companies;
+          this.userCompaniesLoaded = true;
+        },
+        error: () => {
+          this.userCompanies = [];
+          this.userCompaniesLoaded = true;
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onFileSelected(event: Event): void {
