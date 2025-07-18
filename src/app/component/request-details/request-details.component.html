@@ -8,7 +8,14 @@
     <div *ngIf="request.requesterCompanyId" style="display: flex; align-items: center; margin-left: 16px; margin-bottom: 4px; color: #607d8b; font-size: 0.98rem;">
       <mat-icon style="font-size: 18px; margin-right: 6px;">business</mat-icon>
       <span class="label">Фирма:&nbsp;</span>
-      <span class="value" style="margin-left: 4px; font-weight: 500;">{{ request.requesterName }} ({{ request.requesterCompanyId }})</span>
+      <span class="value" style="margin-left: 4px; font-weight: 500;">
+        <ng-container *ngIf="requesterCompany; else showCompanyId">
+          {{ requesterCompany.name }}
+        </ng-container>
+        <ng-template #showCompanyId>
+          {{ request.requesterCompanyId }}
+        </ng-template>
+      </span>
     </div>
     <mat-card-content>
       <div class="request-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
@@ -143,7 +150,6 @@
             <mat-label>Цена до</mat-label>
             <input matInput type="number" formControlName="priceTo" required>
           </mat-form-field>
-<div>tuk</div>
           <mat-form-field appearance="fill" style="width: 100%;" *ngIf="request?.requiredFields?.includes('availableFrom')">
             <mat-label>{{ getFieldLabel('availableFrom') }}</mat-label>
             <input matInput [matDatepicker]="pickerFrom" formControlName="availableFrom" required placeholder="дд.мм.гггг">

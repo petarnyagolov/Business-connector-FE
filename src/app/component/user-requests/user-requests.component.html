@@ -72,8 +72,8 @@
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
           <span class="label">Период:&nbsp;</span>
           <span class="value">
-            <ng-container *ngIf="request.availableFrom">от {{ request.availableFrom | date:'dd.MM.yyyy' }}</ng-container>
-            <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | date:'dd.MM.yyyy' }}</ng-container>
+            <ng-container *ngIf="request.availableFrom">от {{ request.availableFrom | formatDateArray }}</ng-container>
+            <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | formatDateArray }}</ng-container>
           </span>
         </div>
         <div *ngIf="getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
@@ -134,10 +134,10 @@
                         <b>Цена до:</b> {{ resp.priceTo || '—' }}
                       </div>
                       <div *ngSwitchCase="'availableFrom'" style="color: #333; font-size: 0.98em;">
-                        <b>Налично от:</b> {{ resp.availableFrom ? (resp.availableFrom | date:'dd.MM.yyyy') : '—' }}
+                        <b>Налично от:</b> {{ resp.availableFrom ? (resp.availableFrom | formatDateArray) : '—' }}
                       </div>
                       <div *ngSwitchCase="'availableTo'" style="color: #333; font-size: 0.98em;">
-                        <b>Налично до:</b> {{ resp.availableTo ? (resp.availableTo | date:'dd.MM.yyyy') : '—' }}
+                        <b>Налично до:</b> {{ resp.availableTo ? (resp.availableTo | formatDateArray) : '—' }}
                       </div>
                       <div *ngSwitchCase="'picture'" style="color: #333; font-size: 0.98em; display: flex; align-items: center; gap: 6px;">
                         <b>Снимка:</b>

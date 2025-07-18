@@ -1,38 +1,210 @@
 <div class="verification-container">
   <mat-card>
-    <mat-card-title>Email Verification</mat-card-title>
+    <mat-card-header>
+      <mat-card-title>Верификация на имейл</mat-card-title>
+      <div class="header-actions">
+        <button mat-icon-button (click)="goBack()" matTooltip="Назад">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
     <mat-card-content>
-      <div *ngIf="isLoading" class="spinner-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Verifying your email...</p>
-      </div>
+      
+      <!-- Табове за превключване между режимите -->
+      <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="verification-tabs">
+        
+        <!-- Таб 1: Автоматична верификация -->
+        <mat-tab label="🔗 Автоматична верификация">
+          <div class="tab-content">
+            <div *ngIf="isLoading" class="spinner-container">
+              <mat-spinner diameter="50"></mat-spinner>
+              <p>Верифицираме вашия имейл...</p>
+            </div>
 
-      <div *ngIf="!isLoading && isVerified">
-        <p class="success-message">Your email has been successfully verified!</p>
-        <button *ngIf="shouldShowLoginButton" mat-raised-button color="primary" (click)="navigateToLogin()">
-          Proceed to Login
-        </button>
-        <button *ngIf="shouldShowCompaniesButton" mat-raised-button color="primary" (click)="navigateToCompanies()">
-          Go to Companies
-        </button>
-      </div>
+            <div *ngIf="!isLoading && isVerified">
+              <div class="success-section">
+                <mat-icon class="success-icon">check_circle</mat-icon>
+                <p class="success-message">Вашият имейл беше успешно верифициран!</p>
+                
+                <!-- Показваме прогрес за обновяване на токена -->
+                <div *ngIf="isRefreshingToken" class="token-refresh-section">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <p class="refresh-message">{{ tokenRefreshMessage }}</p>
+                </div>
+                
+                <!-- Показваме резултата от обновяване на токена -->
+                <div *ngIf="!isRefreshingToken && tokenRefreshMessage" class="token-status-section">
+                  <p class="token-status" [ngClass]="{'success': tokenRefreshMessage.includes('✅'), 'warning': tokenRefreshMessage.includes('⚠️')}">
+                    {{ tokenRefreshMessage }}
+                  </p>
+                </div>
+                
+                <!-- Действия след верификация -->
+                <div class="action-buttons" *ngIf="!isRefreshingToken">
+                  <button *ngIf="shouldShowLoginButton" mat-raised-button color="primary" (click)="navigateToLogin()">
+                    <mat-icon>login</mat-icon>
+                    Влизане
+                  </button>
+                  <button *ngIf="shouldShowCompaniesButton" mat-raised-button color="primary" (click)="navigateToCompanies()">
+                    <mat-icon>business</mat-icon>
+                    Към фирмите
+                  </button>
+                </div>
+              </div>
+            </div>
 
-      <div *ngIf="!isLoading && errorMessage">
-        <p class="error-message">{{ errorMessage }}</p>
-        <form (ngSubmit)="resendVerificationLink()" style="margin-bottom: 10px;">
-          <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Email</mat-label>
-            <input matInput [(ngModel)]="resendEmail" name="resendEmail" type="email" required [disabled]="isResending">
-          </mat-form-field>
-          <button mat-stroked-button color="primary" type="submit" [disabled]="isResending">
-            {{ isResending ? 'Изпраща се...' : 'Изпрати повторно линк' }}
-          </button>
-        </form>
-        <div *ngIf="resendMessage" style="text-align:center; color: #1976d2;">{{ resendMessage }}</div>
-        <button mat-stroked-button (click)="navigateToLogin()">
-          Back to Login
-        </button>
-      </div>
+            <div *ngIf="!isLoading && errorMessage">
+              <div class="error-section">
+                <mat-icon class="error-icon">error</mat-icon>
+                <p class="error-message">{{ errorMessage }}</p>
+                
+                <form (ngSubmit)="resendVerificationLink()" class="resend-form">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Имейл адрес</mat-label>
+                    <input matInput [(ngModel)]="resendEmail" name="resendEmail" type="email" required [disabled]="isResending">
+                    <mat-icon matSuffix>email</mat-icon>
+                  </mat-form-field>
+                  <button mat-raised-button color="primary" type="submit" [disabled]="isResending" class="full-width">
+                    <mat-icon>send</mat-icon>
+                    {{ isResending ? 'Изпраща се...' : 'Изпрати повторно линк' }}
+                  </button>
+                </form>
+                
+                <div *ngIf="resendMessage" class="resend-message">{{ resendMessage }}</div>
+                
+                <button mat-stroked-button (click)="navigateToLogin()" class="back-button">
+                  <mat-icon>arrow_back</mat-icon>
+                  Обратно към влизане
+                </button>
+              </div>
+            </div>
+            <div *ngIf="!isLoading && !isVerified && !errorMessage" class="no-token-section">
+              <mat-icon class="info-icon">info</mat-icon>
+              <p>Няма токен за автоматична верификация.</p>
+              <p>Използвайте таба "Ръчна верификация" за да въведете токен директно.</p>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab label="🔑 Ръчна верификация">
+          <div class="tab-content">
+            <div class="manual-verification-section">
+              <div class="manual-header">
+                <mat-icon class="manual-icon">vpn_key</mat-icon>
+                <h3>Ръчно въвеждане на хеша от имейла</h3>
+                <p>Имате верификационен хеш от имейла? Въведете го тук за незабавна верификация:</p>
+              </div>
+              <mat-expansion-panel class="instructions-panel">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <mat-icon>help_outline</mat-icon>
+                    Как да намерите хеша?
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div class="instructions-content">
+                  <ol>
+                    <li>Отворете верификационния имейл</li>
+                    <li>Намерете линка за верификация<br>
+                        <code>http://localhost:4200/verify-email?t=<strong>YOUR_TOKEN</strong></code>
+                    </li>
+                    <li>Копирайте частта след "t=" (това е вашият хеш)</li>
+                    <li>Поставете хеша в полето по-долу</li>
+                  </ol>
+                </div>
+              </mat-expansion-panel>
+              <form (ngSubmit)="verifyManualToken()" class="manual-form">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Верификационен хеш</mat-label>
+                  <textarea matInput [(ngModel)]="manualToken" name="manualToken" 
+                           placeholder="Поставете хеша от имейла тук..."
+                           [disabled]="isVerifyingManual"
+                           rows="3"></textarea>
+                  <mat-icon matSuffix>security</mat-icon>
+                </mat-form-field>
+                
+                <button mat-raised-button color="primary" type="submit" 
+                        [disabled]="!manualToken || isVerifyingManual" 
+                        class="verify-button">
+                  <mat-icon>{{ isVerifyingManual ? 'hourglass_empty' : 'verified_user' }}</mat-icon>
+                  {{ isVerifyingManual ? 'Верифицира...' : 'Верифицирай сега' }}
+                </button>
+              </form>
+              
+              <div *ngIf="manualVerificationMessage || isVerifyingManual" class="manual-result">
+                <!-- Показваме прогрес докато верифицираме или обновяваме токена -->
+                <div *ngIf="isVerifyingManual || isRefreshingToken" class="progress-section">
+                  <mat-spinner diameter="30"></mat-spinner>
+                  <p>{{ isVerifyingManual ? 'Верифицираме токена...' : tokenRefreshMessage }}</p>
+                </div>
+                
+                <!-- Показваме резултата след верификация -->
+                <mat-card *ngIf="!isVerifyingManual && !isRefreshingToken && manualVerificationMessage" 
+                         [class]="manualVerificationSuccess ? 'success-card' : 'error-card'">
+                  <mat-card-content>
+                    <div class="result-content">
+                      <mat-icon class="result-icon">
+                        {{ manualVerificationSuccess ? 'check_circle' : 'error' }}
+                      </mat-icon>
+                      <p>{{ manualVerificationMessage }}</p>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+                
+                <div *ngIf="manualVerificationSuccess && !isRefreshingToken" class="post-verification-actions">
+                  <button *ngIf="shouldShowLoginButton" mat-raised-button color="primary" (click)="navigateToLogin()">
+                    <mat-icon>login</mat-icon>
+                    Влизане
+                  </button>
+                  <button *ngIf="shouldShowCompaniesButton" mat-raised-button color="primary" (click)="navigateToCompanies()">
+                    <mat-icon>business</mat-icon>
+                    Към фирмите
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+      <mat-expansion-panel *ngIf="showDebugInfo" class="debug-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>bug_report</mat-icon>
+            Debug информация
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="debug-content">
+          <div class="debug-item">
+            <span class="debug-label">Потребител е логнат:</span>
+            <span [class]="authService.isAuthenticated() ? 'debug-true' : 'debug-false'">
+              {{ authService.isAuthenticated() ? 'Да' : 'Не' }}
+            </span>
+          </div>
+          <div class="debug-item">
+            <span class="debug-label">Email верифициран:</span>
+            <span [class]="authService.isEmailVerified() ? 'debug-true' : 'debug-false'">
+              {{ authService.isEmailVerified() ? 'Да' : 'Не' }}
+            </span>
+          </div>
+          <div class="debug-item">
+            <span class="debug-label">Показва Login бутон:</span>
+            <span [class]="shouldShowLoginButton ? 'debug-true' : 'debug-false'">
+              {{ shouldShowLoginButton ? 'Да' : 'Не' }}
+            </span>
+          </div>
+          <div class="debug-item">
+            <span class="debug-label">Показва Companies бутон:</span>
+            <span [class]="shouldShowCompaniesButton ? 'debug-true' : 'debug-false'">
+              {{ shouldShowCompaniesButton ? 'Да' : 'Не' }}
+            </span>
+          </div>
+          <div class="debug-item">
+            <span class="debug-label">Ръчна верификация:</span>
+            <span [class]="manualVerificationSuccess ? 'debug-true' : 'debug-false'">
+              {{ manualVerificationSuccess ? 'Успешна' : 'Не' }}
+            </span>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
     </mat-card-content>
   </mat-card>
 </div>

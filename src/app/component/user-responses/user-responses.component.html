@@ -100,10 +100,10 @@
                 <b>Цена до:</b> {{ item.priceTo || '—' }}
               </div>
               <div *ngSwitchCase="'availableFrom'" style="color: #333; font-size: 0.98em;">
-                <b>Налично от:</b> {{ item.availableFrom ? (item.availableFrom | date:'dd.MM.yyyy') : '—' }}
+                <b>Налично от:</b> {{ item.availableFrom ? (item.availableFrom | formatDateArray) : '—' }}
               </div>
               <div *ngSwitchCase="'availableTo'" style="color: #333; font-size: 0.98em;">
-                <b>Налично до:</b> {{ item.availableTo ? (item.availableTo | date:'dd.MM.yyyy') : '—' }}
+                <b>Налично до:</b> {{ item.availableTo ? (item.availableTo | formatDateArray) : '—' }}
               </div>
               <div *ngSwitchCase="'picture'" style="color: #333; font-size: 0.98em; display: flex; align-items: center; gap: 6px;">
                 <b>Снимка:</b>

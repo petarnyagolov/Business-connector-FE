@@ -77,8 +77,8 @@
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
           <span class="label">Период:&nbsp;</span>
           <span class="value">
-            <ng-container *ngIf="request.availableFrom">от {{ request.availableFrom | date:'dd.MM.yyyy' }}</ng-container>
-            <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | date:'dd.MM.yyyy' }}</ng-container>
+            <ng-container *ngIf="request.availableFrom">от {{ request.availableFrom | formatDateArray }}</ng-container>
+            <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | formatDateArray }}</ng-container>
           </span>
         </div>
         <div *ngIf="getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">

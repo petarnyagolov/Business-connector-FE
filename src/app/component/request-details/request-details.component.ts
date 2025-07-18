@@ -17,6 +17,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../service/auth.service';
+import { EmailVerificationService } from '../../service/email-verification.service';
 
 @Component({
   selector: 'app-request-details',
@@ -42,6 +44,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   request: CompanyRequest | null = null;
   responses: any[] = [];
   companies: Company[] = [];
+  requesterCompany: Company | null = null; // Добавяме компанията на създателя
   responseForm: FormGroup;
   responseSuccess: boolean = false;
   showResponseForm: boolean = true;
@@ -56,7 +59,9 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private companyRequestService: CompanyRequestService,
     private companyService: CompanyService,
     private responseService: ResponseService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private emailVerificationService: EmailVerificationService
   ) {
     this.responseForm = this.fb.group({
       responserCompanyId: ['', Validators.required],
@@ -73,9 +78,36 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.companyRequestService.getRequestById(id).subscribe(res => {
-        this.request = res.request;
-        this.responses = res.responses || [];
+      // Зареждаме компаниите на потребителя
+      this.companyService.getAllCompaniesByUser().subscribe({
+        next: (companies) => {
+          this.companies = companies;
+          
+          // Зареждаме заявката
+          this.companyRequestService.getRequestById(id).subscribe(res => {
+            this.request = res.request;
+            this.responses = res.responses || [];
+            
+            // Намираме компанията на създателя от кешираните данни
+            if (this.request?.requesterCompanyId) {
+              this.requesterCompany = this.companies.find(
+                company => company.id === this.request?.requesterCompanyId
+              ) || null;
+              
+              if (!this.requesterCompany) {
+                console.log('Requester company not found in user companies list');
+              }
+            }
+          });
+        },
+        error: (error) => {
+          console.error('Error loading user companies:', error);
+          // Ако не можем да заредим компаниите, поне зареждаме заявката
+          this.companyRequestService.getRequestById(id).subscribe(res => {
+            this.request = res.request;
+            this.responses = res.responses || [];
+          });
+        }
       });
     }
     this.companyService.getAllCompaniesByUser()
@@ -94,8 +126,17 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
+    this.emailVerificationService.checkVerificationOrPrompt().subscribe((canProceed: boolean) => {
+      if (!canProceed) {
+        return; 
+      }
+
+      this.processResponseSubmission();
+    });
+  }
+
+  private processResponseSubmission(): void {
     if (!this.request) return;
-    // Валидация на requiredFields
     if (this.request.requiredFields && Array.isArray(this.request.requiredFields)) {
       for (const field of this.request.requiredFields) {
         if (field === 'picture') {

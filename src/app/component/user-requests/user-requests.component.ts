@@ -13,10 +13,11 @@ import { HttpClient } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
 import { Subject, takeUntil, filter } from 'rxjs';
+import { FormatDateArrayPipe } from '../user-responses/format-date-array.pipe';
 
 @Component({
   selector: 'app-user-requests',
-  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatIconModule, FormatDateArrayPipe],
   templateUrl: './user-requests.component.html',
   styleUrl: './user-requests.component.scss',
   standalone: true

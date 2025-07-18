@@ -21,6 +21,7 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../environments/environment';
+import { FormatDateArrayPipe } from '../user-responses/format-date-array.pipe';
 
 @Component({
   selector: 'app-company-requests',
@@ -34,7 +35,8 @@ import { environment } from '../../../environments/environment';
     MatOptionModule,
     FormsModule,
     MatIconModule,
-    MatTooltipModule],
+    MatTooltipModule,
+    FormatDateArrayPipe],
   templateUrl: './company-requests.component.html',
   styleUrl: './company-requests.component.scss',
   standalone: true,

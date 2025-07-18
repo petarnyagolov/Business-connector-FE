@@ -16,6 +16,8 @@ import { Company } from '../../model/company';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../service/auth.service';
+import { EmailVerificationService } from '../../service/email-verification.service';
 
 @Component({
   selector: 'app-create-request',
@@ -47,7 +49,9 @@ export class CreateRequestComponent implements OnDestroy {
     private fb: FormBuilder,
     private companyRequestService: CompanyRequestService,
     private companyService: CompanyService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    private emailVerificationService: EmailVerificationService
   ) {
     this.requestForm = this.fb.group({
       company: ['', Validators.required],
@@ -98,6 +102,16 @@ export class CreateRequestComponent implements OnDestroy {
   }
 
   onSubmit(): void {
+    this.emailVerificationService.checkVerificationOrPrompt().subscribe((canProceed: boolean) => {
+      if (!canProceed) {
+        return; 
+      }
+
+      this.processFormSubmission();
+    });
+  }
+
+  private processFormSubmission(): void {
     if (this.requestForm.invalid) return;
     const formData = new FormData();
     const formValue = this.requestForm.value;
