@@ -11,6 +11,19 @@
       <a mat-button routerLink="/user/companies" *ngIf="isAuthenticated">Моите фирми</a>
       <a mat-button routerLink="/my-requests" *ngIf="isAuthenticated">Моите Публикации</a>
       <a mat-button routerLink="/my-responses" *ngIf="isAuthenticated">Моите Предложения</a>
+      <a mat-button routerLink="/saved-requests" *ngIf="isAuthenticated">
+        <mat-icon 
+          style="margin-right: 4px; font-size: 18px;" 
+          [matBadge]="savedRequestsCount" 
+          [matBadgeHidden]="savedRequestsCount === 0"
+          matBadgeColor="accent"
+          matBadgeSize="small"
+          aria-hidden="false"
+          [attr.aria-label]="'Запазени публикации: ' + savedRequestsCount">
+          bookmark
+        </mat-icon>
+        Запазени
+      </a>
       <a mat-button routerLink="/about">За нас</a>
       <a mat-button routerLink="/login" *ngIf="!isAuthenticated">Влез</a>
       <a mat-button routerLink="/register" *ngIf="!isAuthenticated">Регистрация</a>

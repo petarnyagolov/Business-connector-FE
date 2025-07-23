@@ -20,8 +20,10 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from '../../../environments/environment';
 import { FormatDateArrayPipe } from '../user-responses/format-date-array.pipe';
+import { SavedRequestsService } from '../../service/saved-requests.service';
 
 @Component({
   selector: 'app-company-requests',
@@ -55,7 +57,17 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   replyFormData: { [key: string]: { responserCompanyId: string; responseText: string } } = {};
   userCompanies: Company[] = [];
 
-  constructor(private companyRequestService: CompanyRequestService, private router: Router, private cdr: ChangeDetectorRef, private companyService: CompanyService, private responseService: ResponseService, private sanitizer: DomSanitizer, private http: HttpClient) {
+  constructor(
+    private companyRequestService: CompanyRequestService, 
+    private router: Router, 
+    private cdr: ChangeDetectorRef, 
+    private companyService: CompanyService, 
+    private responseService: ResponseService, 
+    private sanitizer: DomSanitizer, 
+    private http: HttpClient,
+    private snackBar: MatSnackBar,
+    private savedRequestsService: SavedRequestsService
+  ) {
     this.searchSubject.pipe(
       debounceTime(1000),
       takeUntil(this.destroy$)
@@ -71,6 +83,21 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(companies => this.userCompanies = companies);
     this.loadAllPictures();
+    
+    // Load saved requests to enable local checking
+    this.savedRequestsService.getAllSavedRequests()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.cdr.markForCheck(),
+        error: (error) => console.error('Error loading saved requests:', error)
+      });
+
+    this.companyRequestService.getAllRequestsByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.cdr.markForCheck(),
+        error: (error) => console.error('Error loading user requests:', error)
+      });
   }
   loadRequests() {
     this.companyRequestService
@@ -158,8 +185,27 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   }
 
   onSave(request: CompanyRequest): void {
-    // Placeholder: тук може да се имплементира логика за запазване на обявата (например в любими)
-    alert('Публикацията е запазено успешно!');
+    this.savedRequestsService.toggleSavedRequest(request.id).subscribe({
+      next: (isSaved) => {
+        const message = isSaved ? 'Публикацията е запазена успешно!' : 'Публикацията е премахната от запазените!';
+        this.snackBar.open(message, 'Затвори', { duration: 3000 });
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error toggling saved request:', error);
+        this.snackBar.open('Грешка при запазване на публикацията!', 'Затвори', { duration: 3000 });
+      }
+    });
+  }
+
+  isRequestSaved(requestId: string): boolean {
+    return this.savedRequestsService.isRequestSavedLocally(requestId);
+  }
+
+  isMyRequest(requestId: string): boolean {
+    const result = this.companyRequestService.isUserRequest(requestId);
+    console.log(`Checking if request ${requestId} is mine: ${result}`);
+    return result;
   }
 
   getCompanyNameById(id: string): string {

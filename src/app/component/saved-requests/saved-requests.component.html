@@ -1,0 +1,142 @@
+<div class="saved-requests-container">
+  <div class="page-header">
+    <h1>
+      <mat-icon>bookmark</mat-icon>
+      Запазени публикации
+    </h1>
+    <p class="subtitle">Тук можете да видите всички публикации, които сте запазили</p>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Зареждане на запазените публикации...</p>
+  </div>
+
+  <div *ngIf="!loading && savedRequests.length > 0" class="saved-requests-grid">
+    <mat-card 
+      *ngFor="let savedRequest of savedRequests; trackBy: trackByRequestId"
+      class="request-card"
+      appearance="outlined"
+    >
+      <mat-card-header>
+        <mat-icon mat-card-avatar color="primary">campaign</mat-icon>
+        <mat-card-title>{{ savedRequest.requestCompany.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <span class="company-name">{{ savedRequest.requestCompany.requester?.companyName }}</span>
+          <span class="request-type">{{ getRequestTypeLabel(savedRequest.requestCompany.requestType) }}</span>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="request-details" style="display: flex; flex-direction: column; gap: 8px;">
+          
+          <div *ngIf="savedRequest.requestCompany.description" style="display: flex; align-items: flex-start; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b; margin-top: 2px;">description</mat-icon>
+            <div>
+              <span class="label">Описание: </span>
+              <span class="value">{{ savedRequest.requestCompany.description }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="savedRequest.requestCompany.region" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">place</mat-icon>
+            <span class="label">Регион: </span>
+            <span class="value">{{ savedRequest.requestCompany.region }}</span>
+          </div>
+
+          <div *ngIf="savedRequest.requestCompany.capacity" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">inventory_2</mat-icon>
+            <span class="label">Количество: </span>
+            <span class="value">{{ savedRequest.requestCompany.capacity }}{{ savedRequest.requestCompany.unit ? ' ' + getUnitLabel(savedRequest.requestCompany.unit) : '' }}</span>
+          </div>
+
+          <div *ngIf="savedRequest.requestCompany.priceFrom || savedRequest.requestCompany.priceTo" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">euro_symbol</mat-icon>
+            <span class="label">Цена: </span>
+            <span class="value">
+              <ng-container *ngIf="savedRequest.requestCompany.priceFrom">от {{ savedRequest.requestCompany.priceFrom }}</ng-container>
+              <ng-container *ngIf="savedRequest.requestCompany.priceTo"> до {{ savedRequest.requestCompany.priceTo }}</ng-container>
+            </span>
+          </div>
+
+          <div *ngIf="savedRequest.requestCompany.serviceType" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">build</mat-icon>
+            <span class="label">Тип услуга: </span>
+            <span class="value">
+              {{ savedRequest.requestCompany.serviceType === 'one_time' ? 'Еднократна' : 
+                 (savedRequest.requestCompany.serviceType === 'permanent' ? 'Постоянна' : savedRequest.requestCompany.serviceType) }}
+            </span>
+          </div>
+
+          <div *ngIf="savedRequest.requestCompany.urgent !== undefined" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">priority_high</mat-icon>
+            <span class="label">Спешно: </span>
+            <span class="value">{{ savedRequest.requestCompany.urgent ? 'Да' : 'Не' }}</span>
+          </div>
+
+          <div *ngIf="savedRequest.requestCompany.availableFrom || savedRequest.requestCompany.availableTo" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">event</mat-icon>
+            <span class="label">Период: </span>
+            <span class="value">
+              <ng-container *ngIf="savedRequest.requestCompany.availableFrom">от {{ savedRequest.requestCompany.availableFrom | formatDateArray }}</ng-container>
+              <ng-container *ngIf="savedRequest.requestCompany.availableTo"> до {{ savedRequest.requestCompany.availableTo | formatDateArray }}</ng-container>
+            </span>
+          </div>
+
+          <!-- <div class="status-container" style="display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">info</mat-icon>
+            <span class="label">Статус: </span>
+            <span class="status-badge" [ngClass]="getStatusClass(savedRequest.requestCompany.status)">
+              {{ getStatusLabel(savedRequest.requestCompany.status) }}
+            </span>
+          </div> -->
+
+          <div class="saved-date" style="display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;">
+            <mat-icon style="font-size: 18px; color: #607d8b;">schedule</mat-icon>
+            <span class="label">Запазено на: </span>
+            <span class="value">{{ savedRequest.savedAt | date:'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button 
+          mat-button 
+          color="primary"
+          (click)="viewRequestDetails(savedRequest.requestCompany.id)"
+        >
+          <mat-icon>visibility</mat-icon>
+          Преглед
+        </button>
+        
+        <button 
+          mat-button 
+          color="warn"
+          (click)="removeSavedRequest(savedRequest.requestCompany.id, savedRequest.requestCompany.title)"
+        >
+          <mat-icon>bookmark_remove</mat-icon>
+          Премахни
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Празно състояние -->
+  <div *ngIf="!loading && savedRequests.length === 0" class="empty-state">
+    <mat-icon class="empty-icon">bookmark_border</mat-icon>
+    <h2>Няма запазени публикации</h2>
+    <p>Все още не сте запазили нито една публикация.</p>
+    <p>Когато намерите интересна публикация, можете да я запазите за по-късно преглед.</p>
+    
+    <button 
+      mat-raised-button 
+      color="primary"
+      routerLink="/requests"
+      class="browse-button"
+    >
+      <mat-icon>search</mat-icon>
+      Разгледай публикации
+    </button>
+  </div>
+</div>

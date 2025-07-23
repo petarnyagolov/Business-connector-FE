@@ -101,15 +101,34 @@
         <mat-icon style="margin-right: 4px;">visibility</mat-icon>
         Виж
       </button>
-      <button mat-stroked-button color="primary" (click)="onReply(request)" [class.active-reply]="showReplyFormId === request.id">
+      <button 
+        *ngIf="!isMyRequest(request.id)"
+        mat-stroked-button 
+        color="primary" 
+        (click)="onReply(request)" 
+        [class.active-reply]="showReplyFormId === request.id"
+      >
         <mat-icon style="margin-right: 4px;">reply</mat-icon>
         Предложи
       </button>
-      <button mat-stroked-button color="primary" (click)="shareRequest(request.id)" [matTooltip]="copyTooltipRequestId === request.id ? 'Линка е копиран!' : 'Сподели линк'" matTooltipPosition="above" #shareBtn="matTooltip" (mouseleave)="shareBtn.hide()">
-        <mat-icon style="margin-right: 4px;">share</mat-icon>
-        <span *ngIf="copyTooltipRequestId === request.id" style="color: #43a047; font-weight: 500; margin-left: 6px; font-size: 0.98em;">Линка е копиран!</span>
-        <span *ngIf="copyTooltipRequestId !== request.id">Сподели</span>
+      <button 
+        *ngIf="!isMyRequest(request.id)"
+        mat-stroked-button 
+        color="primary" 
+        (click)="onSave(request)" 
+        [class.saved-request]="isRequestSaved(request.id)"
+      >
+        <mat-icon style="margin-right: 4px;">{{ isRequestSaved(request.id) ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+        {{ isRequestSaved(request.id) ? 'Запазено' : 'Запази' }}
       </button>
+      <span 
+        *ngIf="isMyRequest(request.id)"
+        class="my-request-badge"
+        style="display: inline-flex; align-items: center; color: #4caf50; font-size: 0.9rem; font-weight: 500; margin-left: 8px;"
+      >
+        <mat-icon style="margin-right: 4px; font-size: 18px;">person</mat-icon>
+        Моя публикация
+      </span>
     </mat-card-actions>
     <div *ngIf="showReplyFormId === request.id" class="reply-form">
       <mat-form-field appearance="fill" style="width: 100%;">

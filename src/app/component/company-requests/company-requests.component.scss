@@ -166,3 +166,38 @@ button.active-reply {
   border: 1px solid #1976d2 !important;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
 }
+
+button.saved-request {
+  background-color: #ffd700 !important;
+  color: #333 !important;
+  border: 1px solid #ffd700 !important;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  font-weight: 500;
+
+  mat-icon {
+    color: #ff6f00 !important;
+  }
+
+  &:hover {
+    background-color: #ffcc02 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+  }
+}
+
+::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50 !important;
+    color: white !important;
+  }
+
+  .error-snackbar {
+    background-color: #f44336 !important;
+    color: white !important;
+  }
+
+  .warning-snackbar {
+    background-color: #ff9800 !important;
+    color: white !important;
+  }
+}

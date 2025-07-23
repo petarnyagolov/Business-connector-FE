@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CompanyService } from './company.service';
+import { CompanyRequestService } from './company-request.service';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -14,7 +15,7 @@ export class AuthService {
   private authStatusSubject = new BehaviorSubject<boolean>(false);
   authStatus$ = this.authStatusSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router, private companyService: CompanyService) {
+  constructor(private http: HttpClient, private router: Router, private companyService: CompanyService, private companyRequestService: CompanyRequestService) {
     const refreshToken = localStorage.getItem('refreshToken');
     this.authStatusSubject.next(!!refreshToken);
   }
@@ -37,10 +38,19 @@ export class AuthService {
           this.setRefreshToken(response.refreshToken);
           this.setAccessToken(response.accessToken);
           this.authStatusSubject.next(true);
-          // Fetch and cache user companies after login
           this.companyService.getAllCompaniesByUser().subscribe({
             next: (companies) => this.companyService.cacheUserCompanies(companies),
             error: () => this.companyService.clearUserCompaniesCache()
+          });
+          this.companyRequestService.getAllRequestsByUser().subscribe({
+            next: (requests) => {
+              console.log('Loaded user requests for caching:', requests);
+              this.companyRequestService.cacheUserRequests(requests);
+            },
+            error: (error) => {
+              console.error('Error loading user requests:', error);
+              this.companyRequestService.clearUserRequestsCache();
+            }
           });
           this.router.navigate(['/companies']);
         }
@@ -87,6 +97,7 @@ export class AuthService {
     localStorage.removeItem('accessToken');
     this.authStatusSubject.next(false);
     this.companyService.clearUserCompaniesCache();
+    this.companyRequestService.clearUserRequestsCache();
     this.router.navigate(['/login']);
   }
 
@@ -106,10 +117,8 @@ export class AuthService {
 
       const payload = parts[1];
       
-      // Опитваме различни начини за декодиране
       let decoded = null;
       
-      // Метод 1: Стандартно декодиране
       try {
         decoded = JSON.parse(atob(payload));
         console.log('✅ Decoded with standard method:', decoded);
@@ -118,7 +127,6 @@ export class AuthService {
         console.log('Standard decode failed, trying with padding...');
       }
       
-      // Метод 2: С padding
       try {
         const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
         decoded = JSON.parse(atob(paddedPayload));
@@ -128,7 +136,6 @@ export class AuthService {
         console.log('Padded decode failed, trying URL-safe...');
       }
       
-      // Метод 3: URL-safe base64
       try {
         const urlSafePayload = payload.replace(/-/g, '+').replace(/_/g, '/');
         const paddedUrlSafe = urlSafePayload + '='.repeat((4 - urlSafePayload.length % 4) % 4);
@@ -139,12 +146,11 @@ export class AuthService {
         console.log('URL-safe decode failed, using fallback...');
       }
       
-      // Fallback: Ръчно създаване на обект със само основните полета
       console.warn('All decode methods failed, using fallback object');
       return {
-        sub: "petyrnyagolov@gmail.com", // От токена се вижда това
-        emailVerified: false, // Default за безопасност
-        exp: Math.floor(Date.now() / 1000) + 3600 // 1 час от сега
+        sub: "petyrnyagolov@gmail.com", 
+        emailVerified: false, 
+        exp: Math.floor(Date.now() / 1000) + 3600 
       };
       
     } catch (error) {
@@ -172,7 +178,7 @@ export class AuthService {
       return isVerified;
     } catch (error) {
       console.error('Error in isEmailVerified:', error);
-      return false; // Fallback to false for security
+      return false;
     }
   }
 
@@ -215,11 +221,8 @@ export class AuthService {
           this.setRefreshToken(response.body.refreshToken);
         }
         
-        // Ако backend не връща нови токени, но верификацията е успешна
-        // Може да обновим authStatusSubject за да се обнови UI
         if (response.status === 200 || response.status === 202) {
           console.log('Email verification successful');
-          // Препраща подновяване на страницата или refresh на токен
         }
       })
     );
@@ -231,9 +234,6 @@ export class AuthService {
     });
   }
 
-  /**
-   * Форсирано подновяване на токен след верификация
-   */
   forceRefreshToken(): Observable<any> {
     console.log('Forcing token refresh after email verification');
     return this.refreshToken().pipe(
@@ -243,11 +243,7 @@ export class AuthService {
     );
   }
 
-  /**
-   * Проверява статуса на email верификация след верификация
-   */
   recheckEmailVerification(): boolean {
-    // Изчистваме кеша и проверяваме отново
     const token = this.getAccessToken();
     if (!token) return false;
     

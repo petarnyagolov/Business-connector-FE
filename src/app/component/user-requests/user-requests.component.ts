@@ -108,9 +108,14 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   loadRequests(): void {
     this.companyRequestService.getAllRequestsByUser().subscribe({
       next: (data: any[]) => {
-        // data is now array of {request, responses}
-        this.companyRequests = data.map(item => {
-          const req = item.request;
+
+        console.log('Received processed user requests data:', data);
+        this.companyRequests = data.map(req => {
+          if (!req) {
+            console.warn('Found null/undefined request item');
+            return null;
+          }
+          
           let activeFrom = req.activeFrom;
           let activeTo = req.activeTo;
           if (Array.isArray(activeFrom) && activeFrom.length >= 3) {
@@ -123,16 +128,16 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
           } else if (typeof activeTo === 'string' || typeof activeTo === 'number') {
             activeTo = new Date(activeTo);
           }
-          // Store responses by request id
-          this.responsesByRequestId[req.id] = item.responses || [];
+          this.responsesByRequestId[req.id] = [];
+          
           return {
             ...req,
             activeFrom,
             activeTo
           };
-        });
-        // If you want to keep responses for each request:
-        // this.responsesByRequestId = Object.fromEntries(data.map(item => [item.request.id, item.responses]));
+        }).filter(item => item !== null); 
+        
+        console.log('Processed company requests for display:', this.companyRequests);
       },
       error: (error: Error) => {
         console.error('Error fetching companies:', error);
@@ -147,49 +152,43 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      this.companyRequest.pictures = Array.from(input.files); // Convert FileList to File[]
+      this.companyRequest.pictures = Array.from(input.files); 
     }
   }
 
   createRequest() {
-    console.log('createRequest() called'); // Debugging
-    // this.showCancelButton = true;
-    console.log('showCancelButton:', this.showCancelButton); // Debugging
     this.router.navigate(['/my-requests/create']);
   }
   
   onCancel() {
-    console.log('onCancel() called'); // Debugging
-    // this.showCancelButton = false;
-    console.log('showCancelButton:', this.showCancelButton); // Debugging
     this.router.navigate(['/my-requests']);
     
   }
   getGridColumns(): number {
     if (this.companyRequests.length === 1) {
-      return 1; // One big card
+      return 1; 
     } else if (this.companyRequests.length === 2) {
-      return 2; // Two middle-sized cards
+      return 2; 
     } else {
-      return 3; // Three smaller cards
+      return 3; 
     }
   }
 
   getRowHeight(): string {
     if (this.companyRequests.length === 1) {
-      return '4:3'; // Taller card for a single company
+      return '4:3'; 
     } else if (this.companyRequests.length === 2) {
-      return '3:2'; // Medium height for two companies
+      return '3:2'; 
     } else {
-      return '2:1'; // Shorter cards for three or more companies
+      return '2:1'; 
     }
   }
 
   getColSpan(): number {
     if (this.companyRequests.length === 1) {
-      return 1; // Single card spans the full width
+      return 1; 
     } else {
-      return 1; // Each card spans one column
+      return 1; 
     }
   }
 
@@ -199,7 +198,7 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     } else if (this.companyRequests.length === 2) {
       return 2;
     } else {
-      return 2; // беше 1, но това ще даде повече височина
+      return 2; 
     }
   }
 
@@ -214,7 +213,6 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
 
   loadAllPictures(): void {
     this.companyRequests.forEach(request => {
-      // Ако заявката има поле pictureUrls (от бекенда), го използваме, иначе пропускаме
       const urls = (request as any).pictureUrls || [];
       if (Array.isArray(urls)) {
         urls.forEach((pic: string) => {
@@ -256,21 +254,18 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     return Array.isArray(request.pictureUrls) ? request.pictureUrls : [];
   }
 
-  /** Called when a response is selected for a request */
   selectResponse(requestId: string, response: any) {
     this.selectedResponseByRequestId[requestId] = response;
     this.acceptSuccessByRequestId[requestId] = false;
     this.acceptErrorByRequestId[requestId] = false;
   }
 
-  /** Called when the user clicks the Accept button */
   acceptResponse(requestId: string) {
     const response = this.selectedResponseByRequestId[requestId];
     if (!response) return;
     this.acceptLoadingByRequestId[requestId] = true;
     this.acceptSuccessByRequestId[requestId] = false;
     this.acceptErrorByRequestId[requestId] = false;
-    // Prepare payload for backend
     const payload = {
       requestId: requestId,
       responseId: response.id,
@@ -280,7 +275,6 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       next: () => {
         this.acceptLoadingByRequestId[requestId] = false;
         this.acceptSuccessByRequestId[requestId] = true;
-        // Optionally, refresh the request/responses or update status
       },
       error: () => {
         this.acceptLoadingByRequestId[requestId] = false;
