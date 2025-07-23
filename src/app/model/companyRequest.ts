@@ -17,5 +17,6 @@ export interface CompanyRequest {
   priceTo?: number;
   workMode?: string;
   urgent?: boolean;
+  responsesCount?: number;
   requiredFields: string[];
 }

@@ -48,6 +48,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   responseForm: FormGroup;
   responseSuccess: boolean = false;
   showResponseForm: boolean = true;
+  showResponseModal: boolean = false;
   editResponseData: any = {};
   editResponseItem: any = null;
   showEditResponseDialog: boolean = false;
@@ -78,17 +79,14 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      // Зареждаме компаниите на потребителя
       this.companyService.getAllCompaniesByUser().subscribe({
         next: (companies) => {
           this.companies = companies;
           
-          // Зареждаме заявката
           this.companyRequestService.getRequestById(id).subscribe(res => {
             this.request = res.request;
             this.responses = res.responses || [];
             
-            // Намираме компанията на създателя от кешираните данни
             if (this.request?.requesterCompanyId) {
               this.requesterCompany = this.companies.find(
                 company => company.id === this.request?.requesterCompanyId
@@ -102,7 +100,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading user companies:', error);
-          // Ако не можем да заредим компаниите, поне зареждаме заявката
           this.companyRequestService.getRequestById(id).subscribe(res => {
             this.request = res.request;
             this.responses = res.responses || [];
@@ -114,7 +111,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(companies => this.companies = companies);
 
-    // Динамично добавяне на required валидатор за availableFrom/availableTo ако са в requiredFields
     if (this.request?.requiredFields?.includes('availableFrom')) {
       this.responseForm.get('availableFrom')?.addValidators(Validators.required);
       this.responseForm.get('availableFrom')?.updateValueAndValidity();
@@ -166,7 +162,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
         }
       }
     });
-    // Съберете файловете (ако има)
     const pictures: File[] = [];
     if (this.responseForm.get('picture')?.value) {
       pictures.push(this.responseForm.get('picture')?.value);
@@ -174,7 +169,10 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     this.responseService.createResponse(this.request.id, dto, pictures).subscribe({
       next: () => {
         this.responseSuccess = true;
-        this.showResponseForm = false;
+        setTimeout(() => {
+          this.closeResponseModal();
+          this.loadResponses();
+        }, 2000);
       },
       error: () => this.responseSuccess = false
     });
@@ -218,7 +216,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     };
     this.responseService.updateResponse(requestCompanyId!, dto).subscribe({
       next: () => {
-        // Обнови локално
         this.editResponseItem.responseText = dto.responseText;
         this.editResponseItem.responserCompanyId = dto.responserCompanyId;
         this.closeEditResponseDialog();
@@ -229,11 +226,9 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Преобразува масив [2025,6,16,0,0] или string към dd.MM.yyyy
   formatDateArray(date: any): string {
     if (!date) return '';
     if (Array.isArray(date) && date.length >= 3) {
-      // month is 1-based in backend, 0-based in JS
       const d = new Date(date[0], date[1] - 1, date[2], date[3] || 0, date[4] || 0);
       return d.toLocaleDateString('bg-BG');
     }
@@ -275,6 +270,27 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       case 'box': return 'Кашон/и';
       case 'pallet': return 'Пале/та';
       default: return unit || '';
+    }
+  }
+
+  openResponseModal(): void {
+    this.showResponseModal = true;
+    this.responseSuccess = false;
+    this.responseForm.reset();
+  }
+
+  closeResponseModal(): void {
+    this.showResponseModal = false;
+    this.responseSuccess = false;
+    this.responseForm.reset();
+  }
+
+  loadResponses(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id && this.request) {
+      this.companyRequestService.getRequestById(id).subscribe(res => {
+        this.responses = res.responses || [];
+      });
     }
   }
 

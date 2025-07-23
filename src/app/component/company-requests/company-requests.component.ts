@@ -4,8 +4,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -14,9 +12,7 @@ import { CompanyRequestService } from '../../service/company-request.service'
 import { CompanyRequest } from '../../model/companyRequest';
 import { MatIconModule } from '@angular/material/icon';
 import { CompanyService } from '../../service/company.service';
-import { ResponseService } from '../../service/response.service';
 import { Company } from '../../model/company';
-import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -33,9 +29,6 @@ import { SavedRequestsService } from '../../service/saved-requests.service';
     CommonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
-    MatOptionModule,
-    FormsModule,
     MatIconModule,
     MatTooltipModule,
     FormatDateArrayPipe],
@@ -53,8 +46,6 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   searchQuery: string = '';
   searchSubject: Subject<string> = new Subject<string>();
   private destroy$ = new Subject<void>();
-  showReplyFormId: string | null = null;
-  replyFormData: { [key: string]: { responserCompanyId: string; responseText: string } } = {};
   userCompanies: Company[] = [];
 
   constructor(
@@ -62,7 +53,6 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
     private router: Router, 
     private cdr: ChangeDetectorRef, 
     private companyService: CompanyService, 
-    private responseService: ResponseService, 
     private sanitizer: DomSanitizer, 
     private http: HttpClient,
     private snackBar: MatSnackBar,
@@ -158,30 +148,6 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadRequests();
-  }
-
-  onReply(request: CompanyRequest): void {
-    this.showReplyFormId = request.id;
-    if (!this.replyFormData[request.id]) {
-      this.replyFormData[request.id] = { responserCompanyId: '', responseText: '' };
-    }
-  }
-
-  onCancelReply(): void {
-    this.showReplyFormId = null;
-  }
-
-  onSubmitReply(request: CompanyRequest): void {
-    const data = this.replyFormData[request.id];
-    if (!data.responserCompanyId || !data.responseText) return;
-    this.responseService.createResponse(request.id, data).subscribe({
-      next: () => {
-        alert('Предложението е изпратен успешно!');
-        this.showReplyFormId = null;
-        this.replyFormData[request.id] = { responserCompanyId: '', responseText: '' };
-      },
-      error: () => alert('Грешка при изпращане на предложението!')
-    });
   }
 
   onSave(request: CompanyRequest): void {

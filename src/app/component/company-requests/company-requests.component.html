@@ -90,6 +90,11 @@
             </ng-container>
           </div>
         </div>
+        <div *ngIf="request.responsesCount !== undefined" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">reply</mat-icon>
+          <span class="label">Предложения:&nbsp;</span> 
+          <span class="value" style="font-weight: 500; color: #1976d2;">{{ request.responsesCount }}</span>
+        </div>
         <div *ngIf="request.status" style="display: flex; align-items: center;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">info</mat-icon>
           <span class="label">Статус:</span> <span class="value">{{ request.status }}</span>
@@ -100,16 +105,6 @@
       <button mat-stroked-button color="primary" (click)="$event.stopPropagation(); navigateToRequest(request.id)">
         <mat-icon style="margin-right: 4px;">visibility</mat-icon>
         Виж
-      </button>
-      <button 
-        *ngIf="!isMyRequest(request.id)"
-        mat-stroked-button 
-        color="primary" 
-        (click)="onReply(request)" 
-        [class.active-reply]="showReplyFormId === request.id"
-      >
-        <mat-icon style="margin-right: 4px;">reply</mat-icon>
-        Предложи
       </button>
       <button 
         *ngIf="!isMyRequest(request.id)"
@@ -130,25 +125,6 @@
         Моя публикация
       </span>
     </mat-card-actions>
-    <div *ngIf="showReplyFormId === request.id" class="reply-form">
-      <mat-form-field appearance="fill" style="width: 100%;">
-        <mat-label>Фирма</mat-label>
-        <mat-select [(ngModel)]="replyFormData[request.id].responserCompanyId" required>
-          <mat-option [value]="''">-- Избери фирма --</mat-option>
-          <mat-option *ngFor="let company of userCompanies" [value]="company.id">
-            {{ company.name }} ({{ company.vatNumber }})
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="fill" style="width: 100%; margin-top: 16px;">
-        <mat-label>Предложи</mat-label>
-        <textarea matInput [(ngModel)]="replyFormData[request.id].responseText" rows="4" required></textarea>
-      </mat-form-field>
-      <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <button mat-raised-button color="primary" (click)="onSubmitReply(request)">Предложи</button>
-        <button mat-button color="warn" (click)="onCancelReply()">Отказ</button>
-      </div>
-    </div>
   </mat-card>
 </div>
 <mat-paginator
