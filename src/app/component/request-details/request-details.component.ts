@@ -16,9 +16,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../service/auth.service';
 import { EmailVerificationService } from '../../service/email-verification.service';
+import { ResponseDialogComponent } from './response-dialog.component';
 
 @Component({
   selector: 'app-request-details',
@@ -35,7 +37,8 @@ import { EmailVerificationService } from '../../service/email-verification.servi
     MatCardModule,
     MatIconModule,
     MatDatepickerModule,
-    MatMomentDateModule
+    MatMomentDateModule,
+    MatDialogModule
   ],
   templateUrl: './request-details.component.html',
   styleUrls: ['./request-details.component.scss']
@@ -43,16 +46,11 @@ import { EmailVerificationService } from '../../service/email-verification.servi
 export class RequestDetailsComponent implements OnInit, OnDestroy {
   request: CompanyRequest | null = null;
   responses: any[] = [];
-  companies: Company[] = [];
-  requesterCompany: Company | null = null; // Добавяме компанията на създателя
-  responseForm: FormGroup;
-  responseSuccess: boolean = false;
-  showResponseForm: boolean = true;
-  showResponseModal: boolean = false;
+  userCompanies: Company[] = [];
+  requesterCompany: Company | null = null;
   editResponseData: any = {};
   editResponseItem: any = null;
   showEditResponseDialog: boolean = false;
-  picturePreview: string | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -62,119 +60,74 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private responseService: ResponseService,
     private fb: FormBuilder,
     private authService: AuthService,
-    private emailVerificationService: EmailVerificationService
+    private emailVerificationService: EmailVerificationService,
+    private dialog: MatDialog
   ) {
-    this.responseForm = this.fb.group({
-      responserCompanyId: ['', Validators.required],
-      message: ['', Validators.required],
-      fixedPrice: [''],
-      priceFrom: [''],
-      priceTo: [''],
-      availableFrom: [null],
-      availableTo: [null],
-      picture: [null]
-    });
+    this.loadUserCompanies();
+  }
+
+  loadUserCompanies(): void {
+    this.companyService.getAllCompaniesByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (companies) => {
+          this.userCompanies = companies;
+          console.log('Loaded companies:', this.userCompanies);
+        },
+        error: (error) => {
+          console.error('Error loading user companies:', error);
+          this.userCompanies = [];
+        }
+      });
   }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.companyService.getAllCompaniesByUser().subscribe({
-        next: (companies) => {
-          this.companies = companies;
+      this.companyRequestService.getRequestById(id).subscribe(res => {
+        this.request = res.request;
+        this.responses = res.responses || [];
+        
+        if (this.request?.requesterCompanyId) {
+          this.requesterCompany = this.userCompanies.find(
+            company => company.id === this.request?.requesterCompanyId
+          ) || null;
           
-          this.companyRequestService.getRequestById(id).subscribe(res => {
-            this.request = res.request;
-            this.responses = res.responses || [];
-            
-            if (this.request?.requesterCompanyId) {
-              this.requesterCompany = this.companies.find(
-                company => company.id === this.request?.requesterCompanyId
-              ) || null;
-              
-              if (!this.requesterCompany) {
-                console.log('Requester company not found in user companies list');
-              }
-            }
-          });
-        },
-        error: (error) => {
-          console.error('Error loading user companies:', error);
-          this.companyRequestService.getRequestById(id).subscribe(res => {
-            this.request = res.request;
-            this.responses = res.responses || [];
-          });
+          if (!this.requesterCompany) {
+            console.log('Requester company not found in user companies list');
+          }
         }
       });
     }
-    this.companyService.getAllCompaniesByUser()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(companies => this.companies = companies);
-
-    if (this.request?.requiredFields?.includes('availableFrom')) {
-      this.responseForm.get('availableFrom')?.addValidators(Validators.required);
-      this.responseForm.get('availableFrom')?.updateValueAndValidity();
-    }
-    if (this.request?.requiredFields?.includes('availableTo')) {
-      this.responseForm.get('availableTo')?.addValidators(Validators.required);
-      this.responseForm.get('availableTo')?.updateValueAndValidity();
-    }
   }
 
-  onSubmit(): void {
-    this.emailVerificationService.checkVerificationOrPrompt().subscribe((canProceed: boolean) => {
-      if (!canProceed) {
-        return; 
-      }
-
-      this.processResponseSubmission();
-    });
-  }
-
-  private processResponseSubmission(): void {
+  private processResponseSubmission(formData: any): void {
     if (!this.request) return;
-    if (this.request.requiredFields && Array.isArray(this.request.requiredFields)) {
-      for (const field of this.request.requiredFields) {
-        if (field === 'picture') {
-          if (!this.responseForm.get('picture')?.value) {
-            alert('Снимката е задължителна!');
-            return;
-          }
-        } else if (field === 'availableFrom' || field === 'availableTo') {
-          if (!this.responseForm.get(field)?.value || this.responseForm.get(field)?.value === '') {
-            alert('Полето ' + this.getFieldLabel(field) + ' е задължително!');
-            return;
-          }
-        } else if (!this.responseForm.get(field) || this.responseForm.get(field)?.value === '' || this.responseForm.get(field)?.value == null) {
-          alert('Полето ' + this.getFieldLabel(field) + ' е задължително!');
-          return;
-        }
-      }
-    }
-    if (this.responseForm.invalid) return;
+    
     const dto: any = {};
-    Object.keys(this.responseForm.controls).forEach(key => {
+    Object.keys(formData).forEach(key => {
       if (key !== 'picture') {
         if (key === 'message') {
-          dto['responseText'] = this.responseForm.get('message')?.value;
+          dto['responseText'] = formData.message;
         } else {
-          dto[key] = this.responseForm.get(key)?.value;
+          dto[key] = formData[key];
         }
       }
     });
+    
     const pictures: File[] = [];
-    if (this.responseForm.get('picture')?.value) {
-      pictures.push(this.responseForm.get('picture')?.value);
+    if (formData.picture) {
+      pictures.push(formData.picture);
     }
-    this.responseService.createResponse(this.request.id, dto, pictures).subscribe({
+    
+    this.responseService.createResponse(this.request!.id, dto, pictures).subscribe({
       next: () => {
-        this.responseSuccess = true;
-        setTimeout(() => {
-          this.closeResponseModal();
-          this.loadResponses();
-        }, 2000);
+        this.loadResponses();
       },
-      error: () => this.responseSuccess = false
+      error: (error) => {
+        console.error('Error submitting response:', error);
+        alert('Възникна грешка при изпращането на предложението.');
+      }
     });
   }
 
@@ -240,29 +193,15 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   getCompanyName(id: string): string {
-    const company = this.companies.find(c => String(c.id) === String(id));
+    const company = this.userCompanies.find(c => String(c.id) === String(id));
     return company ? company.name + (company.vatNumber ? ' (' + company.vatNumber + ')' : '') : id || '';
   }
 
   canEditResponse(resp: any): boolean {
-    return !!resp.responserCompanyId && this.companies.some(c => c.id === resp.responserCompanyId);
+    return !!resp.responserCompanyId && this.userCompanies.some(c => c.id === resp.responserCompanyId);
   }
 
-  onPictureChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      this.responseForm.get('picture')?.setValue(file);
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.picturePreview = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      this.responseForm.get('picture')?.setValue(null);
-      this.picturePreview = null;
-    }
-  }
+
 
   getUnitLabel(unit: string): string {
     switch (unit) {
@@ -274,15 +213,27 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   openResponseModal(): void {
-    this.showResponseModal = true;
-    this.responseSuccess = false;
-    this.responseForm.reset();
-  }
-
-  closeResponseModal(): void {
-    this.showResponseModal = false;
-    this.responseSuccess = false;
-    this.responseForm.reset();
+    console.log('Opening response dialog, companies:', this.userCompanies);
+    
+    this.emailVerificationService.checkVerificationOrPrompt().subscribe((canProceed: boolean) => {
+      if (!canProceed) {
+        return;
+      }
+      
+      const dialogRef = this.dialog.open(ResponseDialogComponent, {
+        width: '500px',
+        data: {
+          requestId: this.request?.id,
+          requiredFields: this.request?.requiredFields || []
+        }
+      });
+      
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.processResponseSubmission(result);
+        }
+      });
+    });
   }
 
   loadResponses(): void {
