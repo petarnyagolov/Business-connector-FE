@@ -22,7 +22,57 @@ export class CompanyRequestService {
       page: page.toString(),
       size: size.toString()
     };
-    return this.http.get<any>(`${this.apiUrl}/search`, { params });
+    return this.http.get<any>(`${this.apiUrl}/search`, { params }).pipe(
+      map((res: any) => {
+        if (res && res.content && Array.isArray(res.content)) {
+          res.content = res.content.map((req: any) => {
+            let pictures: string[] = [];
+            let files: { url: string, isImage: boolean, name: string }[] = [];
+            
+            if (Array.isArray(req.pictureUrls)) {
+              pictures = req.pictureUrls.map((pic: string) => {
+                // Премахваме всички слашове в началото на pic
+                const cleanPic = pic.replace(/^[\/\\]+/, '');
+                return pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
+              });
+            } else if (Array.isArray(req.pictures)) {
+              pictures = req.pictures.map((pic: string) => {
+                // Премахваме всички слашове в началото на pic
+                const cleanPic = pic.replace(/^[\/\\]+/, '');
+                return pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
+              });
+            }
+            
+            if (Array.isArray(req.fileUrls)) {
+              files = req.fileUrls.map((fileUrl: string) => {
+                // Премахваме всички слашове в началото на fileUrl
+                const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
+                const url = fileUrl.startsWith('http') ? 
+                          fileUrl : 
+                          `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
+                const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
+                
+                const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExt);
+                
+                return {
+                  url,
+                  isImage,
+                  name: fileName
+                };
+              });
+            }
+            
+            return {
+              ...req,
+              pictures,
+              files
+            };
+          });
+        }
+        return res;
+      })
+    );
   }
 
      getAllRequestsByUser() : Observable<CompanyRequest[]> {
@@ -87,18 +137,26 @@ export class CompanyRequestService {
           let files: { url: string, isImage: boolean, name: string }[] = [];
           
           if (Array.isArray(req.pictureUrls)) {
-            pictures = req.pictureUrls.map((pic: string) =>
-              pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${pic.replace(/\\/g, '/')}`
-            );
+            pictures = req.pictureUrls.map((pic: string) => {
+              // Премахваме всички слашове в началото на pic
+              const cleanPic = pic.replace(/^[\/\\]+/, '');
+              return pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
+            });
           } else if (Array.isArray(req.pictures)) {
-            pictures = req.pictures.map((pic: string) =>
-              pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${pic.replace(/\\/g, '/')}`
-            );
+            pictures = req.pictures.map((pic: string) => {
+              // Премахваме всички слашове в началото на pic
+              const cleanPic = pic.replace(/^[\/\\]+/, '');
+              return pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
+            });
           }
           
           if (Array.isArray(req.fileUrls)) {
             files = req.fileUrls.map((fileUrl: string) => {
-              const url = fileUrl.startsWith('http') ? fileUrl : `${environment.apiUrl}/files/${fileUrl.replace(/\\/g, '/')}`;
+              // Премахваме всички слашове в началото на fileUrl
+              const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
+              const url = fileUrl.startsWith('http') ? 
+                        fileUrl : 
+                        `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
               const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
               
               const fileExt = fileName.split('.').pop()?.toLowerCase() || '';

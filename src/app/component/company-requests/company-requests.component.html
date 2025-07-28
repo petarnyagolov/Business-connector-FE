@@ -81,12 +81,32 @@
             <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | formatDateArray }}</ng-container>
           </span>
         </div>
-        <div *ngIf="getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
+        <div *ngIf="request.files && request.files.length" class="files-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">attach_file</mat-icon>
+          <span class="label" style="margin-right: 6px;">Файлове:</span>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+            <ng-container *ngFor="let file of request.files">
+              <div *ngIf="file.isImage" style="display: block; text-decoration: none;">
+                <img [src]="file.url" [alt]="file.name" 
+                     (click)="openImageModal(file.url, request)" 
+                     style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
+              </div>
+              <div *ngIf="!file.isImage"
+                 (click)="openPdfInNewTab(file.url)"
+                 style="display: flex; align-items: center; padding: 6px 12px; background-color: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; color: #333; text-decoration: none; margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer;">
+                <mat-icon style="color: #f44336; margin-right: 8px;">picture_as_pdf</mat-icon>
+                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">{{ file.name }}</span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+        
+        <div *ngIf="(!request.files || !request.files.length) && getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">image</mat-icon>
           <span class="label" style="margin-right: 6px;">Снимки:</span>
           <div style="display: flex; gap: 5px; flex-wrap: wrap;">
             <ng-container *ngFor="let pic of getPictureUrls(request)">
-              <img *ngIf="pic" [src]="pictureBlobs[pic] || getPictureUrl(pic)" alt="Снимка" style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" (click)="onImageClick(pic)" />
+              <img *ngIf="pic" [src]="pictureBlobs[pic] || getPictureUrl(pic)" alt="Снимка" style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" (click)="onImageClick(pic, request)" />
             </ng-container>
           </div>
         </div>
@@ -135,7 +155,28 @@
 </mat-paginator>
 
 <!-- Диалог за голяма снимка -->
-<div *ngIf="showImageDialog" class="image-dialog-overlay" (click)="closeImageDialog()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-  <img [src]="selectedImage" alt="Голяма снимка" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 4px 32px #0008; background: #fff; padding: 8px;" (click)="$event.stopPropagation()" />
-  <button (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2;">&times;</button>
+<div *ngIf="showImageDialog" class="image-dialog-overlay" (click)="closeImageDialog()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+  <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 90vw; max-width: 1200px;" (click)="$event.stopPropagation()">
+    <button *ngIf="imageFiles.length > 1" mat-icon-button (click)="previousImage()" style="position: absolute; left: -60px; background: rgba(255,255,255,0.7); width: 50px; height: 50px; border-radius: 50%;" color="primary">
+      <mat-icon style="font-size: 30px;">chevron_left</mat-icon>
+    </button>
+    
+    <div style="position: relative;">
+      <img [src]="selectedImage" alt="Голямо изображение" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 4px 32px #0008; background: #fff; padding: 8px;" />
+      
+      <div *ngIf="imageFiles.length > 1" style="position: absolute; bottom: 20px; left: 0; right: 0; text-align: center;">
+        <span style="background: rgba(0,0,0,0.5); color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px;">
+          {{ currentImageIndex + 1 }} / {{ imageFiles.length }}
+        </span>
+      </div>
+    </div>
+    
+    <button *ngIf="imageFiles.length > 1" mat-icon-button (click)="nextImage()" style="position: absolute; right: -60px; background: rgba(255,255,255,0.7); width: 50px; height: 50px; border-radius: 50%;" color="primary">
+      <mat-icon style="font-size: 30px;">chevron_right</mat-icon>
+    </button>
+  </div>
+  
+  <button mat-fab color="warn" (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2; min-width: 0; min-height: 0; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center;">
+    <mat-icon>close</mat-icon>
+  </button>
 </div>

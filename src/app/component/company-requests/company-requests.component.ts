@@ -13,11 +13,11 @@ import { CompanyRequest } from '../../model/companyRequest';
 import { MatIconModule } from '@angular/material/icon';
 import { CompanyService } from '../../service/company.service';
 import { Company } from '../../model/company';
+import { environment } from '../../../environments/environment';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { environment } from '../../../environments/environment';
 import { FormatDateArrayPipe } from '../user-responses/format-date-array.pipe';
 import { SavedRequestsService } from '../../service/saved-requests.service';
 
@@ -106,12 +106,47 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
         } else if (typeof activeTo === 'string' || typeof activeTo === 'number') {
           activeTo = new Date(activeTo);
         }
+        
+        // Създаваме масив с файлове ако липсва
+        if (!req.files && req.fileUrls && Array.isArray(req.fileUrls)) {
+          req.files = req.fileUrls.map((fileUrl: string) => {
+            // Премахваме всички слашове в началото на fileUrl
+            const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
+            // Формираме URL-а като внимаваме да няма дублирани слашове
+            const url = fileUrl.startsWith('http') ? 
+                        fileUrl : 
+                        `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
+            
+            console.log('Оригинален fileUrl:', fileUrl);
+            console.log('Почистен fileUrl:', cleanFileUrl);
+            console.log('Генериран URL:', url);
+            
+            const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
+            
+            const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExt);
+            
+            return {
+              url,
+              isImage,
+              name: fileName
+            };
+          });
+        }
+        
         return {
           ...req,
           activeFrom,
           activeTo
         };
       });
+      
+      // Log для диагностики
+      console.log("Заредени заявки:", this.companyRequests);
+      this.companyRequests.forEach(req => {
+        console.log(`Заявка ${req.title} има ${req.files?.length || 0} файла и ${this.getPictureUrls(req).length} снимки`);
+      });
+      
       this.totalRequests = response.totalElements;
       this.cdr.markForCheck();
       this.loadAllPictures(); 
@@ -189,29 +224,202 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   }
 
   getPictureUrls(request: any): string[] {
-    return Array.isArray(request.pictureUrls) ? request.pictureUrls : (Array.isArray(request.pictures) ? request.pictures : []);
+    // Проверяваме първо за files масива, който създадохме
+    if (Array.isArray(request.files)) {
+      const imageFiles = request.files.filter((file: any) => file.isImage);
+      if (imageFiles.length > 0) {
+        return imageFiles.map((file: any) => file.url);
+      }
+    }
+    
+    // Ако няма files с изображения, използваме pictureUrls или pictures
+    const pictureUrls = Array.isArray(request.pictureUrls) ? request.pictureUrls : [];
+    const pictures = Array.isArray(request.pictures) ? request.pictures : [];
+    
+    // Използваме Set за да премахнем дублирането
+    return [...new Set([...pictureUrls, ...pictures])];
   }
 
   pictureBlobs: { [key: string]: any } = {};
   selectedImage: any = null;
   showImageDialog: boolean = false;
+  currentImageIndex: number = 0;
+  imageFiles: { url: string, name: string }[] = [];
 
   getPictureUrl(pic: string): string {
     if (!pic) return '';
     if (pic.startsWith('http')) {
       return pic;
     }
-    return `${environment.apiUrl}/files` + pic.replace(/\\/g, '/');
+    // Премахваме всички слашове в началото на pic
+    const cleanPic = pic.replace(/^[\/\\]+/, '');
+    return `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
   }
 
-  onImageClick(pic: string): void {
-    this.selectedImage = this.pictureBlobs[pic] || this.getPictureUrl(pic);
+  onImageClick(pic: string, request: any): void {
+    this.openImageModal(pic, request);
+  }
+
+  // Инициализира масива с изображения само от конкретната публикация
+  initializeImageFilesForRequest(request: any): void {
+    this.imageFiles = [];
+    
+    // Първо проверяваме дали има директно files масив с изображения
+    if (request.files && request.files.length) {
+      const imageFiles = request.files
+        .filter((file: {isImage: boolean}) => file.isImage)
+        .map((file: {url: string, name: string}) => ({
+          url: file.url,
+          name: file.name
+        }));
+      this.imageFiles.push(...imageFiles);
+      
+      // Ако имаме изображения в files, не добавяме от pictureUrls
+      if (this.imageFiles.length > 0) {
+        console.log(`Инициализирани ${this.imageFiles.length} изображения от files за публикация "${request.title}"`);
+        return;
+      }
+    }
+    
+    // Добавяме изображения от pictureUrls масива само ако няма в files
+    if (!request.files || request.files.length === 0 || 
+        !request.files.some((file: {isImage: boolean}) => file.isImage)) {
+      
+      const pictureUrls = Array.isArray(request.pictureUrls) ? 
+                        request.pictureUrls : 
+                        (Array.isArray(request.pictures) ? request.pictures : []);
+                        
+      if (pictureUrls && pictureUrls.length) {
+        pictureUrls.forEach((pic: string) => {
+          const url = this.pictureBlobs[pic] || this.getPictureUrl(pic);
+          const name = pic.split('/').pop() || pic;
+          this.imageFiles.push({ url, name });
+        });
+        console.log(`Инициализирани ${this.imageFiles.length} изображения от pictureUrls за публикация "${request.title}"`);
+      }
+    }
+    
+    // Премахваме дубликати (ако случайно има такива)
+    const uniqueUrls = new Set<string>();
+    this.imageFiles = this.imageFiles.filter(img => {
+      if (uniqueUrls.has(img.url)) {
+        return false;
+      }
+      uniqueUrls.add(img.url);
+      return true;
+    });
+    
+    console.log(`Общо ${this.imageFiles.length} уникални изображения за публикация "${request.title}"`);
+    
+    
+    console.log(`Инициализирани ${this.imageFiles.length} изображения за публикация "${request.title}"`);
+  }
+
+  // Стария метод оставяме за обратна съвместимост
+  initializeImageFiles(): void {
+    this.imageFiles = [];
+    
+    this.companyRequests.forEach(request => {
+      if (request.files && request.files.length) {
+        const imageFiles = request.files
+          .filter((file: {isImage: boolean}) => file.isImage)
+          .map((file: {url: string, name: string}) => ({
+            url: file.url,
+            name: file.name
+          }));
+        this.imageFiles.push(...imageFiles);
+      }
+      
+      // В стария метод също правим промяна да не се дублират изображенията
+      // Добавяме изображения от pictureUrls само ако този request няма files с изображения
+      if (!request.files || request.files.length === 0 || 
+          !request.files.some((file: {isImage: boolean}) => file.isImage)) {
+        
+        // Използваме директно pictureUrls и pictures масиви, а не getPictureUrls,
+        // за да избегнем дублиране на изображения от files
+        const pictureUrls = Array.isArray(request.pictureUrls) ? 
+                          request.pictureUrls : 
+                          (Array.isArray(request.pictures) ? request.pictures : []);
+        
+        if (pictureUrls && pictureUrls.length) {
+          pictureUrls.forEach((pic: string) => {
+            const url = this.pictureBlobs[pic] || this.getPictureUrl(pic);
+            const name = pic.split('/').pop() || pic;
+            this.imageFiles.push({ url, name });
+          });
+        }
+      }
+    });
+  }
+  
+  openImageModal(imageUrl: string, request?: any): void {
+    // Ако имаме конкретна публикация, инициализираме изображенията само от нея
+    if (request) {
+      this.initializeImageFilesForRequest(request);
+    }
+    // В противен случай, инициализираме всички изображения (обратна съвместимост)
+    else if (this.imageFiles.length === 0) {
+      this.initializeImageFiles();
+    }
+    
+    this.currentImageIndex = this.imageFiles.findIndex(img => {
+      return img.url === imageUrl || 
+             (typeof img.url === 'string' && typeof imageUrl === 'string' && 
+              img.url.includes(imageUrl.split('/').pop() || '') || 
+              imageUrl.includes(img.url.split('/').pop() || ''));
+    });
+    
+    if (this.currentImageIndex < 0) {
+      this.currentImageIndex = 0;
+    }
+    
+    this.selectedImage = this.currentImageIndex >= 0 ? 
+                        this.imageFiles[this.currentImageIndex].url : 
+                        imageUrl;
+    
     this.showImageDialog = true;
+    
+    document.addEventListener('keydown', this.handleKeydown);
   }
 
   closeImageDialog(): void {
     this.showImageDialog = false;
     this.selectedImage = null;
+    
+    document.removeEventListener('keydown', this.handleKeydown);
+  }
+  
+  handleKeydown = (event: KeyboardEvent): void => {
+    if (this.showImageDialog) {
+      if (event.key === 'ArrowRight' || event.key === ' ') {
+        this.nextImage();
+        event.preventDefault();
+      } else if (event.key === 'ArrowLeft') {
+        this.previousImage();
+        event.preventDefault();
+      } else if (event.key === 'Escape') {
+        this.closeImageDialog();
+        event.preventDefault();
+      }
+    }
+  }
+  
+  nextImage(): void {
+    if (this.imageFiles.length > 1) {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.imageFiles.length;
+      this.selectedImage = this.imageFiles[this.currentImageIndex].url;
+    }
+  }
+  
+  previousImage(): void {
+    if (this.imageFiles.length > 1) {
+      this.currentImageIndex = (this.currentImageIndex - 1 + this.imageFiles.length) % this.imageFiles.length;
+      this.selectedImage = this.imageFiles[this.currentImageIndex].url;
+    }
+  }
+  
+  openPdfInNewTab(pdfUrl: string): void {
+    window.open(pdfUrl, '_blank');
   }
 
   openRequestInNewTab(requestId: string) {
