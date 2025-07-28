@@ -44,6 +44,8 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     requiredFields: []
   };
 
+  selectedFiles: File[] = [];
+
   pictureBlobs: { [key: string]: any } = {};
   selectedImage: any | null = null;
   showImageDialog: boolean = false;
@@ -152,7 +154,30 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      this.companyRequest.pictures = Array.from(input.files); 
+      this.selectedFiles = Array.from(input.files);
+      
+      const previewUrls: string[] = [];
+      
+      if (!this.companyRequest.files) {
+        this.companyRequest.files = [];
+      }
+      
+      for (const file of this.selectedFiles) {
+        const url = URL.createObjectURL(file);
+        const isImage = file.type.startsWith('image/');
+        
+        this.companyRequest.files.push({
+          url: url,
+          isImage: isImage,
+          name: file.name
+        });
+        
+        if (isImage) {
+          previewUrls.push(url);
+        }
+      }
+      
+      this.companyRequest.pictures = previewUrls;
     }
   }
 

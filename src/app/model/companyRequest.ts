@@ -8,7 +8,7 @@ export interface CompanyRequest {
   status: string;
   availableFrom: Date;
   availableTo: Date;
-  pictures: File[];
+  pictures: string[]; 
   region?: string;
   capacity?: number;
   unit?: string;
@@ -19,4 +19,12 @@ export interface CompanyRequest {
   urgent?: boolean;
   responsesCount?: number;
   requiredFields: string[];
+  files?: {
+    url: string;
+    isImage: boolean;
+    name: string;
+  }[];
+  
+  fileUrls?: string[];
+  pictureUrls?: string[];
 }

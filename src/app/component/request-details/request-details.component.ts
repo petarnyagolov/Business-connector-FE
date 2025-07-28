@@ -21,6 +21,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../service/auth.service';
 import { EmailVerificationService } from '../../service/email-verification.service';
 import { ResponseDialogComponent } from './response-dialog.component';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-request-details',
@@ -51,6 +52,14 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   editResponseData: any = {};
   editResponseItem: any = null;
   showEditResponseDialog: boolean = false;
+  
+  showImageDialog: boolean = false;
+  selectedImage: string | null = null;
+  currentImageIndex: number = 0;
+  imageFiles: { url: string, name: string }[] = [];
+  
+  selectedPdfUrl: string | null = null;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -61,7 +70,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private emailVerificationService: EmailVerificationService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private sanitizer: DomSanitizer
   ) {
     this.loadUserCompanies();
   }
@@ -88,6 +98,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
         this.request = res.request;
         this.responses = res.responses || [];
         
+        this.initializeImageFiles();
+        
         if (this.request?.requesterCompanyId) {
           this.requesterCompany = this.userCompanies.find(
             company => company.id === this.request?.requesterCompanyId
@@ -104,9 +116,11 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   private processResponseSubmission(formData: any): void {
     if (!this.request) return;
     
+    console.log('Processing response submission with data:', formData);
+    
     const dto: any = {};
     Object.keys(formData).forEach(key => {
-      if (key !== 'picture') {
+      if (key !== 'files') {
         if (key === 'message') {
           dto['responseText'] = formData.message;
         } else {
@@ -115,12 +129,31 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       }
     });
     
-    const pictures: File[] = [];
-    if (formData.picture) {
-      pictures.push(formData.picture);
+    const files: File[] = [];
+    if (formData.files && formData.files.length > 0) {
+      console.log('Files received in formData:', formData.files);
+      
+      if (Array.isArray(formData.files)) {
+        console.log('formData.files is an array with length:', formData.files.length);
+        files.push(...formData.files);
+      } else if (formData.files instanceof FileList) {
+        console.log('formData.files is a FileList with length:', formData.files.length);
+        for (let i = 0; i < formData.files.length; i++) {
+          files.push(formData.files[i]);
+        }
+      } else {
+        console.log('formData.files is a single File object');
+        files.push(formData.files);
+      }
+      
+      console.log('Files to be submitted:', files.length, 'files');
+      console.log('Files details:', files.map(f => `${f.name} (${f.type}, ${f.size} bytes)`).join(', '));
+    } else {
+      console.log('No files to submit');
     }
     
-    this.responseService.createResponse(this.request!.id, dto, pictures).subscribe({
+    console.log('Sending response with DTO:', dto, 'and files:', files);
+    this.responseService.createResponse(this.request!.id, dto, files).subscribe({
       next: () => {
         this.loadResponses();
       },
@@ -220,6 +253,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
         return;
       }
       
+      console.log('Request required fields:', this.request?.requiredFields);
+      
       const dialogRef = this.dialog.open(ResponseDialogComponent, {
         width: '500px',
         data: {
@@ -248,5 +283,74 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+  
+  initializeImageFiles(): void {
+    if (this.request && this.request.files) {
+      this.imageFiles = this.request.files
+        .filter(file => file.isImage)
+        .map(file => ({ url: file.url, name: file.name }));
+      
+      if (this.imageFiles.length === 0 && this.request.pictures && this.request.pictures.length) {
+        this.imageFiles = this.request.pictures.map(pic => ({ 
+          url: pic, 
+          name: pic.split('/').pop() || 'Image' 
+        }));
+      }
+    }
+  }
+  
+  openImageModal(imageUrl: string): void {
+    if (this.imageFiles.length === 0) {
+      this.initializeImageFiles();
+    }
+    
+    this.currentImageIndex = this.imageFiles.findIndex(img => img.url === imageUrl);
+    if (this.currentImageIndex < 0) this.currentImageIndex = 0;
+    
+    this.selectedImage = imageUrl;
+    this.showImageDialog = true;
+    
+    document.addEventListener('keydown', this.handleKeydown);
+  }
+  
+  closeImageDialog(): void {
+    this.showImageDialog = false;
+    this.selectedImage = null;
+    
+    document.removeEventListener('keydown', this.handleKeydown);
+  }
+  
+  handleKeydown = (event: KeyboardEvent): void => {
+    if (this.showImageDialog) {
+      if (event.key === 'ArrowRight' || event.key === ' ') {
+        this.nextImage();
+        event.preventDefault();
+      } else if (event.key === 'ArrowLeft') {
+        this.previousImage();
+        event.preventDefault();
+      } else if (event.key === 'Escape') {
+        this.closeImageDialog();
+        event.preventDefault();
+      }
+    }
+  }
+  
+  nextImage(): void {
+    if (this.imageFiles.length > 1) {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.imageFiles.length;
+      this.selectedImage = this.imageFiles[this.currentImageIndex].url;
+    }
+  }
+  
+  previousImage(): void {
+    if (this.imageFiles.length > 1) {
+      this.currentImageIndex = (this.currentImageIndex - 1 + this.imageFiles.length) % this.imageFiles.length;
+      this.selectedImage = this.imageFiles[this.currentImageIndex].url;
+    }
+  }
+  
+  openPdfInNewTab(pdfUrl: string): void {
+    window.open(pdfUrl, '_blank');
   }
 }

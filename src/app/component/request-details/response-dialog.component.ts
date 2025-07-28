@@ -93,10 +93,43 @@ export interface ResponseDialogData {
           <mat-datepicker #pickerTo></mat-datepicker>
         </mat-form-field>
 
-        <div *ngIf="isFieldRequired('picture')" style="margin: 8px 0;">
-          <label style="font-weight: 500; display: block; margin-bottom: 8px;">Снимка</label>
-          <input type="file" (change)="onPictureChange($event)" accept="image/*" style="margin-bottom: 8px;">
-          <img *ngIf="picturePreview" [src]="picturePreview" alt="Преглед" style="max-width: 120px; max-height: 120px; display: block; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+        <div style="margin: 16px 0; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; background-color: #f5f9ff;">
+          <label style="font-weight: 600; display: block; margin-bottom: 10px; color: #1976d2; font-size: 16px;">
+            <mat-icon style="vertical-align: middle; margin-right: 8px;">attach_file</mat-icon>
+            Прикачете файлове (снимки, PDF)
+            <span *ngIf="isFieldRequired('files')" style="color: #f44336; margin-left: 4px;">*</span>
+          </label>
+          <input type="file" (change)="onFileChange($event)" accept="image/*,.pdf" style="margin-bottom: 12px; width: 100%; padding: 8px 0;" multiple>
+          <div class="file-hint" style="font-size: 0.85rem; margin-top: 8px; color: #666;">
+            Можете да качите няколко файла (изображения: jpg, png, gif и документи: pdf)
+          </div>
+          
+          <div *ngIf="selectedFiles.length > 0" style="margin: 10px 0; color: green; font-weight: 500; display: flex; align-items: center;">
+            <mat-icon style="margin-right: 8px;">check_circle</mat-icon>
+            Успешно избрани {{ selectedFiles.length }} файла
+          </div>
+
+          <div *ngIf="selectedFiles.length > 0" style="margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px; max-height: 160px; overflow-y: auto;">
+            <div *ngFor="let file of selectedFiles; let i = index" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0;">
+              <div style="display: flex; align-items: center; overflow: hidden; flex: 1;">
+                <mat-icon [style.color]="file.type.startsWith('image/') ? '#1976d2' : '#f44336'" style="font-size: 18px; margin-right: 8px;">
+                  {{ file.type.startsWith('image/') ? 'image' : 'picture_as_pdf' }}
+                </mat-icon>
+                <span style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ file.name }}</span>
+              </div>
+              <button mat-icon-button color="warn" (click)="removeFile(i)" type="button" style="width: 24px; height: 24px; line-height: 24px;">
+                <mat-icon style="font-size: 18px;">delete</mat-icon>
+              </button>
+            </div>
+          </div>
+          
+          <div *ngIf="filePreview">
+            <img *ngIf="previewType === 'image'" [src]="filePreview" alt="Преглед" style="max-width: 120px; max-height: 120px; display: block; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); margin-top: 10px;">
+            <div *ngIf="previewType === 'pdf'" style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+              <mat-icon color="primary">picture_as_pdf</mat-icon>
+              <span>PDF файл е качен успешно</span>
+            </div>
+          </div>
         </div>
       </form>
     </mat-dialog-content>
@@ -112,8 +145,43 @@ export interface ResponseDialogData {
 export class ResponseDialogComponent implements OnInit, OnDestroy {
   responseForm: FormGroup;
   userCompanies: Company[] = [];
-  picturePreview: string | null = null;
+  filePreview: string | null = null;
+  previewType: 'image' | 'pdf' | null = null;
+  selectedFiles: File[] = [];
   private destroy$ = new Subject<void>();
+
+  removeFile(index: number): void {
+    if (index >= 0 && index < this.selectedFiles.length) {
+      this.selectedFiles.splice(index, 1);
+      console.log('File removed. Remaining files:', this.selectedFiles);
+      
+      if (this.selectedFiles.length === 0) {
+        this.filePreview = null;
+        this.previewType = null;
+      } else if (index === 0) {
+        this.updateFilePreview(this.selectedFiles[0]);
+      }
+      
+      this.responseForm.get('files')?.setValue(this.selectedFiles.length > 0 ? this.selectedFiles : null);
+    }
+  }
+  
+  updateFilePreview(file: File): void {
+    if (file.type.startsWith('image/')) {
+      this.previewType = 'image';
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.filePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+      this.previewType = 'pdf';
+      this.filePreview = 'pdf'; 
+    } else {
+      this.previewType = null;
+      this.filePreview = null;
+    }
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -129,7 +197,7 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
       priceTo: [''],
       availableFrom: [null],
       availableTo: [null],
-      picture: [null]
+      files: [[]] // инициализираме с празен масив вместо null
     });
     
     // Add required validators based on required fields
@@ -154,11 +222,19 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
         this.responseForm.get('priceTo')?.addValidators(Validators.required);
         this.responseForm.get('priceTo')?.updateValueAndValidity();
       }
+      // Check if files are required
+      if (this.isFieldRequired('files')) {
+        this.responseForm.get('files')?.addValidators(Validators.required);
+        this.responseForm.get('files')?.updateValueAndValidity();
+      }
     }
   }
 
   ngOnInit(): void {
     this.loadUserCompanies();
+    console.log('Response form initial state:', this.responseForm.value);
+    console.log('Required fields:', this.data.requiredFields);
+    console.log('Files field validation:', this.responseForm.get('files')?.validator);
   }
 
   loadUserCompanies(): void {
@@ -178,32 +254,79 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
   }
   
   isFieldRequired(field: string): boolean {
+    if (field === 'files' && 
+        (this.data.requiredFields?.includes('files') || 
+         this.data.requiredFields?.includes('file') || 
+         this.data.requiredFields?.includes('picture'))) {
+      return true;
+    }
+    
     return this.data.requiredFields?.includes(field) || false;
   }
 
-  onPictureChange(event: Event): void {
+  onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      this.responseForm.get('picture')?.setValue(file);
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.picturePreview = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      console.log('Files selected:', input.files);
+      
+      for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        
+        if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+          const isDuplicate = this.selectedFiles.some(f => f.name === file.name && f.size === file.size);
+          if (!isDuplicate) {
+            this.selectedFiles.push(file);
+          } else {
+            console.warn('File already selected, skipping:', file.name);
+          }
+        } else {
+          console.warn('Unsupported file type ignored:', file.type);
+          alert('Неподдържан тип файл: ' + file.name + '. Моля, използвайте само изображения или PDF файлове.');
+        }
+      }
+      
+      console.log('Selected files:', this.selectedFiles);
+      this.responseForm.get('files')?.setValue(this.selectedFiles);
+      
+      if (this.selectedFiles.length > 0) {
+        this.updateFilePreview(this.selectedFiles[0]);
+      } else {
+        this.previewType = null;
+        this.filePreview = null;
+      }
     } else {
-      this.responseForm.get('picture')?.setValue(null);
-      this.picturePreview = null;
+      // No files selected
+      this.selectedFiles = [];
+      this.responseForm.get('files')?.setValue(null);
+      this.filePreview = null;
+      this.previewType = null;
     }
   }
 
   onSubmit(): void {
     if (this.responseForm.valid) {
+      console.log('Form submitted with values:', this.responseForm.value);
+      console.log('Selected files at submission:', this.selectedFiles.length, 'files');
+      
       const result = {
         ...this.responseForm.value,
-        responseText: this.responseForm.get('message')?.value
+        responseText: this.responseForm.get('message')?.value,
+        files: this.selectedFiles.length > 0 ? [...this.selectedFiles] : []
       };
+      
+      console.log('File details:', this.selectedFiles.map(f => `${f.name} (${f.type}, ${f.size} bytes)`).join(', '));
+      console.log('Sending result to parent component:', result);
       this.dialogRef.close(result);
+    } else {
+      console.warn('Form is invalid:', this.responseForm.errors);
+      
+      const controls = this.responseForm.controls;
+      Object.keys(controls).forEach(key => {
+        const control = controls[key];
+        if (control.errors) {
+          console.warn(`Field ${key} has errors:`, control.errors);
+        }
+      });
     }
   }
 

@@ -69,6 +69,13 @@ export class CompanyRequestService {
     }
 
     createRequest(formData: FormData): Observable<any> {
+      console.log('Creating request with FormData');
+      
+      console.log('FormData entries in service:');
+      for (const pair of (formData as any).entries()) {
+        console.log(pair[0], pair[1] instanceof File ? `File: ${pair[1].name} (${pair[1].type})` : pair[1]);
+      }
+      
       return this.http.post(`${this.apiUrl}`, formData);
     }
 
@@ -77,6 +84,8 @@ export class CompanyRequestService {
         map((res: any) => {
           const req = res.request;
           let pictures: string[] = [];
+          let files: { url: string, isImage: boolean, name: string }[] = [];
+          
           if (Array.isArray(req.pictureUrls)) {
             pictures = req.pictureUrls.map((pic: string) =>
               pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${pic.replace(/\\/g, '/')}`
@@ -86,9 +95,30 @@ export class CompanyRequestService {
               pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${pic.replace(/\\/g, '/')}`
             );
           }
+          
+          if (Array.isArray(req.fileUrls)) {
+            files = req.fileUrls.map((fileUrl: string) => {
+              const url = fileUrl.startsWith('http') ? fileUrl : `${environment.apiUrl}/files/${fileUrl.replace(/\\/g, '/')}`;
+              const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
+              
+              const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+              const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExt);
+              
+              return {
+                url,
+                isImage,
+                name: fileName
+              };
+            });
+          }
+          
           return {
             ...res,
-            request: { ...req, pictures }
+            request: { 
+              ...req, 
+              pictures,
+              files
+            }
           };
         })
       );
