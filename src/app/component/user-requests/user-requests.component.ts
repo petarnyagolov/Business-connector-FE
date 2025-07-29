@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CompanyRequest } from '../../model/companyRequest';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,10 +14,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
 import { Subject, takeUntil, filter } from 'rxjs';
 import { FormatDateArrayPipe } from '../user-responses/format-date-array.pipe';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'app-user-requests',
-  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatIconModule, FormatDateArrayPipe],
+  imports: [RouterOutlet, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatIconModule, FormatDateArrayPipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatMomentDateModule, MatCheckboxModule, MatRadioModule],
   templateUrl: './user-requests.component.html',
   styleUrl: './user-requests.component.scss',
   standalone: true
@@ -26,9 +34,16 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     companyRequests: CompanyRequest[] = [];
     showCancelButton: boolean = false; 
     userCompanies: Company[] = [];
-    responsesByRequestId: { [requestId: string]: any[] } = {};
-    expandedRequestId: string | null = null;
     private destroy$ = new Subject<void>();
+    
+    // Modal properties
+    showCreateRequestModal = false;
+    isSubmitting = false;
+    filePreview: string | null = null;
+    previewType = '';
+    modalSelectedFiles: File[] = [];
+    
+    requestForm!: FormGroup;
 
   companyRequest: CompanyRequest = {
     id: '',
@@ -50,17 +65,13 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   selectedImage: any | null = null;
   showImageDialog: boolean = false;
 
-  selectedResponseByRequestId: { [requestId: string]: any } = {};
-  acceptLoadingByRequestId: { [requestId: string]: boolean } = {};
-  acceptSuccessByRequestId: { [requestId: string]: boolean } = {};
-  acceptErrorByRequestId: { [requestId: string]: boolean } = {};
-
   constructor(
     private router: Router,
     private companyRequestService: CompanyRequestService,
     private companyService: CompanyService,
     private sanitizer: DomSanitizer,
-    private http: HttpClient
+    private http: HttpClient,
+    private fb: FormBuilder
   ) {
     // this.loadRequests(); // Remove initial call from constructor
   }
@@ -79,7 +90,6 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
         }
       });
     
-    // Слушаме само за NavigationEnd events и ограничаваме броя извиквания
     this.router.events
       .pipe(
         takeUntil(this.destroy$),
@@ -87,14 +97,34 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.showCancelButton = this.router.url.includes('/create');
-        // Зареждаме requests само ако сме в user-requests маршрута
         if (this.router.url.includes('/my-requests')) {
           this.loadRequests();
         }
       });
     
-    // Първоначално зареждане
     this.loadRequests();
+    
+    this.initializeForm();
+  }
+  
+  private initializeForm(): void {
+    this.requestForm = this.fb.group({
+      company: ['', Validators.required],
+      region: ['', Validators.required],
+      title: ['', Validators.required],
+      requestType: ['', Validators.required],
+      description: ['', Validators.required],
+      activeFrom: [''],
+      activeTo: [''],
+      urgent: [false],
+      serviceType: [''],
+      capacity: [''],
+      unit: [''],
+      workMode: [''],
+      priceFrom: [''],
+      priceTo: [''],
+      requiredFields: [[]]
+    });
   }
 
   ngOnDestroy(): void {
@@ -130,7 +160,6 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
           } else if (typeof activeTo === 'string' || typeof activeTo === 'number') {
             activeTo = new Date(activeTo);
           }
-          this.responsesByRequestId[req.id] = [];
           
           return {
             ...req,
@@ -147,8 +176,8 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     });
   }
 
-  toggleResponses(requestId: string): void {
-    this.expandedRequestId = this.expandedRequestId === requestId ? null : requestId;
+  viewRequestDetails(requestId: string): void {
+    this.router.navigate(['/requests', requestId]);
   }
 
   onFileSelected(event: Event): void {
@@ -279,32 +308,121 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     return Array.isArray(request.pictureUrls) ? request.pictureUrls : [];
   }
 
-  selectResponse(requestId: string, response: any) {
-    this.selectedResponseByRequestId[requestId] = response;
-    this.acceptSuccessByRequestId[requestId] = false;
-    this.acceptErrorByRequestId[requestId] = false;
+  openCreateRequestModal(): void {
+    this.showCreateRequestModal = true;
+    document.body.style.overflow = 'hidden';
   }
 
-  acceptResponse(requestId: string) {
-    const response = this.selectedResponseByRequestId[requestId];
-    if (!response) return;
-    this.acceptLoadingByRequestId[requestId] = true;
-    this.acceptSuccessByRequestId[requestId] = false;
-    this.acceptErrorByRequestId[requestId] = false;
-    const payload = {
-      requestId: requestId,
-      responseId: response.id,
-      responserCompanyId: response.responserCompanyId
-    };
-    this.companyRequestService.confirmResponse(payload).subscribe({
-      next: () => {
-        this.acceptLoadingByRequestId[requestId] = false;
-        this.acceptSuccessByRequestId[requestId] = true;
-      },
-      error: () => {
-        this.acceptLoadingByRequestId[requestId] = false;
-        this.acceptErrorByRequestId[requestId] = true;
+  closeCreateRequestModal(): void {
+    this.showCreateRequestModal = false;
+    document.body.style.overflow = 'auto';
+    this.resetForm();
+  }
+
+  private resetForm(): void {
+    this.requestForm.reset({
+      company: '',
+      region: '',
+      title: '',
+      requestType: '',
+      description: '',
+      activeFrom: '',
+      activeTo: '',
+      urgent: false,
+      serviceType: '',
+      capacity: '',
+      unit: '',
+      workMode: '',
+      priceFrom: '',
+      priceTo: '',
+      requiredFields: []
+    });
+    this.filePreview = null;
+    this.previewType = '';
+    this.modalSelectedFiles = [];
+    
+    const fileInput = document.getElementById('modalAttachment') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  }
+
+  selectFiles(): void {
+    const fileInput = document.getElementById('modalAttachment') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onModalFileSelected(event: any): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      const newFiles = Array.from(input.files);
+      this.addFilesToArray(newFiles);
+      
+      input.value = '';
+    }
+  }
+
+  private addFilesToArray(newFiles: File[]): void {
+    newFiles.forEach(newFile => {
+      const isDuplicate = this.modalSelectedFiles.some(existingFile => 
+        existingFile.name === newFile.name && 
+        existingFile.size === newFile.size &&
+        existingFile.lastModified === newFile.lastModified
+      );
+      
+      if (!isDuplicate) {
+        this.modalSelectedFiles.push(newFile);
       }
     });
+    
+    this.updateFilePreview();
+  }
+
+  private updateFilePreview(): void {
+    const firstImageFile = this.modalSelectedFiles.find(file => file.type.startsWith('image/'));
+    if (firstImageFile) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.filePreview = e.target.result;
+        this.previewType = 'image';
+      };
+      reader.readAsDataURL(firstImageFile);
+    } else if (this.modalSelectedFiles.length > 0) {
+      const firstFile = this.modalSelectedFiles[0];
+      if (firstFile.type === 'application/pdf') {
+        this.previewType = 'pdf';
+      } else {
+        this.previewType = 'file';
+      }
+      this.filePreview = 'preview';
+    } else {
+      this.filePreview = null;
+      this.previewType = '';
+    }
+  }
+
+  onSubmitRequest(): void {
+    if (this.requestForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
+      
+      setTimeout(() => {
+        this.isSubmitting = false;
+        this.closeCreateRequestModal();
+        this.loadRequests();
+      }, 1000);
+    }
+  }
+
+  removeFile(index: number): void {
+    this.modalSelectedFiles.splice(index, 1);
+    
+    if (this.modalSelectedFiles.length === 0) {
+      this.filePreview = null;
+      this.previewType = '';
+      const fileInput = document.getElementById('modalAttachment') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    } else {
+      this.updateFilePreview();
+    }
   }
 }

@@ -234,7 +234,20 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     return !!resp.responserCompanyId && this.userCompanies.some(c => c.id === resp.responserCompanyId);
   }
 
+  getAvailableCompaniesForResponse(): Company[] {
+    if (!this.responses || !this.userCompanies) return this.userCompanies || [];
 
+    const companiesWithResponses = this.responses
+      .map(response => response.responserCompanyId)
+      .filter(id => id); 
+
+    return this.userCompanies.filter(company => !companiesWithResponses.includes(company.id));
+  }
+
+  hasAvailableCompaniesForResponse(): boolean {
+    const availableCompanies = this.getAvailableCompaniesForResponse();
+    return availableCompanies.length > 0;
+  }
 
   getUnitLabel(unit: string): string {
     switch (unit) {
@@ -248,6 +261,16 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   openResponseModal(): void {
     console.log('Opening response dialog, companies:', this.userCompanies);
     
+    if (!this.hasAvailableCompaniesForResponse()) {
+      const availableCompanies = this.getAvailableCompaniesForResponse();
+      if (availableCompanies.length === 0 && this.userCompanies.length > 0) {
+        alert('Всички ваши фирми вече са направили предложения към тази публикация. Можете да редактирате.');
+      } else {
+        alert('Нямате регистрирани фирми за правене на предложение.');
+      }
+      return;
+    }
+    
     this.emailVerificationService.checkVerificationOrPrompt().subscribe((canProceed: boolean) => {
       if (!canProceed) {
         return;
@@ -259,7 +282,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
         width: '500px',
         data: {
           requestId: this.request?.id,
-          requiredFields: this.request?.requiredFields || []
+          requiredFields: this.request?.requiredFields || [],
+          availableCompanies: this.getAvailableCompaniesForResponse() 
         }
       });
       

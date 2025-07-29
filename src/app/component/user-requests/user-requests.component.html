@@ -1,8 +1,16 @@
-<h4 style="text-align: center; margin-bottom: 24px;">
-  Моите Публикации
-    <mat-icon style="font-size: 20px; margin-right: 6px; color: #1976d2; vertical-align: middle;">campaign</mat-icon>
-
-</h4>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+  <div style="flex: 1;"></div>
+  <h4 style="margin: 0; display: flex; align-items: center; justify-content: center; flex: 1;">
+    Моите Публикации
+    <mat-icon style="font-size: 20px; margin-left: 6px; color: #1976d2;">campaign</mat-icon>
+  </h4>
+  <div style="flex: 1; display: flex; justify-content: flex-end;">
+    <button mat-raised-button color="accent" (click)="openCreateRequestModal()" style="display: flex; align-items: center; gap: 6px;">
+      <mat-icon>add</mat-icon>
+      Добави Публикация
+    </button>
+  </div>
+</div>
 <div class="card-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
   <mat-card class="example-card" *ngFor="let request of companyRequests; let i = index" appearance="outlined" style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px;">
     <mat-card-header>
@@ -76,6 +84,11 @@
             <ng-container *ngIf="request.availableTo"> &nbsp;до {{ request.availableTo | formatDateArray }}</ng-container>
           </span>
         </div>
+        <div *ngIf="request.responsesCount !== undefined" style="display: flex; align-items: center;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">reply</mat-icon>
+          <span class="label">Предложения:&nbsp;</span> 
+          <span class="value" style="font-weight: 500; color: #1976d2;">{{ request.responsesCount }}</span>
+        </div>
         <div *ngIf="request.files && request.files.length" class="files-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">attach_file</mat-icon>
           <span class="label" style="margin-right: 6px;">Файлове:</span>
@@ -111,88 +124,14 @@
     <mat-card-actions align="end">
       <button mat-stroked-button color="warn">Свали</button>
       <button mat-stroked-button color="primary">Редактирай</button>
-      <button mat-stroked-button color="accent" (click)="toggleResponses(request.id)">
-        <mat-icon>{{ expandedRequestId === request.id ? 'expand_less' : 'expand_more' }}</mat-icon>
-        Виж предложенията
+      <button mat-stroked-button color="accent" (click)="viewRequestDetails(request.id)">
+        <mat-icon>visibility</mat-icon>
+        Виж
       </button>
     </mat-card-actions>
-    <div *ngIf="expandedRequestId === request.id" style="margin: 0 16px 16px 16px; min-height: 80px;">
-      <div *ngIf="responsesByRequestId[request.id]?.length; else noResponses">
-        <h4 style="margin: 8px 0 4px 0; font-size: 1.08em; color: #1976d2;">Предложения:</h4>
-        <hr style="margin: 0 0 12px 0; border: none; border-top: 1.5px solid #e0e0e0; width: 100%;" />
-        <div [ngStyle]="selectedResponseByRequestId[request.id] ? {'padding-bottom': '48px'} : {}"
-             style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%;">
-          <ng-container *ngFor="let resp of responsesByRequestId[request.id]; let last = last">
-            <button mat-button
-                    (click)="selectResponse(request.id, resp)"
-                    [ngClass]="{'selected-response': selectedResponseByRequestId[request.id]?.id === resp.id}"
-                    class="response-btn"
-                    style="width: 90%; margin: 0 auto 16px auto; display: block; background: transparent; box-shadow: none; border: none; padding: 0; text-align: left;">
-              <div style="display: flex; flex-direction: column; align-items: flex-start; border: 2px solid #1976d2; border-radius: 8px; background: #f5faff; width: 100%; max-width: 100%; padding: 12px 16px 14px 16px; box-sizing: border-box; gap: 2px;"
-                   [ngClass]="{'response-selected-card': selectedResponseByRequestId[request.id]?.id === resp.id}">
-                <div style="font-size: 1em; color: #222; font-weight: 600; margin-bottom: 2px;">
-                  <span style="font-weight: bold; color: #222;">Фирма:</span>
-                  <span style="font-weight: 400; color: #222;">{{ getCompanyNameById(resp.responserCompanyId) }}</span>
-                </div>
-                <div style="margin-top: 2px; font-size: 1em; color: #1976d2; white-space: pre-line; word-break: break-word; overflow-wrap: anywhere;">
-                  {{ resp.responseText }}
-                </div>
-                <div *ngIf="request.requiredFields?.length" style="margin-top: 8px;">
-                  <div *ngFor="let field of request.requiredFields">
-                    <ng-container [ngSwitch]="field">
-                      <div *ngSwitchCase="'fixedPrice'" style="color: #333; font-size: 0.98em;">
-                        <b>Фиксирана цена:</b> {{ resp.fixedPrice || '—' }}
-                      </div>
-                      <div *ngSwitchCase="'priceFrom'" style="color: #333; font-size: 0.98em;">
-                        <b>Цена от:</b> {{ resp.priceFrom || '—' }}
-                      </div>
-                      <div *ngSwitchCase="'priceTo'" style="color: #333; font-size: 0.98em;">
-                        <b>Цена до:</b> {{ resp.priceTo || '—' }}
-                      </div>
-                      <div *ngSwitchCase="'availableFrom'" style="color: #333; font-size: 0.98em;">
-                        <b>Налично от:</b> {{ resp.availableFrom ? (resp.availableFrom | formatDateArray) : '—' }}
-                      </div>
-                      <div *ngSwitchCase="'availableTo'" style="color: #333; font-size: 0.98em;">
-                        <b>Налично до:</b> {{ resp.availableTo ? (resp.availableTo | formatDateArray) : '—' }}
-                      </div>
-                      <div *ngSwitchCase="'picture'" style="color: #333; font-size: 0.98em; display: flex; align-items: center; gap: 6px;">
-                        <b>Снимка:</b>
-                        <ng-container *ngIf="resp.pictureUrl">
-                          <img [src]="pictureBlobs[resp.pictureUrl] || resp.pictureUrl" alt="Снимка" style="max-width: 60px; max-height: 60px; border-radius: 6px; border: 1px solid #e0e0e0; object-fit: cover;" />
-                        </ng-container>
-                        <ng-container *ngIf="!resp.pictureUrl">—</ng-container>
-                      </div>
-                      <div *ngSwitchDefault style="color: #333; font-size: 0.98em;">
-                        <b>{{ field }}:</b> {{ resp[field] || '—' }}
-                      </div>
-                    </ng-container>
-                  </div>
-                </div>
-              </div>
-            </button>
-            <hr *ngIf="!last" style="margin: 0 0 0 0; border: none; border-top: 1.5px solid #e0e0e0; width: 100%;" />
-          </ng-container>
-        </div>
-        <div *ngIf="selectedResponseByRequestId[request.id]" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; justify-content: center;">
-          <button mat-raised-button color="accent" (click)="acceptResponse(request.id)" [disabled]="acceptLoadingByRequestId[request.id]">
-            <mat-icon *ngIf="!acceptLoadingByRequestId[request.id]" style="margin-right: 4px;">check_circle</mat-icon>
-            <mat-icon *ngIf="acceptLoadingByRequestId[request.id]" class="spin" style="margin-right: 4px;">autorenew</mat-icon>
-            Приеми
-          </button>
-          <span *ngIf="acceptSuccessByRequestId[request.id]" style="color: green; font-weight: 500;">Успешно прието!</span>
-          <span *ngIf="acceptErrorByRequestId[request.id]" style="color: red; font-weight: 500;">Грешка при приемане!</span>
-        </div>
-      </div>
-      <ng-template #noResponses>
-        <div style="color: #888; font-size: 0.98em; margin: 8px 0;">Няма предложения.</div>
-      </ng-template>
-    </div>
   </mat-card>
 </div>
-<div style="margin-top: auto;padding: 10px; text-align: center;">
-  <button *ngIf="!showCancelButton" mat-raised-button color="accent" routerLink="create">
-    Добави Публикация
-  </button>
+<div style="margin-top: auto; padding: 10px; text-align: center;">
   <button *ngIf="showCancelButton" mat-raised-button color="warn" (click)="onCancel()">
     Откажи Публикация
   </button>
@@ -222,3 +161,202 @@
   transition: border 0.2s, background 0.2s;
 }
 </style>
+
+<div *ngIf="showCreateRequestModal" class="modal-overlay" (click)="closeCreateRequestModal()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;">
+  <div class="modal-content" (click)="$event.stopPropagation()" style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 32px rgba(0,0,0,0.2);">
+    <form [formGroup]="requestForm" (ngSubmit)="onSubmitRequest()" enctype="multipart/form-data" class="request-form">
+      <mat-card style="box-shadow: none;">
+        <mat-card-header style="display: flex; justify-content: space-between; align-items: center; padding: 16px;">
+          <mat-card-title>Създай публикация</mat-card-title>
+          <button type="button" mat-icon-button (click)="closeCreateRequestModal()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="form-fields">
+            <mat-form-field appearance="fill" style="width: 100%;">
+              <mat-label>Фирма</mat-label>
+              <mat-select formControlName="company" required>
+                <mat-option [value]="''">-- Избери Фирма --</mat-option>
+                <mat-option *ngFor="let company of userCompanies" [value]="company.vatNumber">
+                  {{ company.name }} ({{ company.vatNumber }})
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="requestForm.get('company')?.hasError('required')">Фирмата е задължителна</mat-error>
+            </mat-form-field>
+
+            <div style="display: flex; gap: 16px; width: 100%;">
+              <mat-form-field appearance="fill" style="flex: 1;">
+                <mat-label>Регион</mat-label>
+                <input matInput formControlName="region" required maxlength="50">
+                <mat-error *ngIf="requestForm.get('region')?.hasError('required')">Регионът е задължителен</mat-error>
+                <mat-error *ngIf="requestForm.get('region')?.hasError('maxlength')">Регионът трябва да е до 50 символа</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" style="flex: 1;">
+                <mat-label>Тип публикация</mat-label>
+                <mat-select formControlName="requestType" required>
+                  <mat-option value="LOOKING_FOR_SERVICE">Търся услуга</mat-option>
+                  <mat-option value="SHARE_SERVICE">Предлагам услуга</mat-option>
+                  <mat-option value="BUY">Купувам</mat-option>
+                  <mat-option value="SELL">Продавам</mat-option>
+                  <mat-option value="OTHER">Друго</mat-option>
+                </mat-select>
+                <mat-error *ngIf="requestForm.get('requestType')?.hasError('required')">Типът е задължителен</mat-error>
+                <mat-error *ngIf="requestForm.get('requestType')?.hasError('maxlength')">Типът трябва да е до 50 символа</mat-error>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="fill" style="width: 100%;">
+              <mat-label>Заглавие</mat-label>
+              <input matInput formControlName="title" required maxlength="255">
+              <mat-error *ngIf="requestForm.get('title')?.hasError('required')">Заглавието е задължително</mat-error>
+              <mat-error *ngIf="requestForm.get('title')?.hasError('maxlength')">Заглавието трябва да е до 255 символа</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" style="width: 100%;">
+              <mat-label>Описание</mat-label>
+              <textarea matInput formControlName="description" rows="3" required maxlength="500"></textarea>
+              <mat-error *ngIf="requestForm.get('description')?.hasError('required')">Описанието е задължително</mat-error>
+              <mat-error *ngIf="requestForm.get('description')?.hasError('maxlength')">Описанието трябва да е до 500 символа</mat-error>
+            </mat-form-field>
+
+            <div style="display: flex; gap: 16px; align-items: center; width: 100%;">
+              <mat-form-field appearance="fill" style="flex: 1;">
+                <mat-label>Необходимо след</mat-label>
+                <input matInput [matDatepicker]="pickerFrom" formControlName="activeFrom" placeholder="дд.мм.гггг">
+                <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+                <mat-datepicker #pickerFrom></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" style="flex: 1;">
+                <mat-label>Необходимо преди</mat-label>
+                <input matInput [matDatepicker]="pickerTo" formControlName="activeTo" placeholder="дд.мм.гггг">
+                <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
+                <mat-datepicker #pickerTo></mat-datepicker>
+              </mat-form-field>
+
+              <mat-checkbox formControlName="urgent" style="margin-left: 16px;">Спешно</mat-checkbox>
+            </div>
+
+            <ng-container *ngIf="requestForm.get('requestType')?.value === 'SHARE_SERVICE' || requestForm.get('requestType')?.value === 'LOOKING_FOR_SERVICE' || requestForm.get('requestType')?.value === 'BUY' || requestForm.get('requestType')?.value === 'SELL'">
+              <mat-label style="margin-top:10px;display:block;">Тип услуга</mat-label>
+              <mat-radio-group formControlName="serviceType">
+                <mat-radio-button value="one_time">Еднократна</mat-radio-button>
+                <mat-radio-button value="permanent">Постоянна</mat-radio-button>
+              </mat-radio-group>
+
+              <div style="display: flex; gap: 16px; align-items: flex-end;">
+                <mat-form-field appearance="fill" style="flex:1;">
+                  <mat-label>Капацитет (брой, оборудване или количество)</mat-label>
+                  <input matInput type="number" formControlName="capacity" placeholder="Въведете число">
+                </mat-form-field>
+                <mat-form-field appearance="fill" style="flex:1;">
+                  <mat-label>Единица</mat-label>
+                  <mat-select formControlName="unit">
+                    <mat-option value="count">Брой</mat-option>
+                    <mat-option value="box">Кашон</mat-option>
+                    <mat-option value="pallet">Пале</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="fill" *ngIf="requestForm.get('requestType')?.value !== 'BUY' && requestForm.get('requestType')?.value !== 'SELL'">
+                <mat-label>Режим работно време</mat-label>
+                <mat-select formControlName="workMode">
+                  <mat-option value="nomatter">Без значение</mat-option>
+                  <mat-option value="standard">Стандартно делнично</mat-option>
+                  <mat-option value="extended">Удължено</mat-option>
+                  <mat-option value="continuous">Непрекъснато</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ng-container>
+
+            <ng-container *ngIf="requestForm.get('requestType')?.value === 'BUY' || requestForm.get('requestType')?.value === 'SELL'">
+              <div style="display:flex; gap:10px; align-items: flex-end;">
+                <mat-form-field appearance="fill" style="flex:1;">
+                  <mat-label>Цена от</mat-label>
+                  <input matInput type="number" formControlName="priceFrom">
+                </mat-form-field>
+                <mat-form-field appearance="fill" style="flex:1;">
+                  <mat-label>Цена до</mat-label>
+                  <input matInput type="number" formControlName="priceTo">
+                </mat-form-field>
+              </div>
+            </ng-container>
+
+            <div class="file-upload" style="margin: 16px 0; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; background-color: #f5f9ff;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <label style="font-weight: 600; color: #1976d2; font-size: 16px; display: flex; align-items: center;">
+                  <mat-icon style="vertical-align: middle; margin-right: 8px;">attach_file</mat-icon>
+                  Прикачете файлове (снимки, PDF)
+                </label>
+                <button mat-stroked-button color="primary" (click)="selectFiles()" type="button">
+                  <mat-icon>{{ modalSelectedFiles.length > 0 ? 'add' : 'upload_file' }}</mat-icon>
+                  {{ modalSelectedFiles.length > 0 ? 'Добави още файлове' : 'Избери файлове' }}
+                </button>
+              </div>
+              
+              <input 
+                type="file" 
+                id="modalAttachment" 
+                accept="image/*,.pdf,.doc,.docx,.txt"
+                (change)="onModalFileSelected($event)"
+                multiple
+                style="display: none;">
+              
+              <div class="file-hint" style="font-size: 0.85rem; margin-bottom: 10px; color: #666;">
+                Можете да качите няколко файла (изображения: jpg, png, gif и документи: pdf, doc, docx, txt)
+              </div>
+              
+              <div *ngIf="modalSelectedFiles.length > 0" style="margin: 10px 0; color: green; font-weight: 500; display: flex; align-items: center;">
+                <mat-icon style="margin-right: 8px;">check_circle</mat-icon>
+                Успешно избрани {{ modalSelectedFiles.length }} файла
+              </div>
+              
+              <!-- File previews -->
+              <div *ngIf="modalSelectedFiles.length > 0" style="margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px; max-height: 200px; overflow-y: auto;">
+                <div *ngFor="let file of modalSelectedFiles; let i = index" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0;">
+                  <div style="display: flex; align-items: center; overflow: hidden; flex: 1;">
+                    <mat-icon [style.color]="file.type.startsWith('image/') ? '#1976d2' : '#f44336'" style="font-size: 18px; margin-right: 8px;">
+                      {{ file.type.startsWith('image/') ? 'image' : 'picture_as_pdf' }}
+                    </mat-icon>
+                    <span style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ file.name }}</span>
+                  </div>
+                  <button mat-icon-button color="warn" (click)="removeFile(i)" type="button" style="width: 24px; height: 24px; line-height: 24px;">
+                    <mat-icon style="font-size: 18px;">delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <mat-form-field appearance="fill" style="width: 100%; margin-top: 18px;">
+              <mat-label>Задължителни полета за да ви направят предложение</mat-label>
+              <mat-select formControlName="requiredFields" multiple>
+                <mat-option *ngFor="let field of ['fixedPrice','priceFrom','priceTo','availableFrom','availableTo','files']" [value]="field">
+                  {{
+                    field === 'fixedPrice' ? 'Фиксирана цена' :
+                    field === 'priceFrom' ? 'Цена от' :
+                    field === 'priceTo' ? 'Цена до' :
+                    (field === 'availableFrom' && (requestForm.get('requestType')?.value === 'LOOKING_FOR_SERVICE' || requestForm.get('requestType')?.value === 'SHARE_SERVICE')) ? 'Свободен от' :
+                    (field === 'availableTo' && (requestForm.get('requestType')?.value === 'LOOKING_FOR_SERVICE' || requestForm.get('requestType')?.value === 'SHARE_SERVICE')) ? 'Свободен до' :
+                    field === 'availableFrom' ? 'Налично от' :
+                    field === 'availableTo' ? 'Налично до' :
+                    field === 'files' ? 'Файлове' : field
+                  }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+        <mat-card-actions style="display: flex; justify-content: flex-end; gap: 12px; padding: 16px;">
+          <button mat-button color="warn" type="button" (click)="closeCreateRequestModal()">Отказ</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="requestForm.invalid || isSubmitting">
+            <span *ngIf="!isSubmitting">Създай</span>
+            <span *ngIf="isSubmitting">Създава се...</span>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </form>
+  </div>
+</div>

@@ -17,6 +17,7 @@ import { CompanyService } from '../../service/company.service';
 export interface ResponseDialogData {
   requestId: string;
   requiredFields: string[];
+  availableCompanies?: Company[]; // добавяме опционален параметър за наличните фирми
 }
 
 @Component({
@@ -200,6 +201,14 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
       files: [[]] // инициализираме с празен масив вместо null
     });
     
+    // Използваме подадените налични фирми или зареждаме всички
+    if (data.availableCompanies) {
+      this.userCompanies = data.availableCompanies;
+      console.log(`Using ${this.userCompanies.length} available companies:`, this.userCompanies);
+    } else {
+      this.loadUserCompanies();
+    }
+    
     // Add required validators based on required fields
     if (data.requiredFields) {
       if (this.isFieldRequired('availableFrom')) {
@@ -231,7 +240,6 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadUserCompanies();
     console.log('Response form initial state:', this.responseForm.value);
     console.log('Required fields:', this.data.requiredFields);
     console.log('Files field validation:', this.responseForm.get('files')?.validator);
