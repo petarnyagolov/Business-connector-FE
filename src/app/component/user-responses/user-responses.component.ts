@@ -139,11 +139,14 @@ export class UserResponsesComponent implements OnInit {
   onImageClick(pic: string): void {
     this.selectedImage = this.pictureBlobs[pic] || this.getPictureUrl(pic);
     this.showImageDialog = true;
+    // Предотвратява скролването на фоновата страница
+    document.body.style.overflow = 'hidden';
   }
 
   closeImageDialog(): void {
     this.showImageDialog = false;
     this.selectedImage = null;
+    document.body.style.overflow = '';
   }
 
   openEditResponse(item: any) {
@@ -152,22 +155,20 @@ export class UserResponsesComponent implements OnInit {
       oldResponseText: item.responseText || '',
       newResponseText: '',
       responserCompanyId: item.responserCompanyId,
-      id: item.id, // responseId
-      date: item.date ? this.parseDateForPicker(item.date) : null // попълва датата за datepicker
+      id: item.id, 
+      date: item.date ? this.parseDateForPicker(item.date) : null 
     };
     this.editResponseRequiredFields = item.requestCompany?.requiredFields || [];
-    // Попълни всички налични стойности за requiredFields
     for (const field of this.editResponseRequiredFields) {
       if (item[field] !== undefined) {
         this.editResponseData[field] = item[field];
       }
     }
     this.showEditResponseDialog = true;
+    document.body.style.overflow = 'hidden';
   }
 
-  // Помощна функция за преобразуване на дата към формат за datepicker (Date)
   parseDateForPicker(dateStr: string): Date | null {
-    // Ако е във формат yyyy-MM-dd или ISO, работи директно
     return dateStr ? new Date(dateStr) : null;
   }
 
@@ -175,19 +176,17 @@ export class UserResponsesComponent implements OnInit {
     this.showEditResponseDialog = false;
     this.editResponseData = {};
     this.editResponseItem = null;
+    document.body.style.overflow = '';
   }
 
   submitEditResponse() {
-    // Валидация на requiredFields (само текстът е активен)
     if (!this.editResponseData.newResponseText || this.editResponseData.newResponseText.trim() === '') {
       alert('Моля, въведете нов текст към предложението!');
       return;
     }
     if (!this.editResponseItem) return;
     const requestCompanyId = this.editResponseItem.requestCompany?.id;
-    // Добави новия текст към стария
     const combinedText = (this.editResponseData.oldResponseText ? this.editResponseData.oldResponseText + '\n' : '') + this.editResponseData.newResponseText;
-    // Преобразувай датата към масив [година, месец, ден, час, минута]
     let dateArray: number[] | null = null;
     if (this.editResponseData.date instanceof Date) {
       const d = this.editResponseData.date;
@@ -198,15 +197,13 @@ export class UserResponsesComponent implements OnInit {
       responseText: combinedText,
       responserCompanyId: this.editResponseData.responserCompanyId,
       requestCompany: this.editResponseItem.requestCompany,
-      date: dateArray // изпраща като масив
+      date: dateArray 
     };
-    // Добавяме requiredFields към dto
     for (const field of this.editResponseRequiredFields) {
       (dto as any)[field] = this.editResponseData[field];
     }
     this.responseService.updateResponse(requestCompanyId, dto).subscribe({
       next: () => {
-        // Обнови локално
         this.editResponseItem.responseText = dto.responseText;
         this.editResponseItem.responserCompanyId = dto.responserCompanyId;
         this.editResponseItem.date = dateArray;
@@ -230,5 +227,38 @@ export class UserResponsesComponent implements OnInit {
       case 'availableTo': return 'Налично до';
       default: return field;
     }
+  }
+
+  isImageFile(fileUrl: string): boolean {
+    if (!fileUrl) return false;
+    const fileName = fileUrl.toLowerCase();
+    return fileName.includes('.jpg') || fileName.includes('.jpeg') || 
+           fileName.includes('.png') || fileName.includes('.gif') || 
+           fileName.includes('.bmp') || fileName.includes('.webp');
+  }
+
+  getFileName(fileUrl: string): string {
+    if (!fileUrl) return '';
+    const parts = fileUrl.split(/[\\/]/);
+    return parts[parts.length - 1];
+  }
+
+  getResponseFileUrl(fileUrl: string): string {
+    if (!fileUrl) return '';
+    if (fileUrl.startsWith('http')) {
+      return fileUrl;
+    }
+    return `${environment.apiUrl}/files/` + fileUrl.replace(/\\/g, '/');
+  }
+
+  openImageModal(imageUrl: string, item: any): void {
+    this.selectedImage = imageUrl;
+    this.showImageDialog = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  openPdfInNewTab(fileUrl: string): void {
+    if (!fileUrl) return;
+    window.open(fileUrl, '_blank');
   }
 }

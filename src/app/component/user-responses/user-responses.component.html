@@ -66,65 +66,104 @@
         </div>
         <div *ngIf="item.requestCompany?.pictureUrls && item.requestCompany.pictureUrls.length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">image</mat-icon>
-          <span class="label" style="margin-right: 6px;">Снимки:</span>
+          <span class="label" style="margin-right: 6px;">Снимки към заявката:</span>
           <div style="display: flex; gap: 5px; flex-wrap: wrap;">
             <ng-container *ngFor="let pic of item.requestCompany.pictureUrls">
-              <img *ngIf="pic" [src]="pictureBlobs[pic] || getPictureUrl(pic)" alt="Снимка" style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" (click)="onImageClick(pic)" />
+              <img *ngIf="pic" [src]="pictureBlobs[pic] || getPictureUrl(pic)" alt="Снимка" 
+                   (click)="$event.stopPropagation(); onImageClick(pic)" 
+                   style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
+            </ng-container>
+          </div>
+        </div>
+
+        <div *ngIf="item.requestCompany?.fileUrls && item.requestCompany.fileUrls.length" class="files-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">attach_file</mat-icon>
+          <span class="label" style="margin-right: 6px;">Файлове към заявката:</span>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+            <ng-container *ngFor="let fileUrl of item.requestCompany.fileUrls">
+              <div *ngIf="isImageFile(fileUrl)" style="display: block; text-decoration: none;">
+                <img [src]="getResponseFileUrl(fileUrl)" [alt]="getFileName(fileUrl)" 
+                     (click)="$event.stopPropagation(); openImageModal(getResponseFileUrl(fileUrl), item)" 
+                     style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
+                <div style="font-size: 0.8em; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getFileName(fileUrl) }}</div>
+              </div>
+              <div *ngIf="!isImageFile(fileUrl)"
+                 (click)="$event.stopPropagation(); openPdfInNewTab(getResponseFileUrl(fileUrl))"
+                 style="display: flex; align-items: center; padding: 6px 12px; background-color: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; color: #333; text-decoration: none; margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer;">
+                <mat-icon style="color: #f44336; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.pdf')">picture_as_pdf</mat-icon>
+                <mat-icon style="color: #1976d2; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.doc') || fileUrl.toLowerCase().endsWith('.docx')">description</mat-icon>
+                <mat-icon style="color: #0f9d58; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.xls') || fileUrl.toLowerCase().endsWith('.xlsx')">table_chart</mat-icon>
+                <mat-icon style="color: #db4437; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.ppt') || fileUrl.toLowerCase().endsWith('.pptx')">slideshow</mat-icon>
+                <mat-icon style="color: #607d8b; margin-right: 8px;" *ngIf="!fileUrl.toLowerCase().endsWith('.pdf') && !fileUrl.toLowerCase().endsWith('.doc') && !fileUrl.toLowerCase().endsWith('.docx') && !fileUrl.toLowerCase().endsWith('.xls') && !fileUrl.toLowerCase().endsWith('.xlsx') && !fileUrl.toLowerCase().endsWith('.ppt') && !fileUrl.toLowerCase().endsWith('.pptx')">insert_drive_file</mat-icon>
+                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">{{ getFileName(fileUrl) }}</span>
+              </div>
             </ng-container>
           </div>
         </div>
       </div>
-      <div class="response-details editable-response"
-           (click)="openEditResponse(item)"
-           style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px; border: 2px dashed #1976d2; cursor: pointer; position: relative; transition: box-shadow 0.2s; box-shadow: 0 2px 8px #1976d220;">
-        <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2; vertical-align: middle;">reply</mat-icon>
-        <span style="font-weight: 500; color: #1976d2;">
-          Моето предложение
-          <ng-container *ngIf="item.responserCompanyId">
-            — {{ getCompanyName(item.responserCompanyId) }}<ng-container *ngIf="getCompanyVat(item.responserCompanyId)"> ({{ getCompanyVat(item.responserCompanyId) }})</ng-container>
-          </ng-container>:
-        </span>
-        <mat-icon style="position: absolute; top: 10px; right: 14px; color: #1976d2; font-size: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #1976d220; padding: 2px;">edit</mat-icon>
-        <div style="margin-top: 6px; color: #333;">{{ item.responseText }}</div>
-        <!-- Required fields visualization -->
-        <div *ngIf="item.requestCompany?.requiredFields?.length" style="margin-top: 8px;">
-          <div *ngFor="let field of item.requestCompany.requiredFields">
-            <ng-container [ngSwitch]="field">
-              <div *ngSwitchCase="'fixedPrice'" style="color: #333; font-size: 0.98em;">
-                <b>Фиксирана цена:</b> {{ item.fixedPrice || '—' }}
+
+      <div class="response-details editable-response" style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px; border: 2px dashed #1976d2; position: relative; transition: box-shadow 0.2s; box-shadow: 0 2px 8px #1976d220;">
+        
+        <div *ngIf="item.fileUrls && item.fileUrls.length > 0" style="margin-bottom: 12px;" (click)="$event.stopPropagation()">
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2;">attach_file</mat-icon>
+            <b style="color: #1976d2;">Прикачени файлове към предложението:</b>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+            <ng-container *ngFor="let fileUrl of item.fileUrls">
+              <div *ngIf="isImageFile(fileUrl)" style="display: block; text-decoration: none;">
+                <img [src]="getResponseFileUrl(fileUrl)" [alt]="getFileName(fileUrl)" 
+                     (click)="$event.stopPropagation(); openImageModal(getResponseFileUrl(fileUrl), item)"
+                     style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
+                <div style="font-size: 0.8em; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getFileName(fileUrl) }}</div>
               </div>
-              <div *ngSwitchCase="'priceFrom'" style="color: #333; font-size: 0.98em;">
-                <b>Цена от:</b> {{ item.priceFrom || '—' }}
-              </div>
-              <div *ngSwitchCase="'priceTo'" style="color: #333; font-size: 0.98em;">
-                <b>Цена до:</b> {{ item.priceTo || '—' }}
-              </div>
-              <div *ngSwitchCase="'availableFrom'" style="color: #333; font-size: 0.98em;">
-                <b>Налично от:</b> {{ item.availableFrom ? (item.availableFrom | formatDateArray) : '—' }}
-              </div>
-              <div *ngSwitchCase="'availableTo'" style="color: #333; font-size: 0.98em;">
-                <b>Налично до:</b> {{ item.availableTo ? (item.availableTo | formatDateArray) : '—' }}
-              </div>
-              <div *ngSwitchCase="'picture'" style="color: #333; font-size: 0.98em; display: flex; align-items: center; gap: 6px;">
-                <b>Снимка:</b>
-                <ng-container *ngIf="item.pictureUrl">
-                  <img [src]="pictureBlobs[item.pictureUrl] || item.pictureUrl" alt="Снимка" style="max-width: 60px; max-height: 60px; border-radius: 6px; border: 1px solid #e0e0e0; object-fit: cover;" />
-                </ng-container>
-                <ng-container *ngIf="!item.pictureUrl">—</ng-container>
-              </div>
-              <div *ngSwitchDefault style="color: #333; font-size: 0.98em;">
-                <b>{{ field }}:</b> {{ item[field] || '—' }}
+              <div *ngIf="!isImageFile(fileUrl)"
+                 (click)="$event.stopPropagation(); openPdfInNewTab(getResponseFileUrl(fileUrl))"
+                 style="display: flex; align-items: center; padding: 6px 12px; background-color: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; color: #333; text-decoration: none; margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer;">
+                <mat-icon style="color: #f44336; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.pdf')">picture_as_pdf</mat-icon>
+                <mat-icon style="color: #1976d2; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.doc') || fileUrl.toLowerCase().endsWith('.docx')">description</mat-icon>
+                <mat-icon style="color: #0f9d58; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.xls') || fileUrl.toLowerCase().endsWith('.xlsx')">table_chart</mat-icon>
+                <mat-icon style="color: #db4437; margin-right: 8px;" *ngIf="fileUrl.toLowerCase().endsWith('.ppt') || fileUrl.toLowerCase().endsWith('.pptx')">slideshow</mat-icon>
+                <mat-icon style="color: #607d8b; margin-right: 8px;" *ngIf="!fileUrl.toLowerCase().endsWith('.pdf') && !fileUrl.toLowerCase().endsWith('.doc') && !fileUrl.toLowerCase().endsWith('.docx') && !fileUrl.toLowerCase().endsWith('.xls') && !fileUrl.toLowerCase().endsWith('.xlsx') && !fileUrl.toLowerCase().endsWith('.ppt') && !fileUrl.toLowerCase().endsWith('.pptx')">insert_drive_file</mat-icon>
+                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">{{ getFileName(fileUrl) }}</span>
               </div>
             </ng-container>
           </div>
         </div>
-        <!-- End required fields visualization -->
+
+        <div (click)="openEditResponse(item)" style="cursor: pointer;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2; vertical-align: middle;">reply</mat-icon>
+          <span style="font-weight: 500; color: #1976d2;">
+            Моето предложение
+            <ng-container *ngIf="item.responserCompanyId">
+              — {{ getCompanyName(item.responserCompanyId) }}<ng-container *ngIf="getCompanyVat(item.responserCompanyId)"> ({{ getCompanyVat(item.responserCompanyId) }})</ng-container>
+            </ng-container>:
+          </span>
+          <mat-icon style="position: absolute; top: 10px; right: 14px; color: #1976d2; font-size: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #1976d220; padding: 2px;">edit</mat-icon>
+          <div style="margin-top: 6px; color: #333; white-space: pre-line;">{{ item.responseText }}</div>
+          
+          <div style="margin-top: 8px;">
+            <div *ngIf="item.fixedPrice" style="color: #333; font-size: 0.98em;">
+              <b>Фиксирана цена:</b> {{ item.fixedPrice }} лв.
+            </div>
+            <div *ngIf="item.priceFrom || item.priceTo" style="color: #333; font-size: 0.98em;">
+              <b>Ценови диапазон:</b> 
+              <ng-container *ngIf="item.priceFrom">от {{ item.priceFrom }} лв.</ng-container>
+              <ng-container *ngIf="item.priceTo"> до {{ item.priceTo }} лв.</ng-container>
+            </div>
+            <div *ngIf="item.availableFrom" style="color: #333; font-size: 0.98em;">
+              <b>Налично от:</b> {{ item.availableFrom | formatDateArray }}
+            </div>
+            <div *ngIf="item.availableTo" style="color: #333; font-size: 0.98em;">
+              <b>Налично до:</b> {{ item.availableTo | formatDateArray }}
+            </div>
+          </div>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>
 </div>
 
-<!-- Диалог за голяма снимка -->
 <div *ngIf="showImageDialog" class="image-dialog-overlay" (click)="closeImageDialog()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
   <img [src]="selectedImage" alt="Голяма снимка" style="max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 4px 32px #0008; background: #fff; padding: 8px;" (click)="$event.stopPropagation()" />
   <button mat-fab color="warn" (click)="closeImageDialog()" style="position: absolute; top: 32px; right: 48px; background: #fff; border-radius: 50%; width: 40px; height: 40px; box-shadow: 0 2px 8px #0003; cursor: pointer; font-size: 1.5rem; color: #1976d2; min-width: 0; min-height: 0; line-height: 1; padding: 0;">
@@ -132,10 +171,26 @@
   </button>
 </div>
 
-<!-- Диалог за редакция на отговор -->
 <ng-template #editResponseDialog>
-  <div class="edit-response-dialog" style="background: #fff; padding: 12px 8px; border-radius: 8px; min-width: 240px; max-width: 400px; box-shadow: 0 2px 12px #0002;">
+  <div class="edit-response-dialog" style="background: #fff; padding: 12px 8px; border-radius: 8px; min-width: 240px; max-width: 400px; box-shadow: 0 2px 12px #0002; max-height: 80vh; overflow-y: auto;">
     <h3 style="margin-bottom: 12px; color: #1976d2; font-size: 1.1em;">Редакция на предложението</h3>
+    
+    <div *ngIf="editResponseItem?.fileUrls && editResponseItem.fileUrls.length > 0" style="margin-bottom: 16px; padding: 8px; background: #f8f8f8; border-radius: 6px;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <mat-icon style="font-size: 16px; margin-right: 6px; color: #1976d2;">attach_file</mat-icon>
+        <span style="font-size: 0.9em; font-weight: 500; color: #1976d2;">Прикачени файлове:</span>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <ng-container *ngFor="let fileUrl of editResponseItem.fileUrls">
+          <div style="display: flex; align-items: center; padding: 4px 8px; background-color: #e3f2fd; border-radius: 4px; color: #1976d2; font-size: 0.8em;">
+            <mat-icon style="font-size: 14px; margin-right: 4px;" *ngIf="isImageFile(fileUrl)">image</mat-icon>
+            <mat-icon style="font-size: 14px; margin-right: 4px;" *ngIf="!isImageFile(fileUrl)">insert_drive_file</mat-icon>
+            <span>{{ getFileName(fileUrl) }}</span>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
     <mat-form-field appearance="fill" style="width: 100%;">
       <mat-label>Фирма</mat-label>
       <mat-select [(ngModel)]="editResponseData.responserCompanyId" required disabled>
@@ -153,7 +208,6 @@
       <textarea matInput [(ngModel)]="editResponseData.newResponseText" rows="4" required></textarea>
     </mat-form-field>
 
-    <!-- Динамични полета според requiredFields (disabled) -->
     <ng-container *ngFor="let field of editResponseRequiredFields">
       <mat-form-field appearance="fill" style="width: 100%; margin-top: 12px;" *ngIf="field === 'fixedPrice'">
         <mat-label>Фиксирана цена</mat-label>
@@ -191,6 +245,6 @@
   </div>
 </ng-template>
 
-<div *ngIf="showEditResponseDialog" class="edit-response-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center;">
+<div *ngIf="showEditResponseDialog" class="edit-response-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center; overflow: hidden;">
   <ng-container *ngTemplateOutlet="editResponseDialog"></ng-container>
 </div>
