@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatCardModule, MatCardContent } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { ResponseService } from '../../service/response.service';
 import { CompanyService } from '../../service/company.service';
 import { FormatDateArrayPipe } from './format-date-array.pipe';
@@ -16,7 +17,7 @@ import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-user-responses',
-  imports: [CommonModule, MatIcon, MatCardModule, MatCardContent, FormatDateArrayPipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatOptionModule, FormsModule],
+  imports: [CommonModule, MatIcon, MatCardModule, MatCardContent, MatButtonModule, FormatDateArrayPipe, MatFormFieldModule, MatInputModule, MatSelectModule, MatOptionModule, FormsModule],
   templateUrl: './user-responses.component.html',
   styleUrl: './user-responses.component.scss',
   standalone: true

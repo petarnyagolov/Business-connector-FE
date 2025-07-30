@@ -104,6 +104,18 @@
 
       <div class="response-details editable-response" style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px; border: 2px dashed #1976d2; position: relative; transition: box-shadow 0.2s; box-shadow: 0 2px 8px #1976d220;">
         
+        <!-- Action buttons positioned at the top of response section -->
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px;">
+          <button mat-icon-button (click)="openEditResponse(item); $event.stopPropagation()" 
+                  style="background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #1976d220; padding: 6px;">
+            <mat-icon style="color: #1976d2; font-size: 20px;">edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="deleteResponse(item); $event.stopPropagation()" 
+                  style="background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #f4433620; padding: 6px;">
+            <mat-icon style="color: #f44336; font-size: 20px;">delete</mat-icon>
+          </button>
+        </div>
+
         <div *ngIf="item.fileUrls && item.fileUrls.length > 0" style="margin-bottom: 12px;" (click)="$event.stopPropagation()">
           <div style="display: flex; align-items: center; margin-bottom: 8px;">
             <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2;">attach_file</mat-icon>
@@ -131,7 +143,7 @@
           </div>
         </div>
 
-        <div (click)="openEditResponse(item)" style="cursor: pointer; position: relative;">
+        <div (click)="openEditResponse(item)" style="cursor: pointer;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2; vertical-align: middle;">reply</mat-icon>
           <span style="font-weight: 500; color: #1976d2;">
             Моето предложение
@@ -139,8 +151,6 @@
               — {{ getCompanyName(item.responserCompanyId) }}<ng-container *ngIf="getCompanyVat(item.responserCompanyId)"> ({{ getCompanyVat(item.responserCompanyId) }})</ng-container>
             </ng-container>:
           </span>
-          <mat-icon style="position: absolute; top: 10px; right: 50px; color: #1976d2; font-size: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #1976d220; padding: 2px;">edit</mat-icon>
-          <mat-icon (click)="deleteResponse(item); $event.stopPropagation()" style="position: absolute; top: 10px; right: 14px; color: #f44336; font-size: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #f4433620; padding: 2px; cursor: pointer;">delete</mat-icon>
           <div style="margin-top: 6px; color: #333; white-space: pre-line;">{{ item.responseText }}</div>
           
           <div style="margin-top: 8px;">

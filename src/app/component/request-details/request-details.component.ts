@@ -18,7 +18,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
-import { AuthService } from '../../service/auth.service';
 import { EmailVerificationService } from '../../service/email-verification.service';
 import { ResponseDialogComponent } from './response-dialog.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -62,7 +61,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   
   selectedPdfUrl: string | null = null;
   
-  // Додаваме blob кеширане като в company-requests
   pictureBlobs: { [key: string]: any } = {};
   
   private destroy$ = new Subject<void>();
@@ -72,8 +70,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private companyRequestService: CompanyRequestService,
     private companyService: CompanyService,
     private responseService: ResponseService,
-    private fb: FormBuilder,
-    private authService: AuthService,
     private emailVerificationService: EmailVerificationService,
     private dialog: MatDialog,
     private sanitizer: DomSanitizer,
