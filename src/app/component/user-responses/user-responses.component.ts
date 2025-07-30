@@ -185,31 +185,10 @@ export class UserResponsesComponent implements OnInit {
       return;
     }
     if (!this.editResponseItem) return;
-    const requestCompanyId = this.editResponseItem.requestCompany?.id;
-    const combinedText = (this.editResponseData.oldResponseText ? this.editResponseData.oldResponseText + '\n' : '') + this.editResponseData.newResponseText;
-    let dateArray: number[] | null = null;
-    if (this.editResponseData.date instanceof Date) {
-      const d = this.editResponseData.date;
-      dateArray = [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()];
-    }
-    const dto = {
-      id: this.editResponseData.id,
-      responseText: combinedText,
-      responserCompanyId: this.editResponseData.responserCompanyId,
-      requestCompany: this.editResponseItem.requestCompany,
-      date: dateArray 
-    };
-    for (const field of this.editResponseRequiredFields) {
-      (dto as any)[field] = this.editResponseData[field];
-    }
-    this.responseService.updateResponse(requestCompanyId, dto).subscribe({
-      next: () => {
-        this.editResponseItem.responseText = dto.responseText;
-        this.editResponseItem.responserCompanyId = dto.responserCompanyId;
-        this.editResponseItem.date = dateArray;
-        for (const field of this.editResponseRequiredFields) {
-          (this.editResponseItem as any)[field] = (dto as any)[field];
-        }
+    
+    this.responseService.updateResponseText(this.editResponseData.id, this.editResponseData.newResponseText).subscribe({
+      next: (updatedResponse) => {
+        this.editResponseItem.responseText = updatedResponse.responseText;
         this.closeEditResponseDialog();
       },
       error: () => {

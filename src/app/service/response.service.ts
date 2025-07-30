@@ -48,9 +48,8 @@ export class ResponseService {
   }
 
   updateResponseText(responseId: number, additionalText: string): Observable<any> {
-    const params = new URLSearchParams();
-    params.set('additionalText', additionalText);
+    const messageResponse = { message: additionalText };
     
-    return this.http.post(`${this.api}/responses/${responseId}/update-text?${params.toString()}`, null);
+    return this.http.post(`${environment.apiUrl}/responses/${responseId}/update-text`, messageResponse);
   }
 }
