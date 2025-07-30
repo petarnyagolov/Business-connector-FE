@@ -22,6 +22,8 @@ import { AuthService } from '../../service/auth.service';
 import { EmailVerificationService } from '../../service/email-verification.service';
 import { ResponseDialogComponent } from './response-dialog.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-request-details',
@@ -60,6 +62,9 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   
   selectedPdfUrl: string | null = null;
   
+  // Додаваме blob кеширане като в company-requests
+  pictureBlobs: { [key: string]: any } = {};
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -71,7 +76,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private emailVerificationService: EmailVerificationService,
     private dialog: MatDialog,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private http: HttpClient
   ) {
     this.loadUserCompanies();
   }
@@ -95,10 +101,11 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.companyRequestService.getRequestById(id).subscribe(res => {
-        this.request = res.request;
-        this.responses = res.responses || [];
+        this.request = this.processRequestFileUrls(res.request);
+        this.responses = this.processResponsesFileUrls(res.responses || []);
         
         this.initializeImageFiles();
+        this.loadAllPictures();
         
         if (this.request?.requesterCompanyId) {
           this.requesterCompany = this.userCompanies.find(
@@ -111,6 +118,113 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  processRequestFileUrls(request: any): any {
+    if (!request.files && request.fileUrls && Array.isArray(request.fileUrls)) {
+      request.files = request.fileUrls.map((fileUrl: string) => {
+        const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
+        const url = fileUrl.startsWith('http') ? 
+                    fileUrl : 
+                    `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
+        
+        const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
+        
+        const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExt);
+        
+        return {
+          url,
+          isImage,
+          name: fileName
+        };
+      });
+    }
+    return request;
+  }
+
+  processResponsesFileUrls(responses: any[]): any[] {
+    return responses.map(response => {
+      if (!response.files && response.fileUrls && Array.isArray(response.fileUrls)) {
+        response.files = response.fileUrls.map((fileUrl: string) => {
+          const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
+          const url = fileUrl.startsWith('http') ? 
+                      fileUrl : 
+                      `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
+          
+          const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
+          
+          const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+          const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExt);
+          
+          return {
+            url,
+            isImage,
+            name: fileName
+          };
+        });
+      }
+      return response;
+    });
+  }
+
+  loadAllPictures(): void {
+    if (this.request) {
+      const urls = this.getPictureUrls(this.request);
+      if (Array.isArray(urls)) {
+        urls.forEach((pic: string) => {
+          if (pic && !this.pictureBlobs[pic]) {
+            this.fetchPicture(pic);
+          }
+        });
+      }
+    }
+    
+    this.responses.forEach(response => {
+      if (response.files && Array.isArray(response.files)) {
+        response.files.forEach((file: any) => {
+          if (file.isImage && file.url && !this.pictureBlobs[file.url]) {
+            this.fetchPicture(file.url);
+          }
+        });
+      }
+    });
+  }
+
+  fetchPicture(pic: string): void {
+    const url = this.getPictureUrl(pic);
+    this.http.get(url, { responseType: 'blob' }).subscribe({
+      next: blob => {
+        const safeUrl = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(blob));
+        this.pictureBlobs[pic] = safeUrl;
+      },
+      error: error => {
+        console.error('Error loading image:', pic, error);
+      }
+    });
+  }
+
+  getPictureUrls(request: any): string[] {
+    if (Array.isArray(request.files)) {
+      const imageFiles = request.files.filter((file: any) => file.isImage);
+      if (imageFiles.length > 0) {
+        return imageFiles.map((file: any) => file.url);
+      }
+    }
+    
+    const pictureUrls = Array.isArray(request.pictureUrls) ? request.pictureUrls : [];
+    const pictures = Array.isArray(request.pictures) ? request.pictures : [];
+    
+    return [...new Set([...pictureUrls, ...pictures])];
+  }
+
+  getPictureUrl(pic: string): string {
+    if (!pic) return '';
+    if (pic.startsWith('http')) {
+      return pic;
+    }
+    const cleanPic = pic.replace(/^[\/\\]+/, '');
+    return `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
   }
 
   private processResponseSubmission(formData: any): void {
@@ -179,9 +293,17 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   editResponse(resp: any) {
     this.editResponseItem = resp;
     this.editResponseData = {
-      responseText: resp.responseText,
+      id: resp.id,
       responserCompanyId: resp.responserCompanyId,
-      id: resp.id
+      originalResponseText: resp.responseText, 
+      responseText: resp.responseText,
+      additionalText: '', 
+      fixedPrice: resp.fixedPrice,
+      priceFrom: resp.priceFrom,
+      priceTo: resp.priceTo,
+      availableFrom: resp.availableFrom,
+      availableTo: resp.availableTo,
+      files: resp.files || []
     };
     this.showEditResponseDialog = true;
   }
@@ -193,21 +315,36 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   submitEditResponse() {
-    if (!this.editResponseItem) return;
-    const requestCompanyId = this.request?.id;
-    const dto = {
-      id: this.editResponseData.id,
-      responseText: this.editResponseData.responseText,
-      responserCompanyId: this.editResponseData.responserCompanyId
-    };
-    this.responseService.updateResponse(requestCompanyId!, dto).subscribe({
-      next: () => {
-        this.editResponseItem.responseText = dto.responseText;
-        this.editResponseItem.responserCompanyId = dto.responserCompanyId;
+    if (!this.editResponseItem || !this.editResponseData.additionalText?.trim()) {
+      alert('Моля, въведете текст за добавяне към предложението.');
+      return;
+    }
+    
+    console.log('Submitting edit with additional text:', this.editResponseData.additionalText);
+    
+    this.responseService.updateResponseText(this.editResponseData.id, this.editResponseData.additionalText).subscribe({
+      next: (updatedResponse: any) => {
+        console.log('Response updated successfully:', updatedResponse);
+        
+        const responseIndex = this.responses.findIndex(r => r.id === this.editResponseData.id);
+        if (responseIndex !== -1) {
+          this.responses[responseIndex] = { 
+            ...this.responses[responseIndex], 
+            responseText: updatedResponse.responseText || this.responses[responseIndex].responseText 
+          };
+        }
+        
+        if (this.editResponseItem) {
+          this.editResponseItem.responseText = updatedResponse.responseText || this.editResponseItem.responseText;
+        }
+        
         this.closeEditResponseDialog();
+        
+        this.loadResponses();
       },
-      error: () => {
-        alert('Грешка при редакция на предложение!');
+      error: (error: any) => {
+        console.error('Error updating response:', error);
+        alert('Грешка при обновяване на предложението!');
       }
     });
   }
@@ -309,33 +446,161 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
   
-  initializeImageFiles(): void {
-    if (this.request && this.request.files) {
-      this.imageFiles = this.request.files
-        .filter(file => file.isImage)
-        .map(file => ({ url: file.url, name: file.name }));
-      
-      if (this.imageFiles.length === 0 && this.request.pictures && this.request.pictures.length) {
-        this.imageFiles = this.request.pictures.map(pic => ({ 
-          url: pic, 
-          name: pic.split('/').pop() || 'Image' 
+  initializeImageFilesForItem(item: any): void {
+    this.imageFiles = [];
+    
+    if (item.files && item.files.length) {
+      const imageFiles = item.files
+        .filter((file: {isImage: boolean}) => file.isImage)
+        .map((file: {url: string, name: string}) => ({
+          url: file.url,
+          name: file.name
         }));
+      this.imageFiles.push(...imageFiles);
+      
+      if (this.imageFiles.length > 0) {
+        console.log(`Инициализирани ${this.imageFiles.length} изображения от files за предложение/заявка`);
+        return;
       }
     }
+    
+    if (!item.files || item.files.length === 0 || 
+        !item.files.some((file: {isImage: boolean}) => file.isImage)) {
+      
+      const pictureUrls = Array.isArray(item.pictureUrls) ? 
+                        item.pictureUrls : 
+                        (Array.isArray(item.pictures) ? item.pictures : []);
+                        
+      if (pictureUrls && pictureUrls.length) {
+        pictureUrls.forEach((pic: string) => {
+          const url = this.pictureBlobs[pic] || this.getPictureUrl(pic);
+          const name = pic.split('/').pop() || pic;
+          this.imageFiles.push({ url, name });
+        });
+        console.log(`Инициализирани ${this.imageFiles.length} изображения от pictureUrls за предложение/заявка`);
+      }
+    }
+    
+    if ((!item.files || item.files.length === 0) && 
+        item.fileUrls && Array.isArray(item.fileUrls)) {
+      item.fileUrls.forEach((fileUrl: string) => {
+        if (this.isImageFile(fileUrl)) {
+          const url = this.getFileUrl(fileUrl);
+          const name = this.getFileName(fileUrl);
+          this.imageFiles.push({ url, name });
+        }
+      });
+    }
+    
+    const uniqueUrls = new Set<string>();
+    this.imageFiles = this.imageFiles.filter(img => {
+      if (uniqueUrls.has(img.url)) {
+        return false;
+      }
+      uniqueUrls.add(img.url);
+      return true;
+    });
+    
+    console.log(`Общо ${this.imageFiles.length} уникални изображения за това предложение/заявка`);
+  }
+
+  initializeImageFiles(): void {
+    this.imageFiles = [];
+    
+    if (this.request) {
+      if (this.request.files && this.request.files.length) {
+        const imageFiles = this.request.files
+          .filter((file: {isImage: boolean}) => file.isImage)
+          .map((file: {url: string, name: string}) => ({
+            url: file.url,
+            name: file.name
+          }));
+        this.imageFiles.push(...imageFiles);
+      }
+      
+      if (!this.request.files || this.request.files.length === 0 || 
+          !this.request.files.some((file: {isImage: boolean}) => file.isImage)) {
+        
+        const pictureUrls = Array.isArray(this.request.pictureUrls) ? 
+                          this.request.pictureUrls : 
+                          (Array.isArray(this.request.pictures) ? this.request.pictures : []);
+                          
+        if (pictureUrls && pictureUrls.length) {
+          pictureUrls.forEach((pic: string) => {
+            const url = this.pictureBlobs[pic] || this.getPictureUrl(pic);
+            const name = pic.split('/').pop() || pic;
+            this.imageFiles.push({ url, name });
+          });
+        }
+      }
+    }
+    
+    this.responses.forEach(response => {
+      if (response.files && response.files.length) {
+        const imageFiles = response.files
+          .filter((file: {isImage: boolean}) => file.isImage)
+          .map((file: {url: string, name: string}) => ({
+            url: file.url,
+            name: file.name
+          }));
+        this.imageFiles.push(...imageFiles);
+      }
+      
+      if ((!response.files || response.files.length === 0) && 
+          response.fileUrls && Array.isArray(response.fileUrls)) {
+        response.fileUrls.forEach((fileUrl: string) => {
+          if (this.isImageFile(fileUrl)) {
+            const url = this.getFileUrl(fileUrl);
+            const name = this.getFileName(fileUrl);
+            this.imageFiles.push({ url, name });
+          }
+        });
+      }
+    });
+    
+    // Премахваме дубликати
+    const uniqueUrls = new Set<string>();
+    this.imageFiles = this.imageFiles.filter(img => {
+      if (uniqueUrls.has(img.url)) {
+        return false;
+      }
+      uniqueUrls.add(img.url);
+      return true;
+    });
+    
+    console.log(`Инициализирани ${this.imageFiles.length} уникални изображения`);
   }
   
-  openImageModal(imageUrl: string): void {
-    if (this.imageFiles.length === 0) {
+  openImageModal(imageUrl: string, item?: any): void {
+    if (item) {
+      this.initializeImageFilesForItem(item);
+    }
+    else if (this.imageFiles.length === 0) {
       this.initializeImageFiles();
     }
     
-    this.currentImageIndex = this.imageFiles.findIndex(img => img.url === imageUrl);
-    if (this.currentImageIndex < 0) this.currentImageIndex = 0;
+    this.currentImageIndex = this.imageFiles.findIndex(img => {
+      return img.url === imageUrl || 
+             (typeof img.url === 'string' && typeof imageUrl === 'string' && 
+              img.url.includes(imageUrl.split('/').pop() || '') || 
+              imageUrl.includes(img.url.split('/').pop() || ''));
+    });
     
-    this.selectedImage = imageUrl;
+    if (this.currentImageIndex < 0) {
+      this.currentImageIndex = 0;
+    }
+    
+    this.selectedImage = this.currentImageIndex >= 0 ? 
+                        this.imageFiles[this.currentImageIndex].url : 
+                        imageUrl;
+    
     this.showImageDialog = true;
     
     document.addEventListener('keydown', this.handleKeydown);
+  }
+
+  openImageModalFromFileUrl(imageUrl: string, item: any): void {
+    this.openImageModal(imageUrl, item);
   }
   
   closeImageDialog(): void {
@@ -376,5 +641,33 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   
   openPdfInNewTab(pdfUrl: string): void {
     window.open(pdfUrl, '_blank');
+  }
+
+  // Методи за работа с файлове от responses - обновени според company-requests логиката
+  isImageFile(fileUrl: string): boolean {
+    if (!fileUrl) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    const fileName = fileUrl.toLowerCase();
+    return imageExtensions.some(ext => fileName.includes(ext));
+  }
+
+  getFileUrl(fileUrl: string): string {
+    // Ако URL-то вече е пълно, връщаме го
+    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+      return fileUrl;
+    }
+    // Иначе добавяме базовия URL на API-то
+    const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
+    return `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
+  }
+
+  getFileName(fileUrl: string): string {
+    if (!fileUrl) return 'Файл';
+    // Извличаме името на файла от пътя
+    const parts = fileUrl.split(/[/\\]/);
+    const fileName = parts[parts.length - 1];
+    // Премахваме GUID частта ако съществува
+    const guidPattern = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i;
+    return fileName.replace(guidPattern, '').replace(/^[_.-]+/, '') || 'Файл';
   }
 }

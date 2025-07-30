@@ -85,7 +85,7 @@
             <ng-container *ngFor="let file of request.files">
               <div *ngIf="file.isImage" style="display: block; text-decoration: none;">
                 <img [src]="file.url" [alt]="file.name" 
-                     (click)="openImageModal(file.url)" 
+                     (click)="openImageModal(file.url, request)" 
                      style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
               </div>
               <div *ngIf="!file.isImage"
@@ -105,7 +105,7 @@
             <ng-container *ngFor="let pic of request.pictures">
               <div style="display: block; text-decoration: none;">
                 <img [src]="pic" alt="Снимка" 
-                     (click)="openImageModal(pic)" 
+                     (click)="openImageModal(pic, request)" 
                      style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
               </div>
             </ng-container>
@@ -129,47 +129,195 @@
       </button>
     </mat-card-actions>
   </mat-card>
-  <div *ngIf="responses && responses.length" style="max-width: 500px; margin: 24px auto 0 auto;">
-    <mat-card appearance="outlined" style="margin-top: 0; border-radius: 14px; box-shadow: 0 2px 8px #0001; background: #f9f9fb;">
-      <mat-card-title style="font-size: 1.1rem; font-weight: 600; color: #1976d2; display: flex; align-items: center; gap: 8px;">
-        <mat-icon color="primary">question_answer</mat-icon>
-        Предложения
-      </mat-card-title>
-      <mat-card-content>
-        <div *ngFor="let resp of responses" style="margin-bottom: 12px; padding: 8px 12px; background: #f5faff; border-radius: 8px; position: relative;">
-          <div style="font-size: 0.98em; color: #333; margin-bottom: 4px;">
-            <b>Фирма:</b> {{ getCompanyName(resp.responserCompanyId || resp.requestCompany?.requesterCompanyId) }}
+  <!-- Предложения секция -->
+  <div *ngIf="responses && responses.length" style="margin: 24px auto 0 auto;">
+    <h3 style="text-align: center; margin-bottom: 24px; color: #1976d2; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <mat-icon color="primary">question_answer</mat-icon>
+      Предложения ({{ responses.length }})
+    </h3>
+    
+    <div class="responses-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
+      <mat-card class="response-card" *ngFor="let response of responses; let i = index" appearance="outlined" 
+                style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;">
+        <mat-card-header>
+          <mat-icon mat-card-avatar color="accent" style="background: #e8f5e8; border-radius: 50%;">reply</mat-icon>
+          <mat-card-title style="font-weight: 600; font-size: 1.1rem;">Предложение #{{ response.id }}</mat-card-title>
+          <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">
+            {{ getCompanyName(response.responserCompanyId) || 'Неизвестна фирма' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="response-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+            
+            <!-- Текст на предложението -->
+            <div style="display: flex; align-items: flex-start;">
+              <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">message</mat-icon>
+              <span class="label">Предложение:&nbsp;</span> 
+              <span class="value" style="word-break: break-word;">{{ response.responseText }}</span>
+            </div>
+            
+            <!-- Фиксирана цена -->
+            <div *ngIf="response.fixedPrice" style="display: flex; align-items: center;">
+              <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">euro_symbol</mat-icon>
+              <span class="label">Фиксирана цена:&nbsp;</span> 
+              <span class="value" style="font-weight: 500; color: #4caf50;">{{ response.fixedPrice }} лв.</span>
+            </div>
+            
+            <!-- Цена от/до -->
+            <div *ngIf="response.priceFrom || response.priceTo" style="display: flex; align-items: center;">
+              <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">euro_symbol</mat-icon>
+              <span class="label">Цена:&nbsp;</span>
+              <span class="value" style="font-weight: 500; color: #4caf50;">
+                <ng-container *ngIf="response.priceFrom">от {{ response.priceFrom }} лв.</ng-container>
+                <ng-container *ngIf="response.priceTo">&nbsp;до {{ response.priceTo }} лв.</ng-container>
+              </span>
+            </div>
+            
+            <!-- Достъпност -->
+            <div *ngIf="response.availableFrom || response.availableTo" style="display: flex; align-items: center;">
+              <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
+              <span class="label">Достъпност:&nbsp;</span>
+              <span class="value">
+                <ng-container *ngIf="response.availableFrom">от {{ formatDateArray(response.availableFrom) }}</ng-container>
+                <ng-container *ngIf="response.availableTo"> &nbsp;до {{ formatDateArray(response.availableTo) }}</ng-container>
+              </span>
+            </div>
+            
+            <!-- Файлове -->
+            <div *ngIf="response.files && response.files.length" class="files-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
+              <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">attach_file</mat-icon>
+              <span class="label" style="margin-right: 6px;">Файлове:</span>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+                <ng-container *ngFor="let file of response.files">
+                  <div *ngIf="file.isImage" style="display: block; text-decoration: none;">
+                    <img [src]="pictureBlobs[file.url] || file.url" [alt]="file.name" 
+                         (click)="openImageModal(file.url, response)" 
+                         style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
+                  </div>
+                  <div *ngIf="!file.isImage"
+                       (click)="openPdfInNewTab(file.url)"
+                       style="display: flex; align-items: center; padding: 6px 12px; background-color: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; color: #333; text-decoration: none; margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer;">
+                    <mat-icon style="color: #f44336; margin-right: 8px;">picture_as_pdf</mat-icon>
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">{{ file.name }}</span>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+            
+            <!-- Fallback за fileUrls ако няма files -->
+            <div *ngIf="(!response.files || !response.files.length) && response.fileUrls && response.fileUrls.length" class="files-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
+              <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">attach_file</mat-icon>
+              <span class="label" style="margin-right: 6px;">Файлове:</span>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+                <ng-container *ngFor="let fileUrl of response.fileUrls">
+                  <div *ngIf="isImageFile(fileUrl)" style="display: block; text-decoration: none;">
+                    <img [src]="getFileUrl(fileUrl)" [alt]="getFileName(fileUrl)" 
+                         (click)="openImageModalFromFileUrl(getFileUrl(fileUrl), response)" 
+                         style="max-width: 120px; max-height: 120px; border-radius: 8px; box-shadow: 0 2px 8px #0002; object-fit: cover; border: 1px solid #e0e0e0; margin-bottom: 4px; cursor: pointer;" />
+                  </div>
+                  <div *ngIf="!isImageFile(fileUrl)"
+                       (click)="openPdfInNewTab(getFileUrl(fileUrl))"
+                       style="display: flex; align-items: center; padding: 6px 12px; background-color: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; color: #333; text-decoration: none; margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer;">
+                    <mat-icon style="color: #f44336; margin-right: 8px;">picture_as_pdf</mat-icon>
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">{{ getFileName(fileUrl) }}</span>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+            
           </div>
-          <div style="margin-bottom: 2px;">{{ resp.responseText }}</div>
-          <button *ngIf="canEditResponse(resp)" mat-icon-button color="primary" style="position: absolute; top: 8px; right: 8px;" (click)="editResponse(resp)">
-            <mat-icon>edit</mat-icon>
+        </mat-card-content>
+        
+        <mat-card-actions align="end">
+          <button *ngIf="canEditResponse(response)" mat-stroked-button color="primary" (click)="editResponse(response)">
+            <mat-icon style="margin-right: 4px;">edit</mat-icon>
+            Редактирай
           </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
+          <button mat-stroked-button color="accent">
+            <mat-icon style="margin-right: 4px;">visibility</mat-icon>
+            Детайли
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
   </div>
 
 
 
   <div *ngIf="showEditResponseDialog && editResponseData" class="edit-response-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center;">
-    <div class="edit-response-dialog" style="background: #fff; padding: 24px 18px; border-radius: 12px; min-width: 320px; max-width: 95vw; box-shadow: 0 2px 16px #0003;">
+    <div class="edit-response-dialog" style="background: #fff; padding: 24px 18px; border-radius: 12px; min-width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 2px 16px #0003;">
       <h3 style="margin-bottom: 18px; color: #1976d2;">Редакция на предложението</h3>
-      <mat-form-field appearance="fill" style="width: 100%;">
-        <mat-label>Фирма</mat-label>
-        <mat-select [(ngModel)]="editResponseData.responserCompanyId" name="editResponserCompanyId" required>
-          <mat-option *ngFor="let company of userCompanies" [value]="company.id">
-            {{ company.name }} ({{ company.vatNumber }})
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="fill" style="width: 100%; margin-top: 16px;">
-        <mat-label>Предложение</mat-label>
-        <textarea matInput [(ngModel)]="editResponseData.responseText" name="editResponseText" rows="4" required></textarea>
-      </mat-form-field>
+      
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Фирма</mat-label>
+          <input matInput [value]="getCompanyName(editResponseData.responserCompanyId)" readonly style="background-color: #f5f5f5;">
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Оригинално предложение</mat-label>
+          <textarea matInput [value]="editResponseData.originalResponseText" readonly rows="3" style="background-color: #f5f5f5;"></textarea>
+        </mat-form-field>
+
+        <mat-form-field *ngIf="editResponseData.fixedPrice" appearance="fill" style="width: 100%;">
+          <mat-label>Фиксирана цена</mat-label>
+          <input matInput [value]="editResponseData.fixedPrice + ' лв.'" readonly style="background-color: #f5f5f5;">
+        </mat-form-field>
+
+        <div *ngIf="editResponseData.priceFrom || editResponseData.priceTo" style="display: flex; gap: 16px;">
+          <mat-form-field *ngIf="editResponseData.priceFrom" appearance="fill" style="flex: 1;">
+            <mat-label>Цена от</mat-label>
+            <input matInput [value]="editResponseData.priceFrom + ' лв.'" readonly style="background-color: #f5f5f5;">
+          </mat-form-field>
+          <mat-form-field *ngIf="editResponseData.priceTo" appearance="fill" style="flex: 1;">
+            <mat-label>Цена до</mat-label>
+            <input matInput [value]="editResponseData.priceTo + ' лв.'" readonly style="background-color: #f5f5f5;">
+          </mat-form-field>
+        </div>
+
+        <div *ngIf="editResponseData.availableFrom || editResponseData.availableTo" style="display: flex; gap: 16px;">
+          <mat-form-field *ngIf="editResponseData.availableFrom" appearance="fill" style="flex: 1;">
+            <mat-label>Достъпен от</mat-label>
+            <input matInput [value]="formatDateArray(editResponseData.availableFrom)" readonly style="background-color: #f5f5f5;">
+          </mat-form-field>
+          <mat-form-field *ngIf="editResponseData.availableTo" appearance="fill" style="flex: 1;">
+            <mat-label>Достъпен до</mat-label>
+            <input matInput [value]="formatDateArray(editResponseData.availableTo)" readonly style="background-color: #f5f5f5;">
+          </mat-form-field>
+        </div>
+
+        <div *ngIf="editResponseData.files && editResponseData.files.length" style="margin: 16px 0;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #1976d2;">Прикачени файлове:</label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; padding: 8px; background-color: #f5f5f5; border-radius: 4px;">
+            <ng-container *ngFor="let file of editResponseData.files">
+              <div *ngIf="file.isImage" style="position: relative;">
+                <img [src]="pictureBlobs[file.url] || file.url" [alt]="file.name" 
+                     style="max-width: 80px; max-height: 80px; border-radius: 4px; object-fit: cover; border: 1px solid #ddd;" />
+                <span style="position: absolute; bottom: -16px; left: 0; font-size: 10px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ file.name }}</span>
+              </div>
+              <div *ngIf="!file.isImage" style="display: flex; align-items: center; padding: 4px 8px; background-color: #fff; border: 1px solid #ddd; border-radius: 4px;">
+                <mat-icon style="color: #f44336; margin-right: 4px; font-size: 16px;">picture_as_pdf</mat-icon>
+                <span style="font-size: 12px; max-width: 60px; overflow: hidden; text-overflow: ellipsis;">{{ file.name }}</span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Добавете към предложението</mat-label>
+          <textarea matInput [(ngModel)]="editResponseData.additionalText" name="editAdditionalText" rows="3" 
+                    placeholder="Въведете допълнителен текст, който ще се добави към оригиналното предложение..."></textarea>
+          <mat-hint>Този текст ще се добави към съществуващото предложение</mat-hint>
+        </mat-form-field>
+
+      </div>
+
       <div style="display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end;">
-        <button mat-stroked-button color="primary" (click)="submitEditResponse()">
-          <mat-icon style="font-size: 20px; margin-right: 4px; color: #1976d2;">check</mat-icon>
-          <span style="color: #1976d2;">Запази</span>
+        <button mat-stroked-button color="primary" (click)="submitEditResponse()" [disabled]="!editResponseData.additionalText?.trim()">
+          <mat-icon style="font-size: 20px; margin-right: 4px; color: #1976d2;">add</mat-icon>
+          <span style="color: #1976d2;">Добави текст</span>
         </button>
         <button mat-stroked-button color="primary" (click)="closeEditResponseDialog()">
           <mat-icon style="font-size: 20px; margin-right: 4px; color: #1976d2;">close</mat-icon>
