@@ -229,14 +229,18 @@
           </div>
         </mat-card-content>
         
-        <mat-card-actions align="end">
-          <button *ngIf="canEditResponse(response)" mat-stroked-button color="primary" (click)="editResponse(response)">
-            <mat-icon style="margin-right: 4px;">edit</mat-icon>
+        <mat-card-actions style="display: flex; justify-content: center; gap: 8px;">
+          <button mat-stroked-button color="accent" style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
+            <mat-icon style="margin-right: 6px; font-size: 18px;">visibility</mat-icon>
+            Детайли
+          </button>
+          <button *ngIf="canEditResponse(response)" mat-stroked-button color="primary" (click)="editResponse(response)" style="font-size: 14px; padding: 10px 16px; min-width: 100px;">
+            <mat-icon style="margin-right: 6px; font-size: 18px;">edit</mat-icon>
             Редактирай
           </button>
-          <button mat-stroked-button color="accent">
-            <mat-icon style="margin-right: 4px;">visibility</mat-icon>
-            Детайли
+          <button *ngIf="canEditResponse(response)" mat-stroked-button color="warn" (click)="deleteResponse(response)" style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
+            <mat-icon style="margin-right: 6px; font-size: 18px;">delete</mat-icon>
+            Изтрий
           </button>
         </mat-card-actions>
       </mat-card>

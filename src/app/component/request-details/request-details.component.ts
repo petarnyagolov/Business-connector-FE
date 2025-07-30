@@ -349,6 +349,25 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  deleteResponse(resp: any) {
+    if (!resp || !resp.id) return;
+    
+    const confirmed = confirm('Сигурен ли си че искаш да премахнеш предложението завинаги?');
+    if (!confirmed) return;
+    
+    this.responseService.deleteResponse(resp.id).subscribe({
+      next: () => {
+        // Премахваме отговора от локалния масив
+        this.responses = this.responses.filter(r => r.id !== resp.id);
+        alert('Предложението е премахнато успешно!');
+      },
+      error: (error: any) => {
+        console.error('Error deleting response:', error);
+        alert('Грешка при изтриване на предложението!');
+      }
+    });
+  }
+
   formatDateArray(date: any): string {
     if (!date) return '';
     if (Array.isArray(date) && date.length >= 3) {

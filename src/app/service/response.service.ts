@@ -52,4 +52,8 @@ export class ResponseService {
     
     return this.http.post(`${environment.apiUrl}/responses/${responseId}/update-text`, messageResponse);
   }
+
+  deleteResponse(responseId: number): Observable<any> {
+    return this.http.delete(`${environment.apiUrl}/responses/${responseId}`);
+  }
 }

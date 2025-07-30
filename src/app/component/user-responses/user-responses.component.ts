@@ -197,6 +197,25 @@ export class UserResponsesComponent implements OnInit {
     });
   }
 
+  deleteResponse(item: any) {
+    if (!item || !item.id) return;
+    
+    const confirmed = confirm('Сигурен ли си че искаш да премахнеш предложението завинаги?');
+    if (!confirmed) return;
+    
+    this.responseService.deleteResponse(item.id).subscribe({
+      next: () => {
+        // Премахваме отговора от локалния масив
+        this.userResponses = this.userResponses.filter(r => r.id !== item.id);
+        alert('Предложението е премахнато успешно!');
+      },
+      error: (error: any) => {
+        console.error('Error deleting response:', error);
+        alert('Грешка при изтриване на предложението!');
+      }
+    });
+  }
+
   getFieldLabel(field: string): string {
     switch (field) {
       case 'fixedPrice': return 'Фиксирана цена';
