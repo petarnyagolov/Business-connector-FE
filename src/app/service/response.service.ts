@@ -56,4 +56,8 @@ export class ResponseService {
   deleteResponse(responseId: number): Observable<any> {
     return this.http.delete(`${environment.apiUrl}/responses/${responseId}`);
   }
+
+  confirmDeal(dealData: any): Observable<any> {
+    return this.http.put(`${this.api}/choice`, dealData);
+  }
 }

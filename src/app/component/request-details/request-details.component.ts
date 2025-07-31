@@ -63,6 +63,14 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   
   pictureBlobs: { [key: string]: any } = {};
   
+  showDealDialog: boolean = false;
+  dealFormData = {
+    confirmDeal: false,
+    hidePublication: false,
+    startChat: false
+  };
+  selectedResponse: any = null;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -386,6 +394,71 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     return !!resp.responserCompanyId && this.userCompanies.some(c => c.id === resp.responserCompanyId);
   }
 
+  canMakeDeal(resp: any): boolean {
+    return !!this.request?.requesterCompanyId && 
+           this.userCompanies.some(c => c.id === this.request?.requesterCompanyId);
+  }
+
+  openDealDialog(response: any): void {
+    this.selectedResponse = response;
+    this.dealFormData = {
+      confirmDeal: false,
+      hidePublication: false,
+      startChat: false
+    };
+    this.showDealDialog = true;
+  }
+
+  closeDealDialog(): void {
+    this.showDealDialog = false;
+    this.selectedResponse = null;
+    this.dealFormData = {
+      confirmDeal: false,
+      hidePublication: false,
+      startChat: false
+    };
+  }
+
+  canSubmitDeal(): boolean {
+    return this.dealFormData.confirmDeal && 
+           this.dealFormData.hidePublication && 
+           this.dealFormData.startChat;
+  }
+
+  submitDeal(): void {
+    if (!this.canSubmitDeal() || !this.selectedResponse) {
+      alert('Моля, отбележете всички полета за потвърждение!');
+      return;
+    }
+
+    const dealData = {
+      id: this.selectedResponse.id,
+      responseText: this.selectedResponse.responseText,
+      responserCompanyId: this.selectedResponse.responserCompanyId,
+      fixedPrice: this.selectedResponse.fixedPrice,
+      priceFrom: this.selectedResponse.priceFrom,
+      priceTo: this.selectedResponse.priceTo,
+      fileUrls: this.selectedResponse.fileUrls || [],
+      requestCompany: this.request,
+      availableTo: this.selectedResponse.availableTo,
+      availableFrom: this.selectedResponse.availableFrom
+    };
+
+    console.log('Submitting deal confirmation:', dealData);
+
+    this.responseService.confirmDeal(dealData).subscribe({
+      next: (response) => {
+        console.log('Deal confirmed successfully:', response);
+        alert('Сделката е потвърдена успешно! Публикацията е скрита и чат сесията е започната.');
+        this.closeDealDialog();
+      },
+      error: (error) => {
+        console.error('Error confirming deal:', error);
+        alert('Възникна грешка при потвърждаване на сделката!');
+      }
+    });
+  }
+
   getAvailableCompaniesForResponse(): Company[] {
     if (!this.responses || !this.userCompanies) return this.userCompanies || [];
 
@@ -658,7 +731,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     window.open(pdfUrl, '_blank');
   }
 
-  // Методи за работа с файлове от responses - обновени според company-requests логиката
   isImageFile(fileUrl: string): boolean {
     if (!fileUrl) return false;
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
@@ -667,21 +739,17 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   getFileUrl(fileUrl: string): string {
-    // Ако URL-то вече е пълно, връщаме го
     if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
       return fileUrl;
     }
-    // Иначе добавяме базовия URL на API-то
     const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
     return `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
   }
 
   getFileName(fileUrl: string): string {
     if (!fileUrl) return 'Файл';
-    // Извличаме името на файла от пътя
     const parts = fileUrl.split(/[/\\]/);
     const fileName = parts[parts.length - 1];
-    // Премахваме GUID частта ако съществува
     const guidPattern = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i;
     return fileName.replace(guidPattern, '').replace(/^[_.-]+/, '') || 'Файл';
   }

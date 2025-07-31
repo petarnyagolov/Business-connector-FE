@@ -129,7 +129,6 @@
       </button>
     </mat-card-actions>
   </mat-card>
-  <!-- Предложения секция -->
   <div *ngIf="responses && responses.length" style="margin: 24px auto 0 auto;">
     <h3 style="text-align: center; margin-bottom: 24px; color: #1976d2; display: flex; align-items: center; justify-content: center; gap: 8px;">
       <mat-icon color="primary">question_answer</mat-icon>
@@ -150,21 +149,18 @@
         <mat-card-content>
           <div class="response-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
             
-            <!-- Текст на предложението -->
             <div style="display: flex; align-items: flex-start;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">message</mat-icon>
               <span class="label">Предложение:&nbsp;</span> 
               <span class="value" style="word-break: break-word;">{{ response.responseText }}</span>
             </div>
             
-            <!-- Фиксирана цена -->
             <div *ngIf="response.fixedPrice" style="display: flex; align-items: center;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">euro_symbol</mat-icon>
               <span class="label">Фиксирана цена:&nbsp;</span> 
               <span class="value" style="font-weight: 500; color: #4caf50;">{{ response.fixedPrice }} лв.</span>
             </div>
             
-            <!-- Цена от/до -->
             <div *ngIf="response.priceFrom || response.priceTo" style="display: flex; align-items: center;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">euro_symbol</mat-icon>
               <span class="label">Цена:&nbsp;</span>
@@ -174,7 +170,6 @@
               </span>
             </div>
             
-            <!-- Достъпност -->
             <div *ngIf="response.availableFrom || response.availableTo" style="display: flex; align-items: center;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">event</mat-icon>
               <span class="label">Достъпност:&nbsp;</span>
@@ -184,7 +179,6 @@
               </span>
             </div>
             
-            <!-- Файлове -->
             <div *ngIf="response.files && response.files.length" class="files-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">attach_file</mat-icon>
               <span class="label" style="margin-right: 6px;">Файлове:</span>
@@ -230,9 +224,9 @@
         </mat-card-content>
         
         <mat-card-actions style="display: flex; justify-content: center; gap: 8px;">
-          <button mat-stroked-button color="accent" style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
-            <mat-icon style="margin-right: 6px; font-size: 18px;">visibility</mat-icon>
-            Детайли
+          <button *ngIf="canMakeDeal(response)" mat-stroked-button color="accent" (click)="openDealDialog(response)" style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
+            <mat-icon><svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="#005cbb" ><path d="M480-600 340-740l140-140 140 140-140 140ZM40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm120-280q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440Z"/></svg></mat-icon>
+            Сделка
           </button>
           <button *ngIf="canEditResponse(response)" mat-stroked-button color="primary" (click)="editResponse(response)" style="font-size: 14px; padding: 10px 16px; min-width: 100px;">
             <mat-icon style="margin-right: 6px; font-size: 18px;">edit</mat-icon>
@@ -248,6 +242,58 @@
   </div>
 
 
+
+  <!-- Deal Confirmation Dialog -->
+  <div *ngIf="showDealDialog && selectedResponse" class="deal-dialog-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center;">
+    <div class="deal-dialog" style="background: #fff; padding: 24px; border-radius: 12px; min-width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+      <h3 style="margin-bottom: 20px; color: #1976d2; display: flex; align-items: center; gap: 8px;">
+        <mat-icon><svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="#005cbb" ><path d="M480-600 340-740l140-140 140 140-140 140ZM40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm120-280q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440Z"/></svg></mat-icon>
+
+        Потвърждаване на сделката
+      </h3>
+      
+      <div style="margin-bottom: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #1976d2;">
+        <p style="margin: 0; font-weight: 500; color: #333;">Предложение от: {{ getCompanyName(selectedResponse.responserCompanyId) }}</p>
+        <p style="margin: 8px 0 0 0; color: #666; font-size: 0.95em;">{{ selectedResponse.responseText }}</p>
+        <div *ngIf="selectedResponse.fixedPrice" style="margin-top: 8px; color: #4caf50; font-weight: 500;">
+          Фиксирана цена: {{ selectedResponse.fixedPrice }} лв.
+        </div>
+        <div *ngIf="selectedResponse.priceFrom || selectedResponse.priceTo" style="margin-top: 8px; color: #4caf50; font-weight: 500;">
+          Цена: 
+          <ng-container *ngIf="selectedResponse.priceFrom">от {{ selectedResponse.priceFrom }} лв.</ng-container>
+          <ng-container *ngIf="selectedResponse.priceTo"> до {{ selectedResponse.priceTo }} лв.</ng-container>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+        <label style="display: flex; align-items: center; cursor: pointer; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.2s;" [style.border-color]="dealFormData.confirmDeal ? '#1976d2' : '#e0e0e0'" [style.background-color]="dealFormData.confirmDeal ? '#f3f8ff' : '#fff'">
+          <input type="checkbox" [(ngModel)]="dealFormData.confirmDeal" style="margin-right: 12px; transform: scale(1.2);">
+          <span style="font-weight: 500; color: #333;">Сигурен ли си, че искаш сделка с това предложение?</span>
+        </label>
+
+        <label style="display: flex; align-items: center; cursor: pointer; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.2s;" [style.border-color]="dealFormData.hidePublication ? '#1976d2' : '#e0e0e0'" [style.background-color]="dealFormData.hidePublication ? '#f3f8ff' : '#fff'">
+          <input type="checkbox" [(ngModel)]="dealFormData.hidePublication" style="margin-right: 12px; transform: scale(1.2);">
+          <span style="font-weight: 500; color: #333;">Сигурен ли си, че искаш да скрием публикацията като завършена?</span>
+        </label>
+
+        <label style="display: flex; align-items: center; cursor: pointer; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.2s;" [style.border-color]="dealFormData.startChat ? '#1976d2' : '#e0e0e0'" [style.background-color]="dealFormData.startChat ? '#f3f8ff' : '#fff'">
+          <input type="checkbox" [(ngModel)]="dealFormData.startChat" style="margin-right: 12px; transform: scale(1.2);">
+          <span style="font-weight: 500; color: #333;">Сигурен ли си, че искаш да започнеш чат сесия за уточняване и размяна на контакти?</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button mat-stroked-button color="primary" (click)="closeDealDialog()" style="min-width: 100px;">
+          <mat-icon style="margin-right: 4px;">close</mat-icon>
+          Отказ
+        </button>
+        <button mat-raised-button color="primary" (click)="submitDeal()" [disabled]="!canSubmitDeal()" style="min-width: 120px;">
+            <mat-icon><svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="#005cbb" ><path d="M480-600 340-740l140-140 140 140-140 140ZM40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm120-280q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440Z"/></svg></mat-icon>
+          Потвърди сделката
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div *ngIf="showEditResponseDialog && editResponseData" class="edit-response-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center;">
     <div class="edit-response-dialog" style="background: #fff; padding: 24px 18px; border-radius: 12px; min-width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 2px 16px #0003;">

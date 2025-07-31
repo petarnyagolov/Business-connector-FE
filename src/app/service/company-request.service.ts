@@ -182,8 +182,8 @@ export class CompanyRequestService {
       );
     }
 
-  confirmResponse(confirmData: any): Observable<any> {
-    return this.http.put(`${this.api}/confirm`, confirmData);
+  choiceResponse(choiceData: any): Observable<any> {
+    return this.http.put(`${this.api}/choice`, choiceData);
   }
 
   cacheUserRequests(requests: CompanyRequest[]): void {
