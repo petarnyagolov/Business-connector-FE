@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface SavedRequest {
   id: number;
@@ -32,8 +33,11 @@ export class SavedRequestsService {
   private savedRequestsCountSubject = new BehaviorSubject<number>(0);
   public savedRequestsCount$ = this.savedRequestsCountSubject.asObservable();
 
-  constructor(private http: HttpClient) {
-    this.loadSavedRequestsCount();
+  constructor(private http: HttpClient, private authService: AuthService) {
+    // Зареждаме броя само ако потребителят е автентикиран
+    if (this.authService.isAuthenticated()) {
+      this.loadSavedRequestsCount();
+    }
   }
 
   getAllSavedRequests(): Observable<SavedRequest[]> {
@@ -126,5 +130,9 @@ export class SavedRequestsService {
   clearCache(): void {
     this.savedRequestsSubject.next([]);
     this.savedRequestsCountSubject.next(0);
+  }
+
+  initializeForAuthenticatedUser(): void {
+    this.loadSavedRequestsCount();
   }
 }

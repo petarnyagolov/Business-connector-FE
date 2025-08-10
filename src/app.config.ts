@@ -4,6 +4,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
 import { routes } from './app/app.routes';
 import { AuthInterceptor } from './app/interceptor/auth.interceptor';
+import { ErrorHandlerInterceptor } from './app/interceptor/error-handler.interceptor';
 import { withInterceptorsFromDi } from '@angular/common/http';
 import { MAT_DATE_LOCALE, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
@@ -34,6 +35,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorHandlerInterceptor, multi: true },
     // Глобални настройки за български datepicker
     { provide: MAT_DATE_LOCALE, useValue: 'bg-BG' },
     { 

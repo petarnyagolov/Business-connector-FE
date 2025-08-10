@@ -7,3 +7,23 @@
   
 
 <router-outlet />
+
+<button 
+  mat-fab 
+  color="primary" 
+  class="chat-fab"
+  (click)="toggleChatSidebar()"
+  [matBadge]="unreadCount"
+  [matBadgeHidden]="unreadCount === 0"
+  matBadgeColor="warn"
+  matBadgeSize="small"
+  *ngIf="isAuthenticated"
+>
+  <mat-icon>chat</mat-icon>
+</button>
+
+<app-chat-sidebar 
+  [isOpen]="chatSidebarOpen" 
+  (closeEvent)="closeChatSidebar()"
+  *ngIf="isAuthenticated"
+></app-chat-sidebar>

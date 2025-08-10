@@ -58,6 +58,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.authService.authStatus$.subscribe(status => {
       this.isAuthenticated = status;
       if (status) {
+        // Инициализираме saved requests service за автентикиран потребител
+        this.savedRequestsService.initializeForAuthenticatedUser();
+        
         // Зареждаме броя на запазените публикации когато потребителят е автентикиран
         this.savedRequestsService.savedRequestsCount$
           .pipe(takeUntil(this.destroy$))

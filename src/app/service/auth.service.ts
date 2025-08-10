@@ -14,6 +14,10 @@ export class AuthService {
   private apiUrl = environment.apiUrl + '/auth';
   private authStatusSubject = new BehaviorSubject<boolean>(false);
   authStatus$ = this.authStatusSubject.asObservable();
+  
+  // Cache за декодирани токени
+  private decodedTokenCache = new Map<string, any>();
+  private userEmailCache: string | null = null;
 
   constructor(private http: HttpClient, private router: Router, private companyService: CompanyService, private companyRequestService: CompanyRequestService) {
     const refreshToken = localStorage.getItem('refreshToken');
@@ -63,6 +67,10 @@ export class AuthService {
   }
 
   setAccessToken(accessToken: string | null) : void {
+    // Изчистваме кешовете при задаване на нов токен
+    this.decodedTokenCache.clear();
+    this.userEmailCache = null;
+    
     if (accessToken !== null) {
       window.localStorage.setItem('accessToken', accessToken);
     } else {
@@ -95,6 +103,11 @@ export class AuthService {
   logout() {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('accessToken');
+    
+    // Изчистваме кешовете
+    this.decodedTokenCache.clear();
+    this.userEmailCache = null;
+    
     this.authStatusSubject.next(false);
     this.companyService.clearUserCompaniesCache();
     this.companyRequestService.clearUserRequestsCache();
@@ -103,11 +116,23 @@ export class AuthService {
 
   getAccessToken(): string | null {
     const token = window.localStorage.getItem('accessToken');
-    console.log('Getting access token:', token ? `${token.substring(0, 50)}...` : 'null');
+    // Only log if there's no token or for debugging
+    if (!token) {
+      console.log('No access token found');
+    }
     return token;
   }
 
   private decodeToken(token: string): any {
+    if (!token) {
+      return null;
+    }
+
+    // Проверяваме кеша първо
+    if (this.decodedTokenCache.has(token)) {
+      return this.decodedTokenCache.get(token);
+    }
+
     try {
       const parts = token.split('.');
       if (parts.length !== 3) {
@@ -121,37 +146,32 @@ export class AuthService {
       
       try {
         decoded = JSON.parse(atob(payload));
-        console.log('✅ Decoded with standard method:', decoded);
-        return decoded;
       } catch (e1) {
-        console.log('Standard decode failed, trying with padding...');
+        try {
+          const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+          decoded = JSON.parse(atob(paddedPayload));
+        } catch (e2) {
+          try {
+            const urlSafePayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+            const paddedUrlSafe = urlSafePayload + '='.repeat((4 - urlSafePayload.length % 4) % 4);
+            decoded = JSON.parse(atob(paddedUrlSafe));
+          } catch (e3) {
+            console.warn('All decode methods failed, using fallback object');
+            decoded = {
+              sub: "petyrnyagolov@gmail.com", 
+              emailVerified: false, 
+              exp: Math.floor(Date.now() / 1000) + 3600 
+            };
+          }
+        }
+      }
+
+      // Кешираме декодирания токен
+      if (decoded) {
+        this.decodedTokenCache.set(token, decoded);
       }
       
-      try {
-        const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
-        decoded = JSON.parse(atob(paddedPayload));
-        console.log('✅ Decoded with padding:', decoded);
-        return decoded;
-      } catch (e2) {
-        console.log('Padded decode failed, trying URL-safe...');
-      }
-      
-      try {
-        const urlSafePayload = payload.replace(/-/g, '+').replace(/_/g, '/');
-        const paddedUrlSafe = urlSafePayload + '='.repeat((4 - urlSafePayload.length % 4) % 4);
-        decoded = JSON.parse(atob(paddedUrlSafe));
-        console.log('✅ Decoded with URL-safe method:', decoded);
-        return decoded;
-      } catch (e3) {
-        console.log('URL-safe decode failed, using fallback...');
-      }
-      
-      console.warn('All decode methods failed, using fallback object');
-      return {
-        sub: "petyrnyagolov@gmail.com", 
-        emailVerified: false, 
-        exp: Math.floor(Date.now() / 1000) + 3600 
-      };
+      return decoded;
       
     } catch (error) {
       console.error('Error decoding token:', error);
@@ -183,21 +203,25 @@ export class AuthService {
   }
 
   getUserEmail(): string | null {
+    // Проверяваме кеша първо
+    if (this.userEmailCache) {
+      return this.userEmailCache;
+    }
+
     try {
       const token = this.getAccessToken();
       if (!token) {
-        console.log('No access token found for getUserEmail');
         return null;
       }
       
       const decoded = this.decodeToken(token);
       if (!decoded) {
-        console.log('Could not decode token for getUserEmail');
         return null;
       }
       
       const email = decoded?.sub || null;
-      console.log('User email from token:', email);
+      // Кешираме email-а
+      this.userEmailCache = email;
       return email;
     } catch (error) {
       console.error('Error in getUserEmail:', error);

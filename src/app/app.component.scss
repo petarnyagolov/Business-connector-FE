@@ -1,0 +1,20 @@
+.chat-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  
+  &:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-fab {
+    bottom: 16px;
+    right: 16px;
+    transform: scale(0.9);
+  }
+}
