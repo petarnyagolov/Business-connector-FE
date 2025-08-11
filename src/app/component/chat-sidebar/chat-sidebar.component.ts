@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -7,7 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
-import { ChatService, ChatMessage, ChatMessageDto } from '../../service/chat.service';
+import { ChatService, ChatMessage, ChatMessageDto, FileAttachment } from '../../service/chat.service';
 import { AuthService } from '../../service/auth.service';
 import { Subject, takeUntil, debounceTime } from 'rxjs';
 
@@ -22,6 +23,7 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatTooltipModule,
     FormsModule
   ],
   template: `
@@ -76,11 +78,29 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
           <div *ngFor="let message of messages" class="message" [class.own]="isOwnMessage(message)">
             <div class="message-content">
               <div class="message-text">{{ message.message }}</div>
+              
+              <div *ngIf="message.fileAttachments && message.fileAttachments.length > 0" class="message-attachments">
+                <div *ngFor="let attachment of message.fileAttachments" class="attachment-item">
+                  <mat-icon class="attachment-icon">{{ getFileIcon(attachment.fileType) }}</mat-icon>
+                  <div class="attachment-info">
+                    <div class="attachment-name">{{ attachment.fileName }}</div>
+                    <div class="attachment-size">{{ formatFileSize(attachment.fileSize) }}</div>
+                  </div>
+                  <button 
+                    mat-icon-button 
+                    class="download-btn" 
+                    (click)="downloadFile(attachment, message.requestId)"
+                    matTooltip="Изтегли файл"
+                  >
+                    <mat-icon>download</mat-icon>
+                  </button>
+                </div>
+              </div>
+              
               <div class="message-time">{{ formatTime(message.createdAt) }}</div>
             </div>
           </div>
           
-          <!-- Typing индикатор -->
           <div *ngIf="typingUsers.length > 0" class="typing-indicator">
             <div class="typing-content">
               <div class="typing-dots">
@@ -94,18 +114,47 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
         </div>
 
         <div class="message-input-container">
-          <mat-form-field appearance="outline" class="message-input">
-            <input 
-              matInput 
-              [(ngModel)]="newMessage" 
-              placeholder="Напишете съобщение..."
-              (keydown.enter)="sendMessage()"
-              (input)="onMessageInput()"
-            >
-          </mat-form-field>
-          <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim()">
-            <mat-icon>send</mat-icon>
-          </button>
+          <div *ngIf="selectedFiles.length > 0" class="selected-files-preview">
+            <div *ngFor="let file of selectedFiles; let i = index" class="file-preview-item">
+              <mat-icon class="file-icon">{{ getFileIcon(file.type) }}</mat-icon>
+              <div class="file-info">
+                <div class="file-name">{{ file.name }}</div>
+                <div class="file-size">{{ formatFileSize(file.size) }}</div>
+              </div>
+              <button mat-icon-button (click)="removeSelectedFile(i)" class="remove-file-btn">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="input-row">
+            <button mat-icon-button (click)="triggerFileInput()" matTooltip="Прикачи файл">
+              <mat-icon>attach_file</mat-icon>
+            </button>
+            
+            <mat-form-field appearance="outline" class="message-input">
+              <input 
+                matInput 
+                [(ngModel)]="newMessage" 
+                placeholder="Напишете съобщение..."
+                (keydown.enter)="sendMessage()"
+                (input)="onMessageInput()"
+              >
+            </mat-form-field>
+            
+            <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!canSendMessage()">
+              <mat-icon>send</mat-icon>
+            </button>
+          </div>
+
+          <input 
+            #fileInput 
+            type="file" 
+            multiple 
+            accept="image/*,.pdf,.doc,.docx,.txt" 
+            (change)="onFilesSelected($event)"
+            style="display: none;"
+          >
         </div>
       </div>
     </div>
@@ -250,7 +299,7 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
     .chat-messages-view {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 64px); /* Отчитаме header-а */
+      height: calc(100vh - 64px); 
     }
 
     .chat-messages-header {
@@ -259,7 +308,7 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
       padding: 12px 16px;
       border-bottom: 1px solid #e0e0e0;
       background: #f9f9f9;
-      flex-shrink: 0; /* Не се компресира */
+      flex-shrink: 0; 
     }
 
     .chat-info {
@@ -270,7 +319,7 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
       flex: 1;
       overflow-y: auto;
       padding: 16px;
-      padding-bottom: 16px; /* Добавяме padding за последните съобщения */
+      padding-bottom: 16px; 
     }
 
     .message {
@@ -305,16 +354,21 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
     }
 
     .message-input-container {
+      border-top: 1px solid #e0e0e0;
+      background: white;
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+      flex-direction: column; 
+      padding: 0; 
+    }
+
+    .input-row {
       display: flex;
       align-items: center;
       padding: 16px;
-      border-top: 1px solid #e0e0e0;
       gap: 8px;
-      background: white; /* Добавяме фон */
-      flex-shrink: 0; /* Не се компресира */
-      position: sticky; /* Правим го sticky */
-      bottom: 0; /* Залепяме към дъното */
-      z-index: 10; /* Над останалото съдържание */
     }
 
     .message-input {
@@ -375,11 +429,119 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
         transform: scale(1);
       }
     }
+
+    .message-attachments {
+      margin-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 8px;
+    }
+
+    .attachment-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      border-radius: 4px;
+    }
+
+    .attachment-icon {
+      font-size: 16px !important;
+      color: #1976d2;
+    }
+
+    .attachment-info {
+      flex: 1;
+    }
+
+    .attachment-name {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .attachment-size {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .download-btn {
+      width: 24px !important;
+      height: 24px !important;
+      line-height: 24px !important;
+    }
+
+    .download-btn mat-icon {
+      font-size: 16px !important;
+    }
+
+    .selected-files-preview {
+      border-top: 1px solid #e0e0e0;
+      padding: 8px 16px;
+      background: #fafafa;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .file-preview-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .file-preview-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .file-icon {
+      font-size: 16px !important;
+      color: #1976d2;
+    }
+
+    .file-info {
+      flex: 1;
+    }
+
+    .file-name {
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 200px;
+    }
+
+    .file-size {
+      font-size: 11px;
+      color: #666;
+    }
+
+    .remove-file-btn {
+      width: 20px !important;
+      height: 20px !important;
+      line-height: 20px !important;
+      min-width: 20px !important;
+    }
+
+    .remove-file-btn mat-icon {
+      font-size: 14px !important;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
   `]
 })
 export class ChatSidebarComponent implements OnInit, OnDestroy {
   @Input() isOpen = false;
   @Output() closeEvent = new EventEmitter<void>();
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   chats: ChatMessageDto[] = [];
   selectedChat: ChatMessageDto | null = null;
@@ -387,6 +549,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   newMessage = '';
   typingUsers: string[] = [];
   isTyping = false;
+  selectedFiles: File[] = []; 
 
   private destroy$ = new Subject<void>();
   private typingTimer?: any;
@@ -399,7 +562,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     console.log('🚀 ChatSidebarComponent ngOnInit called');
     
-    // Subscribe за списъка с чатове
     this.chatService.chats$
       .pipe(takeUntil(this.destroy$))
       .subscribe(chats => {
@@ -407,22 +569,22 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
         this.chats = chats;
       });
 
-    // Subscribe за нови съобщения в реално време
     this.chatService.messages$
       .pipe(takeUntil(this.destroy$))
       .subscribe(message => {
+        console.log('🔔 Received new message in sidebar:', message);
+        console.log('🔔 Message has fileAttachments:', !!message.fileAttachments, message.fileAttachments?.length || 0);
+        
         if (this.selectedChat && message.requestId === this.selectedChat.requestId) {
           this.messages.push(message);
           this.scrollToBottom();
           
-          // Автоматично маркиране като прочетено
           if (!this.isOwnMessage(message)) {
             this.chatService.markAsRead(this.selectedChat.requestId).subscribe();
           }
         }
       });
 
-    // Subscribe за typing индикатори
     this.chatService.typing$
       .pipe(takeUntil(this.destroy$))
       .subscribe(typing => {
@@ -464,7 +626,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     this.selectedChat = chat;
     this.loadMessages(chat.requestId);
     
-    // Маркираме като прочетено ако не е
     if (!chat.isRead) {
       this.chatService.markAsRead(chat.requestId).subscribe({
         next: () => {
@@ -499,36 +660,77 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   sendMessage(): void {
-    if (!this.newMessage.trim() || !this.selectedChat) return;
+    if (!this.canSendMessage() || !this.selectedChat) return;
 
     const message = this.newMessage.trim();
-    this.newMessage = '';
+    const filesToSend = [...this.selectedFiles];
+    
+    this.selectedFiles = [];
 
-    // Спираме typing индикатора
     this.stopTyping();
 
-    this.chatService.sendMessage(this.selectedChat.requestId, message).subscribe({
-      next: () => {
-        // Съобщението ще се покаже автоматично чрез WebSocket
-        this.scrollToBottom();
-      },
-      error: (error) => {
-        console.error('Error sending message:', error);
-        this.newMessage = message; 
-      }
-    });
+    if (filesToSend.length > 0) {
+      this.chatService.sendMessageWithFiles(this.selectedChat.requestId, message, filesToSend).subscribe({
+        next: () => {
+          console.log('Message with files sent successfully');
+          
+          const localMessage: ChatMessage = {
+            id: Date.now(), 
+            requestId: this.selectedChat!.requestId,
+            senderEmail: this.authService.getUserEmail() || '',
+            senderName: 'You', 
+            message: message,
+            createdAt: Date.now(),
+            isRead: true,
+            fileAttachments: [] 
+          };
+          
+          Promise.all(filesToSend.map(file => this.convertFileToBase64(file)))
+            .then(fileAttachments => {
+              localMessage.fileAttachments = fileAttachments;
+              console.log('✅ Added file attachments to local message:', fileAttachments.length);
+              
+              fileAttachments.forEach(attachment => {
+                console.log('📎 File attachment:', {
+                  id: attachment.id,
+                  fileName: attachment.fileName,
+                  hasData: !!attachment.tempFileData
+                });
+              });
+              
+              this.chatService.storeTemporaryFiles(this.selectedChat!.requestId, fileAttachments);
+            });
+          
+          this.messages.push(localMessage);
+          this.scrollToBottom();
+        },
+        error: (error) => {
+          console.error('Error sending message with files:', error);
+          this.newMessage = message;
+          this.selectedFiles = filesToSend;
+        }
+      });
+    } else {
+      this.chatService.sendMessage(this.selectedChat.requestId, message).subscribe({
+        next: () => {
+          this.scrollToBottom();
+        },
+        error: (error) => {
+          console.error('Error sending message:', error);
+          this.newMessage = message; 
+        }
+      });
+    }
   }
 
   onMessageInput(): void {
     if (!this.selectedChat) return;
 
-    // Стартираме typing индикатора
     if (!this.isTyping) {
       this.isTyping = true;
       this.chatService.sendTypingStatus(this.selectedChat.requestId, true);
     }
 
-    // Рестартираме таймера за спиране на typing
     clearTimeout(this.typingTimer);
     this.typingTimer = setTimeout(() => {
       this.stopTyping();
@@ -602,5 +804,107 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
         container.scrollTop = container.scrollHeight;
       }
     }, 100);
+  }
+
+  triggerFileInput(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const newFiles = Array.from(input.files);
+      
+      const uniqueFiles = newFiles.filter(newFile => 
+        !this.selectedFiles.some(existingFile => 
+          existingFile.name === newFile.name && existingFile.size === newFile.size
+        )
+      );
+      
+      this.selectedFiles.push(...uniqueFiles);
+      
+      input.value = '';
+      
+      console.log('Files selected:', this.selectedFiles.length);
+    }
+  }
+
+  removeSelectedFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+  }
+
+  canSendMessage(): boolean {
+    return this.newMessage.trim().length > 0 || this.selectedFiles.length > 0;
+  }
+
+  getFileIcon(fileType: string): string {
+    if (fileType.startsWith('image/')) {
+      return 'image';
+    } else if (fileType === 'application/pdf') {
+      return 'picture_as_pdf';
+    } else if (fileType.includes('word') || fileType.includes('document')) {
+      return 'description';
+    } else if (fileType.includes('text')) {
+      return 'text_snippet';
+    } else {
+      return 'attach_file';
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  downloadFile(attachment: FileAttachment, requestId: string): void {
+    console.log('🔽 Downloading file:', attachment.fileName);
+    console.log('🔽 Attachment ID:', attachment.id);
+    console.log('🔽 Request ID:', requestId);
+    
+    const fileData = this.chatService.getFileData(attachment.id, requestId);
+    
+    if (fileData) {
+      console.log('✅ File data found, downloading...');
+      const link = document.createElement('a');
+      link.href = fileData;
+      link.download = attachment.fileName;
+      link.click();
+    } else {
+      console.error('❌ File data not found for:', attachment.fileName);
+      
+      const allFiles = this.chatService.getTemporaryFiles(requestId);
+      console.log('🗂️ All files in storage for request:', allFiles);
+      console.log('🗂️ Looking for file ID:', attachment.id);
+      
+      if (attachment.tempFileData) {
+        console.log('✅ Found tempFileData in attachment, using it...');
+        const link = document.createElement('a');
+        link.href = attachment.tempFileData;
+        link.download = attachment.fileName;
+        link.click();
+      } else {
+        console.error('❌ No tempFileData in attachment either');
+      }
+    }
+  }
+
+  private async convertFileToBase64(file: File): Promise<FileAttachment> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve({
+          id: this.chatService.generateFileId(),
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          tempFileData: reader.result as string
+        });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 }

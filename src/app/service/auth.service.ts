@@ -104,9 +104,10 @@ export class AuthService {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('accessToken');
     
-    // Изчистваме кешовете
     this.decodedTokenCache.clear();
     this.userEmailCache = null;
+    
+    this.clearChatFiles();
     
     this.authStatusSubject.next(false);
     this.companyService.clearUserCompaniesCache();
@@ -114,9 +115,26 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  private clearChatFiles(): void {
+    try {
+      const keysToRemove: string[] = [];
+      
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('chat_files_')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => sessionStorage.removeItem(key));
+      console.log('🧹 Cleared chat files on logout:', keysToRemove.length);
+    } catch (error) {
+      console.error('❌ Error clearing chat files:', error);
+    }
+  }
+
   getAccessToken(): string | null {
     const token = window.localStorage.getItem('accessToken');
-    // Only log if there's no token or for debugging
     if (!token) {
       console.log('No access token found');
     }
@@ -128,7 +146,6 @@ export class AuthService {
       return null;
     }
 
-    // Проверяваме кеша първо
     if (this.decodedTokenCache.has(token)) {
       return this.decodedTokenCache.get(token);
     }
@@ -166,7 +183,6 @@ export class AuthService {
         }
       }
 
-      // Кешираме декодирания токен
       if (decoded) {
         this.decodedTokenCache.set(token, decoded);
       }
@@ -203,7 +219,6 @@ export class AuthService {
   }
 
   getUserEmail(): string | null {
-    // Проверяваме кеша първо
     if (this.userEmailCache) {
       return this.userEmailCache;
     }
@@ -220,7 +235,6 @@ export class AuthService {
       }
       
       const email = decoded?.sub || null;
-      // Кешираме email-а
       this.userEmailCache = email;
       return email;
     } catch (error) {
@@ -234,7 +248,6 @@ export class AuthService {
       observe: 'response'
     }).pipe(
       tap((response: any) => {
-        // Ако backend връща нови токени след верификация
         if (response.body?.accessToken) {
           console.log('Received new access token after verification');
           this.setAccessToken(response.body.accessToken);

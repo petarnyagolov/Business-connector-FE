@@ -12,6 +12,16 @@ export interface ChatMessage {
   message: string;
   createdAt: string | number; 
   isRead: boolean;
+  fileAttachments?: FileAttachment[]; // Добавяме файлови прикачки
+}
+
+export interface FileAttachment {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  fileUrl?: string; // URL за download от сървъра
+  tempFileData?: string; // Base64 данни за временни файлове
 }
 
 export interface ChatMessageDto {
@@ -146,6 +156,19 @@ export class ChatService {
             if (body) {
               const message = JSON.parse(body);
               console.log('📨 Parsed STOMP message:', message);
+              console.log('📨 Message has fileAttachments:', !!message.fileAttachments, message.fileAttachments?.length || 0);
+              
+              // Ако съобщението има файлове, ги обогатяваме с временните данни
+              if (message.fileAttachments && Array.isArray(message.fileAttachments)) {
+                message.fileAttachments = message.fileAttachments.map((attachment: any) => {
+                  const tempFileData = this.getFileData(attachment.id, message.requestId);
+                  return {
+                    ...attachment,
+                    tempFileData
+                  };
+                });
+                console.log('📨 Enriched file attachments with temp data');
+              }
               
               this.messagesSubject.next(message);
               this.loadUserChats();
@@ -270,5 +293,148 @@ export class ChatService {
   refreshChats(): void {
     this.loadUserChats();
     this.loadTotalUnreadCount();
+  }
+
+  sendMessageWithFiles(requestId: string, message: string, files: File[]): Observable<any> {
+    console.log('📤 Sending message with files:', message, files);
+    
+    const tempFiles: FileAttachment[] = [];
+    
+    const filePromises = files.map(file => {
+      return new Promise<FileAttachment>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const fileAttachment: FileAttachment = {
+            id: this.generateFileId(),
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+            tempFileData: reader.result as string
+          };
+          resolve(fileAttachment);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+
+    return new Observable(observer => {
+      Promise.all(filePromises).then(attachments => {
+        tempFiles.push(...attachments);
+        
+        this.storeTemporaryFiles(requestId, tempFiles);
+        
+        if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
+          const messageData = {
+            message,
+            fileAttachments: tempFiles.map(f => ({
+              id: f.id,
+              fileName: f.fileName,
+              fileSize: f.fileSize,
+              fileType: f.fileType
+            }))
+          };
+          
+          const stompFrame = `SEND\ndestination:/app/chat/${requestId}/send\ncontent-type:application/json\n\n${JSON.stringify(messageData)}\x00`;
+          this.webSocket.send(stompFrame);
+          console.log('📡 Sent STOMP SEND frame with files');
+          
+          observer.next({ success: true });
+          observer.complete();
+        } else {
+          console.log('📡 WebSocket not connected, using REST API fallback');
+          observer.error('File upload requires WebSocket connection');
+        }
+      }).catch(error => {
+        console.error('❌ Error processing files:', error);
+        observer.error(error);
+      });
+    });
+  }
+
+  generateFileId(): string {
+    return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  storeTemporaryFiles(requestId: string, files: FileAttachment[]): void {
+    const storageKey = `chat_files_${requestId}`;
+    const existingFiles = this.getTemporaryFiles(requestId);
+    const allFiles = [...existingFiles, ...files];
+    
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(allFiles));
+      console.log('💾 Stored temporary files for request:', requestId, files.length);
+    } catch (error) {
+      console.error('❌ Error storing temporary files:', error);
+      this.cleanupOldTemporaryFiles();
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(allFiles));
+      } catch (retryError) {
+        console.error('❌ Failed to store files even after cleanup:', retryError);
+      }
+    }
+  }
+
+  getTemporaryFiles(requestId: string): FileAttachment[] {
+    const storageKey = `chat_files_${requestId}`;
+    try {
+      const storedFiles = sessionStorage.getItem(storageKey);
+      return storedFiles ? JSON.parse(storedFiles) : [];
+    } catch (error) {
+      console.error('❌ Error retrieving temporary files:', error);
+      return [];
+    }
+  }
+
+  getFileData(fileId: string, requestId: string): string | null {
+    console.log('🔍 Looking for file data:', fileId, 'in request:', requestId);
+    const files = this.getTemporaryFiles(requestId);
+    console.log('🔍 Found files in storage:', files.length);
+    
+    if (files.length > 0) {
+      console.log('🔍 File IDs in storage:', files.map(f => f.id));
+      const file = files.find(f => f.id === fileId);
+      if (file) {
+        console.log('✅ Found matching file:', file.fileName);
+        return file.tempFileData || null;
+      } else {
+        console.log('❌ No matching file found for ID:', fileId);
+      }
+    } else {
+      console.log('❌ No files found in storage for request:', requestId);
+    }
+    
+    return null;
+  }
+
+  private cleanupOldTemporaryFiles(): void {
+    const keysToRemove: string[] = [];
+    
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key && key.startsWith('chat_files_')) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.slice(0, Math.ceil(keysToRemove.length / 2)).forEach(key => {
+      sessionStorage.removeItem(key);
+    });
+    
+    console.log('🧹 Cleaned up old temporary files:', keysToRemove.length);
+  }
+
+  clearAllTemporaryFiles(): void {
+    const keysToRemove: string[] = [];
+    
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key && key.startsWith('chat_files_')) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => sessionStorage.removeItem(key));
+    console.log('🧹 Cleared all temporary chat files:', keysToRemove.length);
   }
 }
