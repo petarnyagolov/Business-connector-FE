@@ -10,17 +10,22 @@ export interface ChatMessage {
   senderEmail: string;
   senderName: string;
   message: string;
-  createdAt: string;
+  createdAt: string | number; 
   isRead: boolean;
 }
 
 export interface ChatMessageDto {
+  id: number;
   requestId: string;
   requestTitle: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  otherPartyName: string;
+  senderEmail: string;
+  senderName: string;
+  message: string;
+  createdAt: number; // Unix timestamp
+  isRead: boolean;
+  isMyRequest: boolean;
+  otherPartyCompanyName: string;
+  displaySenderName: string;
 }
 
 @Injectable({
@@ -93,7 +98,6 @@ export class ChatService {
       return;
     }
 
-    // Конструираме WebSocket URL с токена като query параметър
     const wsBaseUrl = environment.apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
     const wsUrl = `${wsBaseUrl}/ws?token=${encodeURIComponent(jwtToken)}`;
     
@@ -106,7 +110,6 @@ export class ChatService {
         console.log('✅ WebSocket Connected to chat:', requestId);
         this.reconnectAttempts = 0;
         
-        // За Spring Boot STOMP, изпращаме CONNECT frame
         if (this.webSocket) {
           const connectFrame = `CONNECT\naccept-version:1.0,1.1,1.2\nhost:localhost\n\n\x00`;
           this.webSocket.send(connectFrame);
@@ -117,17 +120,14 @@ export class ChatService {
       this.webSocket.onmessage = (event) => {
         console.log('📨 Raw WebSocket message:', event.data);
         
-        // Обработваме STOMP frames
         if (typeof event.data === 'string' && event.data.startsWith('CONNECTED')) {
           console.log('✅ STOMP Connected, subscribing to topics...');
           
           if (this.webSocket) {
-            // Subscribe за съобщения
             const subscribeFrame = `SUBSCRIBE\nid:sub-1\ndestination:/topic/chat/${requestId}\n\n\x00`;
             this.webSocket.send(subscribeFrame);
             console.log('📡 Subscribed to /topic/chat/' + requestId);
             
-            // Subscribe за typing
             const subscribeTypingFrame = `SUBSCRIBE\nid:sub-2\ndestination:/topic/chat/${requestId}/typing\n\n\x00`;
             this.webSocket.send(subscribeTypingFrame);
             console.log('📡 Subscribed to typing events');
@@ -147,7 +147,6 @@ export class ChatService {
               const message = JSON.parse(body);
               console.log('📨 Parsed STOMP message:', message);
               
-              // Прямо обработваме съобщенията (не очакваме wrapper)
               this.messagesSubject.next(message);
               this.loadUserChats();
               this.loadTotalUnreadCount();
@@ -162,7 +161,6 @@ export class ChatService {
         console.log('🔌 WebSocket disconnected:', event.code, event.reason);
         this.webSocket = null;
         
-        // Автоматично преконектване при неочаквано затваряне
         if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts}...`);
@@ -187,7 +185,6 @@ export class ChatService {
     console.log('📤 Sending message via WebSocket:', message);
     
     if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-      // Изпращаме чрез STOMP протокол
       const stompFrame = `SEND\ndestination:/app/chat/${requestId}/send\ncontent-type:application/json\n\n${JSON.stringify({ message })}\x00`;
       this.webSocket.send(stompFrame);
       console.log('📡 Sent STOMP SEND frame to /app/chat/' + requestId + '/send');
@@ -198,7 +195,6 @@ export class ChatService {
       });
     } else {
       console.log('📡 WebSocket not connected, using REST API fallback');
-      // Fallback към REST API
       return this.http.post(`${this.apiUrl}/chat/${requestId}/messages`, { message });
     }
   }
@@ -222,7 +218,6 @@ export class ChatService {
       console.log('📡 Sent STOMP mark-read frame');
     }
     
-    // Също така извикваме REST API за осигуряване
     return this.http.post(`${this.apiUrl}/chat/${requestId}/mark-read`, {});
   }
 
@@ -230,7 +225,6 @@ export class ChatService {
     console.log('🔌 Disconnecting from chat');
     
     if (this.webSocket) {
-      // Изпращаме DISCONNECT frame за STOMP
       if (this.webSocket.readyState === WebSocket.OPEN) {
         const disconnectFrame = `DISCONNECT\n\n\x00`;
         this.webSocket.send(disconnectFrame);
@@ -264,7 +258,7 @@ export class ChatService {
 
     this.getAllUserChats().subscribe({
       next: (chats) => {
-        const totalUnread = chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+        const totalUnread = chats.filter(chat => !chat.isRead).length;
         this.unreadCountSubject.next(totalUnread);
       },
       error: (error) => {

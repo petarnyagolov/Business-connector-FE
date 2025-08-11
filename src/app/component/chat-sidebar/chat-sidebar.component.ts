@@ -46,19 +46,18 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
           *ngFor="let chat of chats" 
           class="chat-item"
           (click)="selectChat(chat)"
-          [class.unread]="chat.unreadCount > 0"
+          [class.unread]="!chat.isRead"
         >
           <div class="chat-avatar">
             <mat-icon>business</mat-icon>
           </div>
           <div class="chat-content">
             <div class="chat-title">{{ chat.requestTitle }}</div>
-            <div class="chat-subtitle">{{ chat.otherPartyName }}</div>
-            <div class="chat-last-message">{{ (chat.lastMessage || '') | slice:0:50 }}{{ (chat.lastMessage || '').length > 50 ? '...' : '' }}</div>
-            <div class="chat-time">{{ formatTime(chat.lastMessageTime) }}</div>
+            <div class="chat-last-message">{{ chat.displaySenderName }}: {{ (chat.message || '') | slice:0:45 }}{{ (chat.message || '').length > 45 ? '...' : '' }}</div>
+            <div class="chat-time">{{ formatTimestamp(chat.createdAt) }}</div>
           </div>
-          <div class="chat-badge" *ngIf="chat.unreadCount > 0">
-            <span class="unread-count">{{ chat.unreadCount }}</span>
+          <div class="chat-badge" *ngIf="!chat.isRead">
+            <span class="unread-count">1</span>
           </div>
         </div>
       </div>
@@ -70,7 +69,6 @@ import { Subject, takeUntil, debounceTime } from 'rxjs';
           </button>
           <div class="chat-info">
             <div class="chat-title">{{ selectedChat.requestTitle }}</div>
-            <div class="chat-subtitle">{{ selectedChat.otherPartyName }}</div>
           </div>
         </div>
 
@@ -466,11 +464,14 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     this.selectedChat = chat;
     this.loadMessages(chat.requestId);
     
-    this.chatService.markAsRead(chat.requestId).subscribe({
-      next: () => {
-        this.chatService.refreshChats();
-      }
-    });
+    // Маркираме като прочетено ако не е
+    if (!chat.isRead) {
+      this.chatService.markAsRead(chat.requestId).subscribe({
+        next: () => {
+          this.chatService.refreshChats();
+        }
+      });
+    }
 
     console.log('🔥 About to call connectToChat with:', chat.requestId);
     console.log('🔥 ChatService instance:', this.chatService);
@@ -556,8 +557,15 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     return message.senderEmail === currentUserEmail;
   }
 
-  formatTime(dateString: string): string {
-    const date = new Date(dateString);
+  formatTime(dateInput: string | number): string {
+    let date: Date;
+    
+    if (typeof dateInput === 'number') {
+      date = new Date(Math.floor(dateInput * 1000));
+    } else {
+      date = new Date(dateInput);
+    }
+    
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
@@ -565,6 +573,25 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       return date.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' });
     } else {
       return date.toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit' });
+    }
+  }
+
+  formatTimestamp(timestamp: number): string {
+    const date = new Date(Math.floor(timestamp * 1000));
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor(diffInHours * 60);
+      return diffInMinutes < 1 ? 'Сега' : `${diffInMinutes} мин`;
+    } else if (diffInHours < 24) {
+      return date.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInHours < 24 * 7) {
+      const dayOfWeek = date.toLocaleDateString('bg-BG', { weekday: 'short' });
+      const time = date.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' });
+      return `${dayOfWeek} ${time}`;
+    } else {
+      return date.toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit', year: '2-digit' });
     }
   }
 
