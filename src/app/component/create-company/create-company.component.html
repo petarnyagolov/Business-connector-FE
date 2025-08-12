@@ -1,4 +1,3 @@
-<h2>Добави Фирма</h2>
 <app-company-form
   #companyFormComponent
   [mode]="'create'"
@@ -9,5 +8,20 @@
   (countryChange)="onCountryChanged($event)"
   (logoChange)="onLogoChange($event)"
   (cancel)="onCancelCompanyForm()"
-  [showSaveButton]="true"
-></app-company-form>
+  [showSaveButton]="false">
+</app-company-form>
+
+<div style="display: flex; justify-content: flex-end; gap: 12px; padding: 20px; border-top: 1px solid #e0e0e0; margin-top: 20px;">
+  <button mat-button color="warn" type="button" (click)="onCancelCompanyForm()">
+    Отказ
+  </button>
+  <button mat-raised-button color="primary" type="button" (click)="submitForm()" [disabled]="!canSubmit()" 
+          [title]="!isValidVatNumber ? 'Първо трябва да валидирате фирмата с бутона Validate' : 'Запази фирмата'">
+    Запази
+  </button>
+</div>
+
+<div *ngIf="!isValidVatNumber && !showCompanyDetails" 
+     style="text-align: center; color: #666; font-style: italic; padding: 10px;">
+  💡 Въведете ЕИК/VAT и натиснете "Validate" за да продължите
+</div>

@@ -17,7 +17,43 @@
   gap: 10px;
 }
 
-/* Responsive Card Grid */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -25,7 +61,6 @@
   padding: 16px;
 }
 
-/* Company Card Styling */
 mat-card {
   padding: 20px;
   display: flex;
@@ -36,7 +71,6 @@ mat-card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Logo Styles */
 .company-logo {
   display: block;
   margin: 0 auto 20px auto;
@@ -46,14 +80,12 @@ mat-card {
   object-fit: contain;
 }
 
-/* Optional debug class for troubleshooting */
 .company-logo.debug-logo {
   border: 2px solid red;
   background: #ffe;
   word-break: break-all;
 }
 
-/* Company Details */
 .company-details {
   font-size: 14px;
 }
@@ -78,7 +110,6 @@ mat-card {
   color: black;
 }
 
-/* Actions Section */
 mat-card-actions {
   display: flex;
   flex-wrap: wrap;
@@ -87,13 +118,11 @@ mat-card-actions {
   margin-top: auto;
 }
 
-/* Individual Company Card Margin/Padding */
 .company-card {
   margin: 0 10%;
   padding: 0 10%;
 }
 
-/* User Companies Container */
 .user-companies-container {
   display: flex;
   flex-wrap: wrap;
@@ -104,7 +133,6 @@ mat-card-actions {
   box-sizing: border-box;
 }
 
-/* Company Detail Card */
 .company-detail-card {
   flex: 1 1 340px;
   max-width: 420px;
@@ -120,7 +148,6 @@ mat-card-actions {
   background: #fff;
 }
 
-/* Company Logo Container */
 .company-logo-container {
   display: flex;
   justify-content: center;
@@ -128,7 +155,6 @@ mat-card-actions {
   margin-bottom: 16px;
 }
 
-/* Company Logo Image */
 .company-logo-img,
 .company-logo {
   width: 96px;
@@ -139,7 +165,6 @@ mat-card-actions {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
 }
 
-/* Company Title */
 .company-title {
   text-align: center;
   font-size: 1.5rem;
@@ -147,13 +172,11 @@ mat-card-actions {
   margin-bottom: 18px;
 }
 
-/* Company Detail List */
 .company-detail-list {
   width: 100%;
   margin-top: 8px;
 }
 
-/* Detail Row */
 .detail-row {
   display: flex;
   gap: 8px;
@@ -162,14 +185,12 @@ mat-card-actions {
   align-items: flex-start;
 }
 
-/* Detail Label */
 .detail-label {
   font-weight: 500;
   min-width: 140px;
   color: #444;
 }
 
-/* Bottom Action Bar */
 .bottom-action-bar {
   position: fixed;
   left: 0;
@@ -183,7 +204,6 @@ mat-card-actions {
   z-index: 100;
 }
 
-/* Responsive Behavior for Mobile */
 @media (max-width: 600px) {
   .card-grid {
     grid-template-columns: 1fr;

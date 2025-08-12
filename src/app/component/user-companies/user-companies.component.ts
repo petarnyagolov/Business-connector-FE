@@ -1,29 +1,33 @@
-import { Component, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectorRef, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import {MatGridListModule} from '@angular/material/grid-list';
 import { MatCardModule, MatCardContent} from '@angular/material/card';
 import {  MatButtonModule } from '@angular/material/button';
+import { MatFabButton } from '@angular/material/button';
 import { Company } from '../../model/company';
 import { CompanyService } from '../../service/company.service';
 import { filter, takeUntil } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
 import { forkJoin, of, Subject } from 'rxjs';
+import { CreateCompanyComponent } from '../create-company/create-company.component';
 
 @Component({
   selector: 'app-user-companies',
-  imports: [RouterOutlet, RouterLink, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatCardContent, MatIcon],
+  imports: [RouterOutlet, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatFabButton, MatCardContent, MatIcon, CreateCompanyComponent],
   templateUrl: './user-companies.component.html',
   styleUrl: './user-companies.component.scss',
   standalone: true
 })
 export class UserCompaniesComponent implements OnDestroy {
+  @ViewChild('createCompanyModal') createCompanyModal!: CreateCompanyComponent;
   companies: Company[] = [];
-  showCancelButton: boolean = false; 
   logoUrls: { [key: string]: string } = {};
-  private logoObjectUrls: string[] = []; // За освобождаване на blob-ове
+  private logoObjectUrls: string[] = []; 
   private destroy$ = new Subject<void>();
+  
+  showCreateCompanyModal = false;
 
 
   
@@ -42,15 +46,17 @@ ngOnInit(): void {
     )
     .subscribe(() => {
       this.loadCompanies();
-      this.showCancelButton = this.router.url.includes('/create');
     });
 }
 
 loadCompanies(): void {
+  console.log('🔄 Loading companies...');
   this.companyService.getAllCompaniesByUser()
     .pipe(takeUntil(this.destroy$))
     .subscribe({
     next: (data: Company[]) => {
+      console.log('✅ Companies loaded:', data.length, 'companies');
+      console.log('📊 Company names:', data.map(c => c.name));
       this.companies = data.sort((a, b) => {
         const aHasLogo = !!(a.logo && this.logoUrls[a.logo]);
         const bHasLogo = !!(b.logo && this.logoUrls[b.logo]);
@@ -61,7 +67,7 @@ loadCompanies(): void {
       console.log('Loaded companies:', this.companies);
     },
     error: (error) => {
-      console.error('Error fetching companies:', error);
+      console.error('❌ Error fetching companies:', error);
     }
   });
 }
@@ -88,8 +94,6 @@ loadAllLogos(): void {
     }
     const cleanPath = logoPath.replace(/\\/g, '/');
     return this.companyService.getLogoByPath(cleanPath).pipe(
-      // Ако има грешка, върни null
-      // catchError(() => of(null))
     );
   });
 
@@ -105,7 +109,6 @@ loadAllLogos(): void {
         this.logoUrls[id] = '';
       }
     });
-    // Принудително създай нов обект, за да тригърнеш Angular change detection
     this.logoUrls = { ...this.logoUrls };
     this.cdr.detectChanges();
   });
@@ -115,7 +118,6 @@ getLogoUrl(company: Company): string {
   const logoPath = company.logo || company.logoPath;
   if (!logoPath) return '';
   if (logoPath.startsWith('http')) return logoPath;
-  // Връща абсолютния URL към бекенда
   return `${environment.apiUrl}/files/${logoPath.replace(/^\\+|\\+$/g, '').replace(/\\/g, '/')}`;
 }
 
@@ -129,41 +131,34 @@ getLogoUrl(company: Company): string {
     }, 200);
   }
   
-  onCancel() {
-    console.log('onCancel() called'); // Debugging
-    // this.showCancelButton = false;
-    console.log('showCancelButton:', this.showCancelButton); // Debugging
-    this.router.navigate(['/user/companies']);
-    
-  }
   editCompany(company: Company) {
     this.router.navigate(['/user/companies/update', company.id]);
   }
   getGridColumns(): number {
     if (this.companies.length === 1) {
-      return 1; // One big card
+      return 1; 
     } else if (this.companies.length === 2) {
-      return 2; // Two middle-sized cards
+      return 2;
     } else {
-      return 3; // Three smaller cards
+      return 3; 
     }
   }
 
   getRowHeight(): string {
     if (this.companies.length === 1) {
-      return '4:3'; // Taller card for a single company
+      return '4:3'; 
     } else if (this.companies.length === 2) {
-      return '3:2'; // Medium height for two companies
+      return '3:2';
     } else {
-      return '2:1'; // Shorter cards for three or more companies
+      return '2:1';
     }
   }
 
   getColSpan(): number {
     if (this.companies.length === 1) {
-      return 1; // Single card spans the full width
+      return 1; 
     } else {
-      return 1; // Each card spans one column
+      return 1; 
     }
   }
 
@@ -173,7 +168,7 @@ getLogoUrl(company: Company): string {
     } else if (this.companies.length === 2) {
       return 2;
     } else {
-      return 2; // беше 1, но това ще даде повече височина
+      return 2; 
     }
   }
 
@@ -185,11 +180,32 @@ getLogoUrl(company: Company): string {
     return company && company.employeesSize ? company.employeesSize : '-';
   }
 
+  openCreateCompanyModal(): void {
+    console.log('🔹 Opening create company modal');
+    this.showCreateCompanyModal = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeCreateCompanyModal(): void {
+    console.log('🔹 Closing create company modal');
+    this.showCreateCompanyModal = false;
+    document.body.style.overflow = 'auto';
+  }
+
+  onCompanyCreated(): void {
+    console.log('🎉 Company created successfully!');
+    console.log('📋 Current companies count before reload:', this.companies.length);
+    this.closeCreateCompanyModal();
+    setTimeout(() => {
+      console.log('🔄 Refreshing companies list...');
+      this.loadCompanies();
+    }, 100); 
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
     
-    // Освобождаване на blob URLs за памет
     this.logoObjectUrls.forEach(url => URL.revokeObjectURL(url));
   }
 }

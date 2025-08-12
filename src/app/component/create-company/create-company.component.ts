@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CompanyService } from '../../service/company.service';
 import { IndustryService } from '../../service/industry.service'
@@ -28,6 +28,9 @@ import { CompanyFormComponent } from '../company-form/company-form.component';
 })
 export class CreateCompanyComponent {
   @ViewChild('companyFormComponent') companyFormComponentRef!: CompanyFormComponent;
+  @Output() companyCreated = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+  
   countries: string[] = [];
   employeesSizes = [
     { value: '1-10', viewValue: '1-10' },
@@ -49,6 +52,7 @@ export class CreateCompanyComponent {
   }
 
   onCompanyFormSubmit(companyData: any) {
+    console.log('🏢 Creating company...', companyData);
     const formData = new FormData();
     formData.append('company', new Blob([JSON.stringify(companyData)], { type: 'application/json' }));
     if (this.selectedLogo) {
@@ -57,10 +61,12 @@ export class CreateCompanyComponent {
     this.companyService.createCompany(formData).pipe(
       tap({
         next: (response: any) => {
+          console.log('✅ Company created successfully:', response);
           alert('Имате нова фирма!');
-          this.router.navigate(['/user/companies']);
+          this.companyCreated.emit(); // Emit event instead of navigate
         },
         error: (error: any) => {
+          console.error('❌ Company creation failed:', error);
           alert('Registration failed. Please try again.');
         }
       })
@@ -137,7 +143,21 @@ export class CreateCompanyComponent {
   }
 
   onCancelCompanyForm() {
-    // Navigate back or hide the form as appropriate
-    this.router.navigate(['/user/companies']);
+    console.log('🔸 Company creation cancelled');
+    this.cancelled.emit(); // Emit cancel event
+  }
+
+  submitForm(): void {
+    console.log('🏢 Submit form called from modal buttons');
+    if (this.companyFormComponentRef && this.canSubmit()) {
+      this.companyFormComponentRef.onSubmit();
+    }
+  }
+
+  canSubmit(): boolean {
+    return this.companyFormComponentRef && 
+           this.companyFormComponentRef.companyForm.valid && 
+           this.isValidVatNumber && 
+           this.showCompanyDetails;
   }
 }
