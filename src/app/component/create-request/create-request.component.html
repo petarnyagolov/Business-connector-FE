@@ -117,7 +117,7 @@
           </label>
           <input type="file" id="pictures" (change)="onFileSelected($event)" multiple accept="image/*,.pdf" style="width: 100%; padding: 8px 0;">
           <div class="file-hint" style="font-size: 0.85rem; margin-top: 8px; color: #666;">
-            Можете да качите няколко файла (изображения: jpg, png, gif и документи: pdf)
+            Можете да качите няколко файла (изображения: jpg, png, gif и документи: pdf). Максимален размер: 25MB на файл.
           </div>
           
           <div *ngIf="selectedFiles.length > 0" style="margin: 10px 0; color: green; font-weight: 500; display: flex; align-items: center;">
@@ -169,8 +169,18 @@
     </mat-card-content>
     <mat-card-actions>
       
-      <button mat-raised-button color="primary" type="submit" [disabled]="requestForm.invalid">Създай</button>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        type="submit" 
+        [disabled]="requestForm.invalid"
+        [title]="requestForm.invalid ? 'Формата е невалидна - попълнете всички задължителни полета' : 'Създай публикация'"
+      >
+        Създай {{ requestForm.invalid ? '(DISABLED)' : '' }}
+      </button>
       <button mat-button color="warn" type="button" (click)="onCancel()">Отказ</button>
+      
+      <button mat-button color="accent" type="button" (click)="logFormStatus()" style="margin-left: 10px;">Debug Form</button>
     </mat-card-actions>
   </mat-card>
 </form>

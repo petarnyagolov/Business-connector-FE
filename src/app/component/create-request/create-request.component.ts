@@ -57,6 +57,7 @@ export class CreateRequestComponent implements OnDestroy {
     private authService: AuthService,
     private emailVerificationService: EmailVerificationService
   ) {
+    console.log('🚀 CreateRequestComponent constructor called - TESTING');
     this.requestForm = this.fb.group({
       company: ['', Validators.required],
       region: ['', [Validators.required, Validators.maxLength(50)]],
@@ -98,13 +99,38 @@ export class CreateRequestComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
+  logFormStatus(): void {
+    alert('DEBUG BUTTON CLICKED!');
+    console.log('🔍 DEBUG BUTTON CLICKED!');
+    console.log('📊 Form valid:', this.requestForm.valid);
+    console.log('📊 Form invalid:', this.requestForm.invalid);
+    console.log('📊 Form errors:', this.requestForm.errors);
+    
+    Object.keys(this.requestForm.controls).forEach(key => {
+      const control = this.requestForm.get(key);
+      if (control && control.invalid) {
+        console.log(`❌ Field "${key}" is invalid:`, control.errors);
+      } else if (control && control.valid) {
+        console.log(`✅ Field "${key}" is valid:`, control.value);
+      }
+    });
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       console.log('Files selected:', input.files);
       
+      const maxFileSize = 25 * 1024 * 1024; 
+      
       for (let i = 0; i < input.files.length; i++) {
         const file = input.files[i];
+        
+        if (file.size > maxFileSize) {
+          alert(`Файлът "${file.name}" е твърде голям (${(file.size / (1024 * 1024)).toFixed(2)}MB). Максималният размер е 25MB.`);
+          console.warn('File too large:', file.name, `${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+          continue; 
+        }
         
         if (file.type.startsWith('image/') || file.type === 'application/pdf') {
           const isDuplicate = this.selectedFiles.some(f => f.name === file.name && f.size === file.size);
@@ -162,21 +188,58 @@ export class CreateRequestComponent implements OnDestroy {
   }
 
   onSubmit(): void {
-    this.emailVerificationService.checkVerificationOrPrompt().subscribe((canProceed: boolean) => {
-      if (!canProceed) {
-        return; 
+    console.log('🎯 onSubmit called');
+    console.log('📧 Checking email verification...');
+    
+    this.emailVerificationService.checkVerificationOrPrompt().subscribe({
+      next: (canProceed: boolean) => {
+        console.log('📧 Email verification result:', canProceed);
+        if (!canProceed) {
+          console.log('❌ Cannot proceed - email verification failed');
+          return; 
+        }
+        
+        console.log('✅ Email verification passed, proceeding to form submission');
+        this.processFormSubmission();
+      },
+      error: (error) => {
+        console.error('❌ Error during email verification check:', error);
       }
-
-      this.processFormSubmission();
     });
   }
 
   private processFormSubmission(): void {
-    if (this.requestForm.invalid) return;
+    console.log('🚀 Starting processFormSubmission...');
+    
+    if (this.requestForm.invalid) {
+      console.error('❌ Form is invalid!');
+      console.error('Form errors:', this.requestForm.errors);
+      Object.keys(this.requestForm.controls).forEach(key => {
+        const control = this.requestForm.get(key);
+        if (control && control.invalid) {
+          console.error(`Field "${key}" is invalid:`, control.errors);
+        }
+      });
+      return;
+    }
+    
+    const maxFileSize = 25 * 1024 * 1024; 
+    const oversizedFiles = this.selectedFiles.filter(file => file.size > maxFileSize);
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)}MB)`).join(', ');
+      alert(`Следните файлове са твърде големи: ${fileNames}. Максималният размер е 25MB на файл.`);
+      return;
+    }
+    
+    console.log('✅ Form is valid, proceeding...');
     const formData = new FormData();
     const formValue = this.requestForm.value;
+    console.log('📝 Form values:', formValue);
+    
     const selectedCompany = this.userCompanies.find(c => c.vatNumber === formValue.company);
+    console.log('🏢 Selected company:', selectedCompany);
     if (selectedCompany) {
+      console.log('✅ Company found, preparing request data...');
       const toLocalDateString = (date: any) => {
         if (!date) return null;
         const d = new Date(date);
@@ -203,31 +266,41 @@ export class CreateRequestComponent implements OnDestroy {
         unit: formValue.unit,
         requiredFields: formValue.requiredFields || []
       };
+      
+      console.log('📋 Request data prepared:', requestCompany);
       formData.append('requestCompany', new Blob([JSON.stringify(requestCompany)], { type: 'application/json' }));
+    } else {
+      console.error('❌ No company selected or company not found!');
+      return;
     }
     if (this.selectedFiles.length > 0) {
-      console.log(`Adding ${this.selectedFiles.length} files to the request:`);
+      console.log(`📎 Adding ${this.selectedFiles.length} files to the request:`);
       this.selectedFiles.forEach((file, index) => {
         console.log(`File ${index + 1}: ${file.name} (${file.type}, ${file.size} bytes)`);
         formData.append('files', file, file.name);
       });
     } else {
-      console.log('No files attached to the request');
+      console.log('📎 No files attached to the request');
     }
     
-    console.log('FormData entries:');
+    console.log('📦 FormData entries:');
     for (const pair of (formData as any).entries()) {
       console.log(pair[0], pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]);
     }
     
+    console.log('🌐 Calling companyRequestService.createRequest...');
+    
     this.companyRequestService.createRequest(formData).subscribe({
-      next: () => {
-        console.log('Request created successfully');
+      next: (response) => {
+        console.log('✅ Request created successfully:', response);
         this.router.navigate(['/my-requests']);
       },
       error: err => {
-        console.error('Error creating request:', err);
-        alert('Грешка при създаване на публикация!');
+        console.error('❌ Error creating request:', err);
+        console.error('❌ Error status:', err.status);
+        console.error('❌ Error message:', err.message);
+        console.error('❌ Full error:', err);
+        alert('Грешка при създаване на публикация: ' + (err.message || err.error?.message || 'Неизвестна грешка'));
       }
     });
   }

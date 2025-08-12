@@ -306,7 +306,7 @@
                 style="display: none;">
               
               <div class="file-hint" style="font-size: 0.85rem; margin-bottom: 10px; color: #666;">
-                Можете да качите няколко файла (изображения: jpg, png, gif и документи: pdf, doc, docx, txt)
+                Можете да качите няколко файла (изображения: jpg, png, gif и документи: pdf). Максимален размер: 25MB на файл.
               </div>
               
               <div *ngIf="modalSelectedFiles.length > 0" style="margin: 10px 0; color: green; font-weight: 500; display: flex; align-items: center;">
@@ -350,6 +350,7 @@
           </div>
         </mat-card-content>
         <mat-card-actions style="display: flex; justify-content: flex-end; gap: 12px; padding: 16px;">
+          <!-- <button mat-button color="accent" type="button" (click)="logModalFormStatus()">Debug Form</button> -->
           <button mat-button color="warn" type="button" (click)="closeCreateRequestModal()">Отказ</button>
           <button mat-raised-button color="primary" type="submit" [disabled]="requestForm.invalid || isSubmitting">
             <span *ngIf="!isSubmitting">Създай</span>

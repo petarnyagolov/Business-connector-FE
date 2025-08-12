@@ -319,6 +319,24 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     this.resetForm();
   }
 
+  // // Debug метод за проверка на валидността на формата в модала
+  // logModalFormStatus(): void {
+  //   alert('MODAL DEBUG BUTTON CLICKED!');
+  //   console.log('🔍 MODAL DEBUG BUTTON CLICKED!');
+  //   console.log('📊 Modal Form valid:', this.requestForm.valid);
+  //   console.log('📊 Modal Form invalid:', this.requestForm.invalid);
+  //   console.log('📊 Modal Form errors:', this.requestForm.errors);
+    
+  //   Object.keys(this.requestForm.controls).forEach(key => {
+  //     const control = this.requestForm.get(key);
+  //     if (control && control.invalid) {
+  //       console.log(`❌ Modal Field "${key}" is invalid:`, control.errors);
+  //     } else if (control && control.valid) {
+  //       console.log(`✅ Modal Field "${key}" is valid:`, control.value);
+  //     }
+  //   });
+  // }
+
   private resetForm(): void {
     this.requestForm.reset({
       company: '',
@@ -363,7 +381,21 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   }
 
   private addFilesToArray(newFiles: File[]): void {
+    const maxFileSize = 25 * 1024 * 1024; // 25MB в байтове
+    
     newFiles.forEach(newFile => {
+      if (newFile.size > maxFileSize) {
+        alert(`Файлът "${newFile.name}" е твърде голям (${(newFile.size / (1024 * 1024)).toFixed(2)}MB). Максималният размер е 25MB.`);
+        console.warn('Modal file too large:', newFile.name, `${(newFile.size / (1024 * 1024)).toFixed(2)}MB`);
+        return; 
+      }
+      
+      if (!newFile.type.startsWith('image/') && newFile.type !== 'application/pdf') {
+        alert('Неподдържан тип файл: ' + newFile.name + '. Моля, използвайте само изображения или PDF файлове.');
+        console.warn('Unsupported file type ignored in modal:', newFile.type);
+        return; 
+      }
+      
       const isDuplicate = this.modalSelectedFiles.some(existingFile => 
         existingFile.name === newFile.name && 
         existingFile.size === newFile.size &&
@@ -372,6 +404,9 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       
       if (!isDuplicate) {
         this.modalSelectedFiles.push(newFile);
+        console.log('Modal file added:', newFile.name, `${(newFile.size / (1024 * 1024)).toFixed(2)}MB`);
+      } else {
+        console.warn('Modal file already selected, skipping:', newFile.name);
       }
     });
     
@@ -402,14 +437,103 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   }
 
   onSubmitRequest(): void {
+    console.log('🎯 Modal onSubmitRequest called');
+    
     if (this.requestForm.valid && !this.isSubmitting) {
+      console.log('✅ Modal form is valid, proceeding...');
+      
+      const maxFileSize = 25 * 1024 * 1024; 
+      const oversizedFiles = this.modalSelectedFiles.filter(file => file.size > maxFileSize);
+      if (oversizedFiles.length > 0) {
+        const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)}MB)`).join(', ');
+        alert(`Следните файлове са твърде големи: ${fileNames}. Максималният размер е 25MB на файл.`);
+        return;
+      }
+      
       this.isSubmitting = true;
       
-      setTimeout(() => {
+      const formData = new FormData();
+      const formValue = this.requestForm.value;
+      console.log('📝 Modal form values:', formValue);
+      
+      const selectedCompany = this.userCompanies.find(c => c.vatNumber === formValue.company);
+      console.log('🏢 Modal selected company:', selectedCompany);
+      
+      if (selectedCompany) {
+        console.log('✅ Company found in modal, preparing request data...');
+        
+        const toLocalDateString = (date: any) => {
+          if (!date) return null;
+          const d = new Date(date);
+          const year = d.getFullYear();
+          const month = (d.getMonth() + 1).toString().padStart(2, '0');
+          const day = d.getDate().toString().padStart(2, '0');
+          return `${year}-${month}-${day}T00:00:00`;
+        };
+        
+        const requestCompany = {
+          requesterName: selectedCompany.name,
+          requesterCompanyId: selectedCompany.id,
+          region: formValue.region,
+          title: formValue.title,
+          requestType: formValue.requestType,
+          description: formValue.description,
+          activeFrom: toLocalDateString(formValue.activeFrom),
+          activeTo: toLocalDateString(formValue.activeTo),
+          urgent: formValue.urgent || false,
+          serviceType: formValue.serviceType || '',
+          capacity: formValue.capacity || '',
+          workMode: formValue.workMode || '',
+          priceFrom: formValue.priceFrom || '',
+          priceTo: formValue.priceTo || '',
+          unit: formValue.unit || '',
+          requiredFields: formValue.requiredFields || []
+        };
+        
+        console.log('📋 Modal request data prepared:', requestCompany);
+        formData.append('requestCompany', new Blob([JSON.stringify(requestCompany)], { type: 'application/json' }));
+        
+        if (this.modalSelectedFiles.length > 0) {
+          console.log(`📎 Adding ${this.modalSelectedFiles.length} files from modal:`);
+          this.modalSelectedFiles.forEach((file, index) => {
+            console.log(`File ${index + 1}: ${file.name} (${file.type}, ${file.size} bytes)`);
+            formData.append('files', file, file.name);
+          });
+        } else {
+          console.log('📎 No files attached in modal');
+        }
+        
+        console.log('🌐 Modal calling companyRequestService.createRequest...');
+        
+        this.companyRequestService.createRequest(formData).subscribe({
+          next: (response) => {
+            console.log('✅ Modal request created successfully:', response);
+            this.isSubmitting = false;
+            this.closeCreateRequestModal();
+            this.loadRequests(); // Reload the requests list
+          },
+          error: (err) => {
+            console.error('❌ Modal error creating request:', err);
+            this.isSubmitting = false;
+            alert('Грешка при създаване на публикация: ' + (err.message || err.error?.message || 'Неизвестна грешка'));
+          }
+        });
+      } else {
+        console.error('❌ No company selected in modal!');
         this.isSubmitting = false;
-        this.closeCreateRequestModal();
-        this.loadRequests();
-      }, 1000);
+        alert('Моля, изберете фирма!');
+      }
+    } else {
+      console.log('❌ Modal form is invalid or already submitting');
+      if (this.requestForm.invalid) {
+        console.log('Modal form errors:', this.requestForm.errors);
+        Object.keys(this.requestForm.controls).forEach(key => {
+          const control = this.requestForm.get(key);
+          if (control && control.invalid) {
+            console.log(`❌ Modal field "${key}" is invalid:`, control.errors);
+          }
+        });
+      }
     }
   }
 
