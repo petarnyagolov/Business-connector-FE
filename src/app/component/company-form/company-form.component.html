@@ -13,7 +13,7 @@
       <mat-error *ngIf="companyForm.get('vatNumber')?.hasError('required')">ЕИК/VAT е задължителен</mat-error>
       <mat-error *ngIf="companyForm.get('vatNumber')?.hasError('maxlength')">ЕИК/VAT трябва да е до 50 символа</mat-error>
     </mat-form-field>
-    <button mat-raised-button color="primary" type="button" (click)="onValidate()" style="align-self: flex-end; margin-left: 16px;">Validate</button>
+    <button *ngIf="mode !== 'update'" mat-raised-button color="primary" type="button" (click)="onValidate()" style="align-self: flex-end; margin-left: 16px;">Validate</button>
   </div>
   <ng-container *ngIf="showCompanyDetails && isValidVatNumber">
     <div class="form-row">

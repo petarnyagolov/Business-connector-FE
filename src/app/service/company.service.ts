@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, Observable, shareReplay, tap, throwError, of } from 'rxjs';
+import { catchError, Observable, shareReplay, tap, throwError, of, map } from 'rxjs';
 import { Company } from '../model/company';
 import { environment } from '../../environments/environment';
 
@@ -80,7 +80,7 @@ getLogoByPath(path: string): Observable<Blob> {
   }
 
   updateCompany(company: Company): Observable<Company> {
-    return this.http.put<Company>(`${this.apiUserUrl}/${company.vatNumber}`, company);
+    return this.http.put<Company>(`${this.apiUrl}/${company.id}`, company);
   }
 
   deleteCompany(id: number): Observable<any> {

@@ -12,10 +12,11 @@ import { MatIcon } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
 import { forkJoin, of, Subject } from 'rxjs';
 import { CreateCompanyComponent } from '../create-company/create-company.component';
+import { EditCompanyComponent } from '../edit-company/edit-company.component';
 
 @Component({
   selector: 'app-user-companies',
-  imports: [RouterOutlet, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatFabButton, MatCardContent, MatIcon, CreateCompanyComponent],
+  imports: [RouterOutlet, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatFabButton, MatCardContent, MatIcon, CreateCompanyComponent, EditCompanyComponent],
   templateUrl: './user-companies.component.html',
   styleUrl: './user-companies.component.scss',
   standalone: true
@@ -28,6 +29,8 @@ export class UserCompaniesComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
   
   showCreateCompanyModal = false;
+  showEditCompanyModal = false;
+  selectedCompany: Company | null = null;
 
 
   
@@ -130,10 +133,22 @@ getLogoUrl(company: Company): string {
       }
     }, 200);
   }
-  
-  editCompany(company: Company) {
-    this.router.navigate(['/user/companies/update', company.id]);
+
+  openEditCompanyModal(company: Company) {
+    this.selectedCompany = company;
+    this.showEditCompanyModal = true;
   }
+
+  closeEditCompanyModal() {
+    this.showEditCompanyModal = false;
+    this.selectedCompany = null;
+  }
+
+  onCompanyUpdated(updatedCompany: Company) {
+    this.loadCompanies(); 
+    this.closeEditCompanyModal();
+  }
+  
   getGridColumns(): number {
     if (this.companies.length === 1) {
       return 1; 

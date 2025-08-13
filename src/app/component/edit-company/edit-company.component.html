@@ -1,0 +1,32 @@
+<div class="modal-overlay" *ngIf="showModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>
+        <mat-icon>edit</mat-icon>
+        Редактиране на фирма: {{company?.name}}
+      </h2>
+      <button mat-icon-button (click)="onCancel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="company">
+      <app-company-form 
+        [initialValues]="processedCompany || company"
+        [mode]="'update'"
+        [countries]="countries"
+        [industries]="industries"
+        [disabledFields]="['country', 'vatNumber', 'name']"
+        [showSaveButton]="false"
+        (formSubmit)="onUpdate($event)">
+      </app-company-form>
+    </div>
+
+    <div class="modal-footer">
+      <button mat-button (click)="onCancel()">Отказ</button>
+      <button mat-raised-button color="primary" (click)="onSave()" [disabled]="companyForm && !companyForm.companyForm.valid">
+        Запази
+      </button>
+    </div>
+  </div>
+</div>

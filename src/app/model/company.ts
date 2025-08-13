@@ -1,5 +1,5 @@
 export interface Company {
-    id?: number; 
+    id?: string; // Changed from number to string to support UUID
     vatNumber: string;
     name: string;
     country: string;
@@ -10,6 +10,7 @@ export interface Company {
     logo?: string; // Added for backend compatibility
     industry: string;
     description: string;
+    employeesSize?: string; // Added for employees size
     phone: string;
     email: string;
   }

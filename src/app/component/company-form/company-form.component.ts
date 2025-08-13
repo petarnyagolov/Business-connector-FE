@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, ElementRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, ElementRef, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -27,7 +27,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   templateUrl: './company-form.component.html',
   styleUrls: ['./company-form.component.scss']
 })
-export class CompanyFormComponent {
+export class CompanyFormComponent implements OnInit, OnChanges {
   @Input() initialValues: any = {};
   @Input() mode: 'create' | 'update' = 'create';
   @Input() disabledFields: string[] = [];
@@ -81,7 +81,12 @@ export class CompanyFormComponent {
     if (this.initialValues) {
       this.companyForm.patchValue(this.initialValues);
     }
-    // Set disabled fields at creation time
+    
+    if (this.mode === 'update') {
+      this.showCompanyDetails = true;
+      this.isValidVatNumber = true;
+    }
+    
     if (this.disabledFields && this.disabledFields.length > 0) {
       this.disabledFields.forEach(field => {
         if (this.companyForm.get(field)) {
@@ -91,8 +96,19 @@ export class CompanyFormComponent {
     }
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['initialValues'] && changes['initialValues'].currentValue) {
+      console.log('CompanyForm получи нови initialValues:', changes['initialValues'].currentValue);
+      this.companyForm?.patchValue(changes['initialValues'].currentValue);
+      
+      if (this.mode === 'update') {
+        this.showCompanyDetails = true;
+        this.isValidVatNumber = true;
+      }
+    }
+  }
+
   onValidate() {
-    // Trim vatNumber before emitting
     const rawVat = this.companyForm.get('vatNumber')?.value;
     const trimmedVat = typeof rawVat === 'string' ? rawVat.trim() : rawVat;
     this.companyForm.get('vatNumber')?.setValue(trimmedVat, { emitEvent: false });
@@ -100,12 +116,8 @@ export class CompanyFormComponent {
       vatNumber: trimmedVat,
       country: this.companyForm.get('country')?.value
     });
-    // These will be set by the parent component after actual validation
-    // this.isValidVatNumber = true; 
-    // this.showCompanyDetails = true;
   }
 
-  // Method to handle logo selection
   onLogoSelected(event: Event): void {
     const element = event.currentTarget as HTMLInputElement;
     let fileList: FileList | null = element.files;
@@ -135,7 +147,6 @@ export class CompanyFormComponent {
     }
   }
 
-  // Method to clear the selected logo
   clearLogo(): void {
     this.selectedLogo = null;
     this.logoChange.emit(null);
@@ -152,7 +163,6 @@ export class CompanyFormComponent {
   }
 
   onRegister() {
-    // Trim vatNumber before emitting
     const rawVat = this.companyForm.get('vatNumber')?.value;
     const trimmedVat = typeof rawVat === 'string' ? rawVat.trim() : rawVat;
     this.companyForm.get('vatNumber')?.setValue(trimmedVat, { emitEvent: false });
@@ -162,7 +172,7 @@ export class CompanyFormComponent {
   }
 
   onCancel() {
-    this.cancel.emit(); // Emit the cancel event
+    this.cancel.emit(); 
   }
 
   setCompanyDetailsVisible(visible: boolean) {

@@ -1,10 +1,11 @@
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-  <h4 style="margin: 0;">
+<div style="position: relative; margin-bottom: 24px;">
+  <h4 style="margin: 0; text-align: center;">
     Моите Фирми
     <mat-icon style="font-size: 20px; margin-left: 6px; color: #1976d2; vertical-align: middle;">business</mat-icon>
   </h4>
   
-  <button mat-fab color="primary" (click)="openCreateCompanyModal()" title="Добави нова фирма" style="transform: scale(0.8);">
+  <button mat-fab color="primary" (click)="openCreateCompanyModal()" title="Добави нова фирма" 
+          style="position: absolute; right: 0; top: 50%; transform: translateY(-50%) scale(0.8);">
     <mat-icon>add</mat-icon>
   </button>
 </div>
@@ -31,7 +32,7 @@
       </div>
     </mat-card-content>
     <mat-card-actions>
-      <button mat-button (click)="editCompany(company)">Редактирай</button>
+      <button mat-button (click)="openEditCompanyModal(company)">Редактирай</button>
     </mat-card-actions>
   </mat-card>
 </div>
@@ -60,5 +61,13 @@
     </div>
   </div>
 </div>
+
+<!-- Edit Company Modal -->
+<app-edit-company
+  [showModal]="showEditCompanyModal"
+  [company]="selectedCompany"
+  (companyUpdated)="onCompanyUpdated($event)"
+  (cancelled)="closeEditCompanyModal()">
+</app-edit-company>
 
 <router-outlet></router-outlet>

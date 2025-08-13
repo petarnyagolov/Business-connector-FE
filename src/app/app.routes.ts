@@ -54,8 +54,4 @@ export const routes: Routes = [
     loadComponent: () => import('./component/saved-requests/saved-requests.component').then(m => m.SavedRequestsComponent),
     canActivate: [AuthGuard]
   },
-  {
-    path: 'user/companies/update/:vatNumber',
-    loadComponent: () => import('./component/company-form/company-form-update-wrapper.component').then(m => m.CompanyFormUpdateWrapperComponent)
-  },
 ];
