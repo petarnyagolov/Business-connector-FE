@@ -4,6 +4,8 @@ import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
+declare let Stomp: any;
+
 export interface ChatMessage {
   id: number;
   requestId: string;
@@ -43,7 +45,7 @@ export interface ChatMessageDto {
 })
 export class ChatService {
   private apiUrl = environment.apiUrl;
-  private webSocket: WebSocket | null = null;
+  private stompClient: any = null;
   private currentRequestId: string | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -60,6 +62,11 @@ export class ChatService {
 
   private typingSubject = new Subject<{ userEmail: string; isTyping: boolean; requestId: string }>();
   public typing$ = this.typingSubject.asObservable();
+
+  private fileErrorSubject = new Subject<string>();
+  public fileError$ = this.fileErrorSubject.asObservable();
+
+  public baseApiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,
@@ -96,7 +103,7 @@ export class ChatService {
   connectToChat(requestId: string): void {
     console.log('🔌 Connecting to chat:', requestId);
     
-    if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
+    if (this.stompClient && this.stompClient.connected) {
       this.disconnectFromChat();
     }
 
@@ -109,59 +116,43 @@ export class ChatService {
     }
 
     const wsBaseUrl = environment.apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
-    const wsUrl = `${wsBaseUrl}/ws?token=${encodeURIComponent(jwtToken)}`;
+    const wsUrl = `${wsBaseUrl}/ws`;
     
     console.log('🌐 Connecting to WebSocket URL:', wsUrl);
 
     try {
-      this.webSocket = new WebSocket(wsUrl);
-
-      this.webSocket.onopen = (event) => {
-        console.log('✅ WebSocket Connected to chat:', requestId);
-        this.reconnectAttempts = 0;
-        
-        if (this.webSocket) {
-          const connectFrame = `CONNECT\naccept-version:1.0,1.1,1.2\nhost:localhost\n\n\x00`;
-          this.webSocket.send(connectFrame);
-          console.log('📡 Sent STOMP CONNECT frame');
-        }
+      // Инициализираме STOMP клиента
+      const socket = new WebSocket(wsUrl);
+      this.stompClient = Stomp.over(socket);
+      
+      // Конфигурираме STOMP клиента
+      this.stompClient.debug = (str: string) => {
+        console.log('� STOMP:', str);
       };
 
-      this.webSocket.onmessage = (event) => {
-        console.log('📨 Raw WebSocket message:', event.data);
-        
-        if (typeof event.data === 'string' && event.data.startsWith('CONNECTED')) {
-          console.log('✅ STOMP Connected, subscribing to topics...');
+      this.stompClient.connect({}, 
+        // onConnect callback
+        (frame: any) => {
+          console.log('✅ STOMP Connected:', frame);
+          this.reconnectAttempts = 0;
           
-          if (this.webSocket) {
-            const subscribeFrame = `SUBSCRIBE\nid:sub-1\ndestination:/topic/chat/${requestId}\n\n\x00`;
-            this.webSocket.send(subscribeFrame);
-            console.log('📡 Subscribed to /topic/chat/' + requestId);
-            
-            const subscribeTypingFrame = `SUBSCRIBE\nid:sub-2\ndestination:/topic/chat/${requestId}/typing\n\n\x00`;
-            this.webSocket.send(subscribeTypingFrame);
-            console.log('📡 Subscribed to typing events');
-          }
+          // Изпращаме authentication съобщение
+          this.stompClient.send('/app/auth', {}, JSON.stringify({ 
+            token: jwtToken 
+          }));
+          console.log('� Sent authentication message');
           
-          return;
-        }
-        
-        // Обработваме MESSAGE frames
-        if (typeof event.data === 'string' && event.data.startsWith('MESSAGE')) {
-          try {
-            const lines = event.data.split('\n');
-            const bodyIndex = lines.findIndex(line => line === '') + 1;
-            const body = lines.slice(bodyIndex).join('\n').replace(/\x00$/, '');
-            
-            if (body) {
-              const message = JSON.parse(body);
-              console.log('📨 Parsed STOMP message:', message);
-              console.log('📨 Message has fileAttachments:', !!message.fileAttachments, message.fileAttachments?.length || 0);
+          // Subscribe за съобщения
+          this.stompClient.subscribe(`/topic/chat/${requestId}`, (message: any) => {
+            console.log('📨 Received message:', message.body);
+            try {
+              const chatMessage = JSON.parse(message.body);
+              console.log('📨 Parsed chat message:', chatMessage);
               
               // Ако съобщението има файлове, ги обогатяваме с временните данни
-              if (message.fileAttachments && Array.isArray(message.fileAttachments)) {
-                message.fileAttachments = message.fileAttachments.map((attachment: any) => {
-                  const tempFileData = this.getFileData(attachment.id, message.requestId);
+              if (chatMessage.fileAttachments && Array.isArray(chatMessage.fileAttachments)) {
+                chatMessage.fileAttachments = chatMessage.fileAttachments.map((attachment: any) => {
+                  const tempFileData = this.getFileData(attachment.id, chatMessage.requestId);
                   return {
                     ...attachment,
                     tempFileData
@@ -170,54 +161,65 @@ export class ChatService {
                 console.log('📨 Enriched file attachments with temp data');
               }
               
-              this.messagesSubject.next(message);
+              this.messagesSubject.next(chatMessage);
               this.loadUserChats();
               this.loadTotalUnreadCount();
+            } catch (error) {
+              console.error('❌ Error parsing chat message:', error);
             }
-          } catch (error) {
-            console.error('❌ Error parsing STOMP message:', error);
+          });
+          
+          // Subscribe за typing events
+          this.stompClient.subscribe(`/topic/chat/${requestId}/typing`, (message: any) => {
+            console.log('⌨️ Received typing event:', message.body);
+            try {
+              const typingData = JSON.parse(message.body);
+              this.typingSubject.next({
+                ...typingData,
+                requestId
+              });
+            } catch (error) {
+              console.error('❌ Error parsing typing event:', error);
+            }
+          });
+        },
+        // onError callback
+        (error: any) => {
+          console.error('❌ STOMP connection error:', error);
+          this.stompClient = null;
+          
+          if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.reconnectAttempts++;
+            console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts}...`);
+            setTimeout(() => {
+              if (this.currentRequestId) {
+                this.connectToChat(this.currentRequestId);
+              }
+            }, this.reconnectInterval);
           }
         }
-      };
-
-      this.webSocket.onclose = (event) => {
-        console.log('🔌 WebSocket disconnected:', event.code, event.reason);
-        this.webSocket = null;
-        
-        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.reconnectAttempts++;
-          console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts}...`);
-          setTimeout(() => {
-            if (this.currentRequestId) {
-              this.connectToChat(this.currentRequestId);
-            }
-          }, this.reconnectInterval);
-        }
-      };
-
-      this.webSocket.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-      };
+      );
 
     } catch (error) {
-      console.error('❌ Error creating WebSocket connection:', error);
+      console.error('❌ Error creating STOMP connection:', error);
     }
   }
 
   sendMessage(requestId: string, message: string): Observable<any> {
-    console.log('📤 Sending message via WebSocket:', message);
+    console.log('📤 Sending message via STOMP:', message);
     
-    if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-      const stompFrame = `SEND\ndestination:/app/chat/${requestId}/send\ncontent-type:application/json\n\n${JSON.stringify({ message })}\x00`;
-      this.webSocket.send(stompFrame);
-      console.log('📡 Sent STOMP SEND frame to /app/chat/' + requestId + '/send');
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.send(`/app/chat/${requestId}/send`, {}, JSON.stringify({ 
+        message 
+      }));
+      console.log('📡 Sent STOMP message to /app/chat/' + requestId + '/send');
       
       return new Observable(observer => {
         observer.next({ success: true });
         observer.complete();
       });
     } else {
-      console.log('📡 WebSocket not connected, using REST API fallback');
+      console.log('📡 STOMP not connected, using REST API fallback');
       return this.http.post(`${this.apiUrl}/chat/${requestId}/messages`, { message });
     }
   }
@@ -225,20 +227,20 @@ export class ChatService {
   sendTypingStatus(requestId: string, isTyping: boolean): void {
     console.log('⌨️ Sending typing status:', isTyping);
     
-    if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-      const stompFrame = `SEND\ndestination:/app/chat/${requestId}/typing\ncontent-type:application/json\n\n${JSON.stringify({ isTyping })}\x00`;
-      this.webSocket.send(stompFrame);
-      console.log('📡 Sent STOMP typing frame');
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.send(`/app/chat/${requestId}/typing`, {}, JSON.stringify({ 
+        isTyping 
+      }));
+      console.log('📡 Sent STOMP typing status');
     }
   }
 
   markAsRead(requestId: string): Observable<any> {
     console.log('📖 Marking messages as read');
     
-    if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-      const stompFrame = `SEND\ndestination:/app/chat/${requestId}/mark-read\ncontent-type:application/json\n\n{}\x00`;
-      this.webSocket.send(stompFrame);
-      console.log('📡 Sent STOMP mark-read frame');
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.send(`/app/chat/${requestId}/mark-read`, {}, JSON.stringify({}));
+      console.log('📡 Sent STOMP mark-read message');
     }
     
     return this.http.post(`${this.apiUrl}/chat/${requestId}/mark-read`, {});
@@ -247,14 +249,12 @@ export class ChatService {
   disconnectFromChat(): void {
     console.log('🔌 Disconnecting from chat');
     
-    if (this.webSocket) {
-      if (this.webSocket.readyState === WebSocket.OPEN) {
-        const disconnectFrame = `DISCONNECT\n\n\x00`;
-        this.webSocket.send(disconnectFrame);
-      }
-      this.webSocket.close(1000, 'Normal closure');
-      this.webSocket = null;
+    if (this.stompClient && this.stompClient.connected) {
+      this.stompClient.disconnect(() => {
+        console.log('✅ STOMP disconnected');
+      });
     }
+    this.stompClient = null;
     this.currentRequestId = null;
     this.reconnectAttempts = 0;
   }
@@ -324,26 +324,28 @@ export class ChatService {
         
         this.storeTemporaryFiles(requestId, tempFiles);
         
-        if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
-          const messageData = {
-            message,
-            fileAttachments: tempFiles.map(f => ({
-              id: f.id,
-              fileName: f.fileName,
-              fileSize: f.fileSize,
-              fileType: f.fileType
-            }))
-          };
-          
-          const stompFrame = `SEND\ndestination:/app/chat/${requestId}/send\ncontent-type:application/json\n\n${JSON.stringify(messageData)}\x00`;
-          this.webSocket.send(stompFrame);
-          console.log('📡 Sent STOMP SEND frame with files');
+        if (this.stompClient && this.stompClient.connected) {
+          // Изпращаме всеки файл като отделно съобщение според backend API
+          tempFiles.forEach(fileAttachment => {
+            const fileBase64 = fileAttachment.tempFileData?.split(',')[1] || '';
+            
+            const fileMessage = {
+              fileName: fileAttachment.fileName,
+              fileType: fileAttachment.fileType,
+              fileData: fileBase64,
+              fileSize: fileAttachment.fileSize,
+              message: message || '' // Празно съобщение ако няма текст
+            };
+            
+            this.stompClient.send(`/app/chat/${requestId}/send-file`, {}, JSON.stringify(fileMessage));
+            console.log('📡 Sent STOMP file message:', fileAttachment.fileName);
+          });
           
           observer.next({ success: true });
           observer.complete();
         } else {
-          console.log('📡 WebSocket not connected, using REST API fallback');
-          observer.error('File upload requires WebSocket connection');
+          console.log('📡 STOMP not connected, using REST API fallback');
+          observer.error('File upload requires STOMP connection');
         }
       }).catch(error => {
         console.error('❌ Error processing files:', error);
