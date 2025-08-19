@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
@@ -89,7 +90,24 @@ export class ChatService {
   }
 
   getChatMessages(requestId: string): Observable<ChatMessage[]> {
-    return this.http.get<ChatMessage[]>(`${this.apiUrl}/chat/${requestId}/messages`);
+    return this.http.get<any[]>(`${this.apiUrl}/chat/${requestId}/messages`).pipe(
+      map((messages: any[]) => messages.map((message: any) => {
+        // Преобразуваме FILE съобщенията във fileAttachments формат
+        if (message.messageType === 'FILE') {
+          return {
+            ...message,
+            fileAttachments: [{
+              id: message.id?.toString() || 'file-' + Date.now(),
+              fileName: message.fileName,
+              fileSize: message.fileSize,
+              fileType: message.fileType,
+              fileUrl: message.downloadUrl
+            }]
+          } as ChatMessage;
+        }
+        return message as ChatMessage;
+      }))
+    );
   }
 
   getUnreadCount(requestId: string): Observable<{unreadCount: number}> {
