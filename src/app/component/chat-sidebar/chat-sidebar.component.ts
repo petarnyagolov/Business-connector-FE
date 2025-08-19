@@ -705,10 +705,14 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     this.stopTyping();
 
     if (filesToSend.length > 0) {
-      console.log('📤 Sending message with files:', filesToSend.length);
-      
-      this.chatService.sendMessageWithFiles(this.selectedChat.requestId, message, filesToSend);
-      this.newMessage = '';
+      this.chatService.sendMessageWithFiles(this.selectedChat.requestId, message, filesToSend).subscribe({
+        next: () => {
+          this.newMessage = '';
+        },
+        error: (error) => {
+          console.error('Error sending files:', error);
+        }
+      });
     } else {
       console.log('📤 Sending text message:', message);
       
@@ -919,22 +923,31 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     );
     
     if (!message) {
-      console.error('❌ Could not find message for attachment:', attachment.fileName);
+      console.error('Could not find message for attachment:', attachment.fileName);
       return;
     }
     
-    console.log('🔽 Downloading file:', attachment.fileName);
-    console.log('🔽 Message ID:', message.id);
-    console.log('🔽 Request ID:', requestId);
-    
-    const downloadUrl = `${this.chatService.baseApiUrl}/chat/${requestId}/messages/${message.id}/download`;
-    console.log('🌐 Download URL:', downloadUrl);
-    
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = attachment.fileName;
-    link.target = '_blank'; 
-    link.click();
+    // Използваме ChatService за download
+    this.chatService.downloadFile(attachment, requestId, message.id).subscribe({
+      next: (blob: Blob) => {
+        // Създаваме URL за blob-а и го download-ваме
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = attachment.fileName;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Почистваме URL-а
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        console.error('Error downloading file:', error);
+      }
+    });
   }
 
 }

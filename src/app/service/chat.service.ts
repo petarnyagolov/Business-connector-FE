@@ -149,7 +149,19 @@ export class ChatService {
               const chatMessage = JSON.parse(message.body);
               console.log('📨 Parsed chat message:', chatMessage);
               
-              // Ако съобщението има файлове, ги обогатяваме с временните данни
+              // Ако съобщението е файл, преобразувай го във fileAttachments формат
+              if (chatMessage.messageType === 'FILE') {
+                chatMessage.fileAttachments = [{
+                  id: chatMessage.id?.toString() || 'file-' + Date.now(),
+                  fileName: chatMessage.fileName,
+                  fileSize: chatMessage.fileSize,
+                  fileType: chatMessage.fileType,
+                  fileUrl: chatMessage.downloadUrl
+                }];
+                console.log('📨 Converted FILE message to fileAttachments format');
+              }
+              
+              // Ако съобщението има fileAttachments, ги обогатяваме с временните данни
               if (chatMessage.fileAttachments && Array.isArray(chatMessage.fileAttachments)) {
                 chatMessage.fileAttachments = chatMessage.fileAttachments.map((attachment: any) => {
                   const tempFileData = this.getFileData(attachment.id, chatMessage.requestId);
@@ -296,11 +308,9 @@ export class ChatService {
   }
 
   sendMessageWithFiles(requestId: string, message: string, files: File[]): Observable<any> {
-    console.log('📤 Sending message with files:', message, files);
-    
     const tempFiles: FileAttachment[] = [];
     
-    const filePromises = files.map(file => {
+    const filePromises = files.map((file, index) => {
       return new Promise<FileAttachment>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -313,7 +323,10 @@ export class ChatService {
           };
           resolve(fileAttachment);
         };
-        reader.onerror = reject;
+        reader.onerror = (error) => {
+          console.error('Error reading file:', error);
+          reject(error);
+        };
         reader.readAsDataURL(file);
       });
     });
@@ -321,7 +334,6 @@ export class ChatService {
     return new Observable(observer => {
       Promise.all(filePromises).then(attachments => {
         tempFiles.push(...attachments);
-        
         this.storeTemporaryFiles(requestId, tempFiles);
         
         if (this.stompClient && this.stompClient.connected) {
@@ -338,17 +350,15 @@ export class ChatService {
             };
             
             this.stompClient.send(`/app/chat/${requestId}/send-file`, {}, JSON.stringify(fileMessage));
-            console.log('📡 Sent STOMP file message:', fileAttachment.fileName);
           });
           
           observer.next({ success: true });
           observer.complete();
         } else {
-          console.log('📡 STOMP not connected, using REST API fallback');
           observer.error('File upload requires STOMP connection');
         }
       }).catch(error => {
-        console.error('❌ Error processing files:', error);
+        console.error('Error processing files:', error);
         observer.error(error);
       });
     });
@@ -438,5 +448,16 @@ export class ChatService {
     
     keysToRemove.forEach(key => sessionStorage.removeItem(key));
     console.log('🧹 Cleared all temporary chat files:', keysToRemove.length);
+  }
+
+  downloadFile(attachment: FileAttachment, requestId: string, messageId: number): Observable<Blob> {
+    const downloadUrl = `${this.apiUrl}/chat/${requestId}/messages/${messageId}/download`;
+    
+    return this.http.get(downloadUrl, {
+      responseType: 'blob',
+      headers: {
+        'Authorization': `Bearer ${this.authService.getAccessToken()}`
+      }
+    });
   }
 }
