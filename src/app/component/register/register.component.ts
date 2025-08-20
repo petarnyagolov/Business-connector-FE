@@ -134,7 +134,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
               next: (loginResponse) => {
                 this.isLoading = false;
                 console.log('Auto-login successful after registration:', loginResponse);
-                // AuthService.login вече пренасочва към /companies при успех
               },
               error: (loginError) => {
                 this.isLoading = false;

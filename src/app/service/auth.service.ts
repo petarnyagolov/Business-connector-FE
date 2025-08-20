@@ -56,7 +56,7 @@ export class AuthService {
               this.companyRequestService.clearUserRequestsCache();
             }
           });
-          this.router.navigate(['/companies']);
+          this.router.navigate(['/requests']);
         }
       })
     );
@@ -317,5 +317,91 @@ export class AuthService {
       observer.next(false);
       observer.complete();
     });
+  }
+
+  getUserName(): string | null {
+    try {
+      const token = this.getAccessToken();
+      if (!token) {
+        return null;
+      }
+      
+      const decoded = this.decodeToken(token);
+      if (!decoded) {
+        return null;
+      }
+      
+      console.log('🔍 JWT Token payload:', decoded);
+      console.log('🔍 Available name fields:', {
+        name: decoded?.name,
+        fullName: decoded?.fullName,
+        firstName: decoded?.firstName,
+        lastName: decoded?.lastName,
+        username: decoded?.username
+      });
+
+      let firstName = decoded?.firstName;
+      let lastName = decoded?.lastName;
+
+      if (firstName && lastName) {
+        try {
+          firstName = this.fixUtf8Encoding(firstName);
+          lastName = this.fixUtf8Encoding(lastName);
+          return `${firstName} ${lastName}`.trim();
+        } catch (e) {
+          console.warn('UTF-8 decoding failed, using raw values');
+          return `${firstName} ${lastName}`.trim();
+        }
+      }
+      
+      return decoded?.name || decoded?.fullName || decoded?.firstName || decoded?.username || null;
+    } catch (error) {
+      console.error('Error in getUserName:', error);
+      return null;
+    }
+  }
+
+  private fixUtf8Encoding(str: string): string {
+    if (!str) return str;
+    
+    try {
+      return decodeURIComponent(escape(str));
+    } catch (e) {
+      try {
+        const bytes = [];
+        for (let i = 0; i < str.length; i++) {
+          bytes.push(str.charCodeAt(i) & 0xFF);
+        }
+        return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+      } catch (e2) {
+        console.warn('UTF-8 decoding failed, using raw value:', str);
+        return str;
+      }
+    }
+  }
+
+  getFreeCredits(): number {
+    try {
+      const token = this.getAccessToken();
+      if (!token) {
+        return 0;
+      }
+      
+      const decoded = this.decodeToken(token);
+      if (!decoded) {
+        return 0;
+      }
+      
+      console.log('🔍 Credits in token:', {
+        freeCredits: decoded?.freeCredits,
+        credits: decoded?.credits,
+        remainingCredits: decoded?.remainingCredits
+      });
+      
+      return decoded?.freeCredits || decoded?.credits || decoded?.remainingCredits || 0;
+    } catch (error) {
+      console.error('Error in getFreeCredits:', error);
+      return 0;
+    }
   }
 }

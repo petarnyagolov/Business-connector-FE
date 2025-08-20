@@ -364,7 +364,7 @@ export class ChatService {
               fileType: fileAttachment.fileType,
               fileData: fileBase64,
               fileSize: fileAttachment.fileSize,
-              message: message || '' // Празно съобщение ако няма текст
+              message: message || '' 
             };
             
             this.stompClient.send(`/app/chat/${requestId}/send-file`, {}, JSON.stringify(fileMessage));

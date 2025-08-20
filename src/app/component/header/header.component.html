@@ -32,6 +32,30 @@
         <mat-icon>account_circle</mat-icon>
       </button>
       <mat-menu #accountMenu="matMenu">
+        <div mat-menu-item disabled style="white-space: normal; opacity: 1; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-bottom: 8px;">
+          <div style="display: flex; flex-direction: column; align-items: flex-start;">
+            <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
+              <mat-icon style="margin-right: 8px; vertical-align: middle;">person</mat-icon>
+              <span>{{ userName || 'Потребител' }}</span>
+            </div>
+            <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
+              {{ userEmail }}
+            </div>
+            <div style="font-size: 14px; color: #2e7d32; font-weight: 500;">
+              <mat-icon style="margin-right: 8px; vertical-align: middle; font-size: 16px;">account_balance_wallet</mat-icon>
+              <span>Кредити: {{ freeCredits }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Buy Credits Button -->
+        <button mat-menu-item (click)="onBuyCredits()">
+          <mat-icon color="accent">add_shopping_cart</mat-icon>
+          <span>Купи кредити</span>
+        </button>
+        <mat-divider></mat-divider>
+        
+        <!-- Notifications Section -->
         <ng-container *ngFor="let notification of notifications">
           <button mat-menu-item disabled style="white-space: normal; opacity: 1;">
             <mat-icon color="primary" style="margin-right:8px;">notifications</mat-icon>
@@ -59,3 +83,82 @@
     </nav>
   </mat-toolbar>
 </mat-sidenav-container>
+
+<!-- Buy Credits Modal -->
+<ng-container *ngIf="showBuyCreditsModal">
+  <div class="modal-overlay" (click)="closeBuyCreditsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Купи кредити</h2>
+        <button mat-icon-button (click)="closeBuyCreditsModal()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="credit-packages">
+          <h3>Избери пакет:</h3>
+          
+          <mat-form-field appearance="outline" class="package-select">
+            <mat-label>Изберете пакет</mat-label>
+            <mat-select [(ngModel)]="selectedPackage" name="packageSelect" placeholder="Изберете пакет" (selectionChange)="onPackageChange($event)">
+              <mat-option *ngFor="let pkg of creditPackages; trackBy: trackByCredits" [value]="pkg">
+                {{ pkg.credits }} кредита - {{ pkg.price }} лв
+                <span *ngIf="pkg.discount"> ({{ pkg.discount }})</span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="selected-package" *ngIf="selectedPackage">
+            <div class="package-details">
+              <h4>Избран пакет:</h4>
+              <div class="package-info">
+                <mat-icon color="accent">stars</mat-icon>
+                <span>{{ selectedPackage.credits }} кредита за {{ selectedPackage.price }} лева</span>
+              </div>
+              <p class="package-description" *ngIf="selectedPackage.description">
+                {{ selectedPackage.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="payment-section" *ngIf="selectedPackage">
+          <h3>Картово плащане:</h3>
+          <form class="payment-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Номер на карта</mat-label>
+              <input matInput [(ngModel)]="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+            </mat-form-field>
+
+            <div class="card-details">
+              <mat-form-field appearance="outline">
+                <mat-label>MM/YY</mat-label>
+                <input matInput [(ngModel)]="cardExpiry" name="cardExpiry" placeholder="12/25" maxlength="5">
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>CVV</mat-label>
+                <input matInput [(ngModel)]="cardCvv" name="cardCvv" placeholder="123" maxlength="3" type="password">
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Име на картодържателя</mat-label>
+              <input matInput [(ngModel)]="cardHolderName" name="cardHolderName" placeholder="IVAN IVANOV">
+            </mat-form-field>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-button (click)="closeBuyCreditsModal()">Затвори</button>
+        <button mat-raised-button color="primary" 
+                [disabled]="!selectedPackage || !isPaymentFormValid()"
+                (click)="processPurchase()">
+          Купи за {{ selectedPackage?.price || 0 }} лв
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>
