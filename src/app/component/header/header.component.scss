@@ -130,6 +130,10 @@
   z-index: 1000;
   display: flex;
   animation: fadeIn 0.3s ease-in-out;
+  
+  // Fix for Brave browser compatibility
+  transform: translateZ(0);
+  will-change: opacity, transform;
 }
 
 .mobile-menu-content {
@@ -138,7 +142,15 @@
   background: white;
   box-shadow: 4px 0 8px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
+  overflow-x: hidden;
   animation: slideInLeft 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  
+  padding-bottom: 20px;
 
   .mobile-user-info {
     padding: 16px;
@@ -202,6 +214,14 @@
         margin-right: 12px;
       }
     }
+  }
+  
+  .mobile-user-actions {
+    padding-bottom: 30px;
+  }
+  
+  .mobile-auth-actions {
+    padding-bottom: 30px;
   }
 
   .mobile-notifications {
