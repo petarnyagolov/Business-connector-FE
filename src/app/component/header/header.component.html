@@ -103,7 +103,7 @@
             <mat-label>Изберете пакет</mat-label>
             <mat-select [(ngModel)]="selectedPackage" name="packageSelect" placeholder="Изберете пакет" (selectionChange)="onPackageChange($event)">
               <mat-option *ngFor="let pkg of creditPackages; trackBy: trackByCredits" [value]="pkg">
-                {{ pkg.credits }} кредита - {{ pkg.price }} лв
+                {{ pkg.credits }} кредита - {{ pkg.price }} лв ({{ convertBgnToEur(pkg.price) }}€)
                 <span *ngIf="pkg.discount"> ({{ pkg.discount }})</span>
               </mat-option>
             </mat-select>
@@ -114,7 +114,7 @@
               <h4>Избран пакет:</h4>
               <div class="package-info">
                 <mat-icon color="accent">stars</mat-icon>
-                <span>{{ selectedPackage.credits }} кредита за {{ selectedPackage.price }} лева</span>
+                <span>{{ selectedPackage.credits }} кредита за {{ selectedPackage.price }} лева ({{ convertBgnToEur(selectedPackage.price) }}€)</span>
               </div>
               <p class="package-description" *ngIf="selectedPackage.description">
                 {{ selectedPackage.description }}
@@ -156,7 +156,7 @@
         <button mat-raised-button color="primary" 
                 [disabled]="!selectedPackage || !isPaymentFormValid()"
                 (click)="processPurchase()">
-          Купи за {{ selectedPackage?.price || 0 }} лв
+          Купи за {{ selectedPackage?.price || 0 }} лв ({{ selectedPackage ? convertBgnToEur(selectedPackage.price) : 0 }}€)
         </button>
       </div>
     </div>

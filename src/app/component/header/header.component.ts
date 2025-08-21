@@ -60,6 +60,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   showBuyCreditsModal: boolean = false;
   selectedPackage: CreditPackage | null = null;
+  private readonly EUR_TO_BGN_RATE = 1.95583;
+
   
   cardNumber: string = '';
   cardExpiry: string = '';
@@ -74,20 +76,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
         description: 'Стартов пакет за малки проекти' 
       },
       { 
-        credits: 200, 
+        credits: 20, 
         price: 150, 
-        discount: 'Икономия от 1850 лв!',
-        description: 'Най-популярен избор за бизнес клиенти' 
+        // discount: '-25%!',
+        description: 'Най-популярен избор за средни компании' 
       },
       { 
-        credits: 300, 
-        price: 300, 
-        discount: 'Икономия от 2700 лв!',
+        credits: 35, 
+        price: 200, 
+        // discount: 'Икономия от 225 лв!',
         description: 'Професионален пакет за големи компании' 
       }
     ];
   }
 
+convertBgnToEur(bgnAmount: number): number {
+  return Math.round((bgnAmount / this.EUR_TO_BGN_RATE) * 100) / 100; // Round to 2 decimal places
+}
   trackByCredits(index: number, item: CreditPackage): number {
     return item.credits;
   }
@@ -196,18 +201,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // TODO: Integrate with payment gateway
     console.log('Processing purchase:', {
       package: this.selectedPackage,
       cardNumber: this.cardNumber.substring(0, 4) + '****', // Security
       amount: this.selectedPackage.price
     });
 
-    // For now, just show success message and close modal
     alert(`Успешно закупихте ${this.selectedPackage.credits} кредита за ${this.selectedPackage.price} лева!`);
     this.closeBuyCreditsModal();
     
-    // Refresh user credits
     this.freeCredits = this.authService.getFreeCredits();
   }
 }
