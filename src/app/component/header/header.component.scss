@@ -1,46 +1,257 @@
 
+.header-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  position: relative;
+  background-color: #63b175 !important; 
+  color: white !important; 
+  
+  &.mat-toolbar {
+    background-color: #63b175 !important;
+    color: white !important;
+  }
+  
+  * {
+    color: white !important;
+  }
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  .app-logo {
+    height: 40px;
+    width: auto;
+  }
+  
+  .page-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: white !important;
+  }
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  .nav-links {
+    display: flex;
+    gap: 8px;
+    
+    a {
+      color: white !important;
+      text-decoration: none;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+      }
+      
+      mat-icon {
+        color: white !important;
+      }
+      
+      &.mat-button {
+        color: white !important;
+      }
+    }
+  }
+
+  .user-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    button {
+      color: white !important;
+      
+      &.mat-icon-button {
+        color: white !important;
+      }
+      
+      mat-icon {
+        color: white !important;
+      }
+    }
+  }
+
+  .auth-buttons {
+    display: flex;
+    gap: 8px;
+    
+    a {
+      color: white !important;
+      
+      &.mat-button {
+        color: white !important;
+      }
+      
+      &.mat-raised-button {
+        background-color: #4caf50;
+        color: white !important;
+      }
+    }
+  }
+}
+
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: block;
+  }
+
+  .logo-section {
+    .page-title {
+      font-size: 1rem;
+    }
+  }
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.mobile-menu-content {
+  width: 280px;
+  height: 100vh;
+  background: white;
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  animation: slideInLeft 0.3s ease-in-out;
+
+  .mobile-user-info {
+    padding: 16px;
+    background: #f5f5f5;
+
+    .mobile-user-details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .user-avatar {
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        color: #666;
+      }
+
+      .mobile-user-text {
+        .mobile-user-name {
+          font-weight: 500;
+          font-size: 1.1rem;
+          color: #333;
+        }
+        
+        .mobile-user-email {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 2px 0;
+        }
+        
+        .mobile-user-credits {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.9rem;
+          color: #2196F3;
+          font-weight: 500;
+          
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+    }
+  }
+
+  .mobile-nav-links,
+  .mobile-user-actions,
+  .mobile-auth-actions {
+    padding: 8px 0;
+
+    button {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 12px 16px;
+      text-align: left;
+      
+      mat-icon {
+        margin-right: 12px;
+      }
+    }
+  }
+
+  .mobile-notifications {
+    padding: 16px;
+    
+    .mobile-notifications-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .mobile-notification-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      font-size: 0.9rem;
+      color: #666;
+      border-bottom: 1px solid #eee;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: #999;
+      }
+    }
+  }
+
+  .mobile-logout-btn {
+    color: #f44336 !important;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
 
 
-// .logout-btn {
-//   margin-left: auto;
 
-// }
 
-// header {
-//   // background-color: limegreen;
-//   background-color: #63b175;
-//   padding: 10px;
-// }
-
-// nav {
-//   display: flex;
-//   align-items: center;
-// }
-
-// nav a {
-//   margin-right: 10px;
-//   text-decoration: none;
-//   color: #ffffff;
-// }
-
-// nav a:hover {
-//   background-color: #eaf84c;
-//   transform: scale(1.05);
-// }
-
-// .right {
-//   margin-left: auto;
-// }
-
-// .logout-btn {
-//   margin-left: auto;
-// }
-
-// .app-logo {
-//   height: 50px;
-//   width: auto;
-//   margin-right: 20px;
-// }
 .sidenav-container {
   height: 64px;
   position: relative;
@@ -91,30 +302,8 @@
   flex: 1 1 auto;
 }
 
-.nav-links {
-  display: flex;
-  align-items: center;
-
-  a {
-    color: white;
-    margin-right: 10px;
-    text-decoration: none;
-
-    &:hover {
-      background-color: #eaf84c;
-      color:green;
-    }
-  }
-}
-
-// .mobile-toggle {
-//   display: none;
-// }
 
 @media (max-width: 100%) {
-  // .nav-links {
-  //   display: none;
-  // }
 
   .mobile-menu {
     position: fixed; 

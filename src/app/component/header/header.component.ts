@@ -30,14 +30,14 @@ interface CreditPackage {
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
   imports: [
-    RouterModule, 
-    NgIf,  
+    RouterModule,
+    NgIf,
     NgFor,
     FormsModule,
-    MatMenuModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatSidenavModule, 
+    MatMenuModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSidenavModule,
     MatToolbarModule,
     MatDividerModule,
     MatBadgeModule,
@@ -49,8 +49,8 @@ interface CreditPackage {
 })
 
 export class HeaderComponent implements OnInit, OnDestroy {
-  @Input() pageTitle!:string;
-  @Input() logoSrc!:string;
+  @Input() pageTitle!: string;
+  @Input() logoSrc!: string;
   isAuthenticated: boolean = false;
   savedRequestsCount: number = 0;
   userName: string | null = null;
@@ -58,11 +58,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   freeCredits: number = 0;
   private destroy$ = new Subject<void>();
 
+  isMobileMenuOpen: boolean = false;
   showBuyCreditsModal: boolean = false;
   selectedPackage: CreditPackage | null = null;
+
   private readonly EUR_TO_BGN_RATE = 1.95583;
 
-  
+
   cardNumber: string = '';
   cardExpiry: string = '';
   cardCvv: string = '';
@@ -70,38 +72,27 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   get creditPackages(): CreditPackage[] {
     return [
-      { 
-        credits: 10, 
-        price: 100, 
-        description: 'Стартов пакет за малки проекти' 
+      {
+        credits: 10,
+        price: 100,
+        description: 'Стартов пакет за малки проекти'
       },
-      { 
-        credits: 20, 
-        price: 150, 
+      {
+        credits: 20,
+        price: 150,
         // discount: '-25%!',
-        description: 'Най-популярен избор за средни компании' 
+        description: 'Най-популярен избор за средни компании'
       },
-      { 
-        credits: 35, 
-        price: 200, 
+      {
+        credits: 35,
+        price: 200,
         // discount: 'Икономия от 225 лв!',
-        description: 'Професионален пакет за големи компании' 
+        description: 'Професионален пакет за големи компании'
       }
     ];
   }
 
-convertBgnToEur(bgnAmount: number): number {
-  return Math.round((bgnAmount / this.EUR_TO_BGN_RATE) * 100) / 100; // Round to 2 decimal places
-}
-  trackByCredits(index: number, item: CreditPackage): number {
-    return item.credits;
-  }
 
-  onPackageChange(event: MatSelectChange) {
-    console.log('Package changed:', event.value);
-    this.selectedPackage = event.value;
-    this.cdr.detectChanges(); 
-  }
 
   notifications = [
     { id: 1, text: 'Нова оферта за вашата фирма.' },
@@ -112,7 +103,7 @@ convertBgnToEur(bgnAmount: number): number {
   ];
 
   constructor(
-    private authService: AuthService, 
+    private authService: AuthService,
     private router: Router,
     private savedRequestsService: SavedRequestsService,
     private cdr: ChangeDetectorRef
@@ -125,9 +116,9 @@ convertBgnToEur(bgnAmount: number): number {
         this.userName = this.authService.getUserName();
         this.userEmail = this.authService.getUserEmail();
         this.freeCredits = this.authService.getFreeCredits();
-        
+
         this.savedRequestsService.initializeForAuthenticatedUser();
-        
+
         this.savedRequestsService.savedRequestsCount$
           .pipe(takeUntil(this.destroy$))
           .subscribe(count => {
@@ -148,31 +139,57 @@ convertBgnToEur(bgnAmount: number): number {
   }
 
   onLogout() {
+    this.closeMobileMenu();
     this.authService.logout();
-    this.router.navigate(['/login']); 
+    this.router.navigate(['/login']);
   }
 
   onSettings() {
+    this.closeMobileMenu();
     this.router.navigate(['/settings']);
   }
 
   onSeeAllNotifications() {
+    this.closeMobileMenu();
     this.router.navigate(['/notifications']);
   }
 
   onInvoices() {
+    this.closeMobileMenu();
     this.router.navigate(['/invoices']);
   }
 
   onBuyCredits() {
+    this.closeMobileMenu();
     console.log('🔍 Opening buy credits modal');
     console.log('🔍 Credit packages:', this.creditPackages);
     this.showBuyCreditsModal = true;
     this.resetPaymentForm();
-    
+
     setTimeout(() => {
       this.cdr.detectChanges();
     }, 0);
+  }
+
+    toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+  }
+
+  convertBgnToEur(bgnAmount: number): number {
+    return Math.round((bgnAmount / this.EUR_TO_BGN_RATE) * 100) / 100; // Round to 2 decimal places
+  }
+  trackByCredits(index: number, item: CreditPackage): number {
+    return item.credits;
+  }
+
+  onPackageChange(event: MatSelectChange) {
+    console.log('Package changed:', event.value);
+    this.selectedPackage = event.value;
+    this.cdr.detectChanges();
   }
 
   trackByPackage(index: number, pkg: CreditPackage): number {
@@ -209,7 +226,7 @@ convertBgnToEur(bgnAmount: number): number {
 
     alert(`Успешно закупихте ${this.selectedPackage.credits} кредита за ${this.selectedPackage.price} лева!`);
     this.closeBuyCreditsModal();
-    
+
     this.freeCredits = this.authService.getFreeCredits();
   }
 }

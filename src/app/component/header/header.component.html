@@ -1,12 +1,12 @@
-<mat-sidenav-container class="sidenav-container">
-
-  <mat-toolbar color="primary" class="top-toolbar">
-
+<mat-toolbar color="primary" class="header-toolbar">
+  <div class="logo-section">
     <img src="/logo.png" class="app-logo" alt="Logo" />
-    <span class="spacer"></span>
-    <nav class="nav-links">
+    <span class="page-title">XDealHub.com</span>
+  </div>
+
+  <div class="desktop-nav">
+    <div class="nav-links">
       <a mat-button routerLink="/home">Начало</a>
-      <!-- <a mat-button routerLink="/companies">Фирми</a> -->
       <a mat-button routerLink="/requests" *ngIf="isAuthenticated">Публикации</a>
       <a mat-button routerLink="/user/companies" *ngIf="isAuthenticated">Моите фирми</a>
       <a mat-button routerLink="/my-requests" *ngIf="isAuthenticated">Моите Публикации</a>
@@ -25,13 +25,13 @@
         Запазени
       </a>
       <a mat-button routerLink="/about">За нас</a>
-      <a mat-button routerLink="/login" *ngIf="!isAuthenticated">Влез</a>
-      <a mat-button routerLink="/register" *ngIf="!isAuthenticated">Регистрация</a>
-      <!-- Account icon and menu for authenticated users -->
-      <button mat-icon-button [matMenuTriggerFor]="accountMenu" *ngIf="isAuthenticated">
+    </div>
+
+    <div class="user-actions" *ngIf="isAuthenticated">
+      <button mat-icon-button [matMenuTriggerFor]="accountMenu">
         <mat-icon>account_circle</mat-icon>
       </button>
-      <mat-menu #accountMenu="matMenu">
+      <mat-menu #accountMenu="matMenu" class="account-menu">
         <div mat-menu-item disabled style="white-space: normal; opacity: 1; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-bottom: 8px;">
           <div style="display: flex; flex-direction: column; align-items: flex-start;">
             <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
@@ -48,14 +48,12 @@
           </div>
         </div>
         
-        <!-- Buy Credits Button -->
         <button mat-menu-item (click)="onBuyCredits()">
           <mat-icon color="accent">add_shopping_cart</mat-icon>
           <span>Купи кредити</span>
         </button>
         <mat-divider></mat-divider>
         
-        <!-- Notifications Section -->
         <ng-container *ngFor="let notification of notifications">
           <button mat-menu-item disabled style="white-space: normal; opacity: 1;">
             <mat-icon color="primary" style="margin-right:8px;">notifications</mat-icon>
@@ -80,11 +78,136 @@
           <span>Излез</span>
         </button>
       </mat-menu>
-    </nav>
-  </mat-toolbar>
-</mat-sidenav-container>
+    </div>
 
-<!-- Buy Credits Modal -->
+    <div class="auth-buttons" *ngIf="!isAuthenticated">
+      <a mat-button routerLink="/login">Влез</a>
+      <a mat-raised-button color="accent" routerLink="/register">Регистрация</a>
+    </div>
+  </div>
+
+  <div class="mobile-nav">
+    <button mat-icon-button (click)="toggleMobileMenu()" class="mobile-menu-btn">
+      <mat-icon>{{ isMobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>
+
+<div class="mobile-menu-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()">
+  <div class="mobile-menu-content" (click)="$event.stopPropagation()">
+    
+    <div class="mobile-user-info" *ngIf="isAuthenticated">
+      <div class="mobile-user-details">
+        <mat-icon class="user-avatar">account_circle</mat-icon>
+        <div class="mobile-user-text">
+          <div class="mobile-user-name">{{ userName || 'Потребител' }}</div>
+          <div class="mobile-user-email">{{ userEmail }}</div>
+          <div class="mobile-user-credits">
+            <mat-icon>account_balance_wallet</mat-icon>
+            Кредити: {{ freeCredits }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <mat-divider *ngIf="isAuthenticated"></mat-divider>
+
+    <div class="mobile-nav-links">
+      <button mat-button routerLink="/home" (click)="closeMobileMenu()">
+        <mat-icon>home</mat-icon>
+        Начало
+      </button>
+      
+      <ng-container *ngIf="isAuthenticated">
+        <button mat-button routerLink="/requests" (click)="closeMobileMenu()">
+          <mat-icon>business</mat-icon>
+          Публикации
+        </button>
+        <button mat-button routerLink="/user/companies" (click)="closeMobileMenu()">
+          <mat-icon>domain</mat-icon>
+          Моите фирми
+        </button>
+        <button mat-button routerLink="/my-requests" (click)="closeMobileMenu()">
+          <mat-icon>post_add</mat-icon>
+          Моите Публикации
+        </button>
+        <button mat-button routerLink="/my-responses" (click)="closeMobileMenu()">
+          <mat-icon>reply</mat-icon>
+          Моите Предложения
+        </button>
+        <button mat-button routerLink="/saved-requests" (click)="closeMobileMenu()">
+          <mat-icon 
+            [matBadge]="savedRequestsCount" 
+            [matBadgeHidden]="savedRequestsCount === 0" 
+            matBadgeColor="accent"
+            aria-hidden="false"
+            [attr.aria-label]="'Запазени публикации: ' + savedRequestsCount">
+            bookmark
+          </mat-icon>
+          Запазени
+        </button>
+      </ng-container>
+      
+      <button mat-button routerLink="/about" (click)="closeMobileMenu()">
+        <mat-icon>info</mat-icon>
+        За нас
+      </button>
+    </div>
+
+    <mat-divider *ngIf="isAuthenticated"></mat-divider>
+
+    <div class="mobile-user-actions" *ngIf="isAuthenticated">
+      <button mat-button (click)="onBuyCredits()">
+        <mat-icon>add_shopping_cart</mat-icon>
+        Купи кредити
+      </button>
+
+      <div class="mobile-notifications">
+        <div class="mobile-notifications-header">
+          <mat-icon>notifications</mat-icon>
+          <span>Известия ({{ notifications.length }})</span>
+        </div>
+        <div class="mobile-notification-item" *ngFor="let notification of notifications">
+          <mat-icon>notifications_none</mat-icon>
+          <span>{{ notification.text }}</span>
+        </div>
+        <button mat-button (click)="onSeeAllNotifications()">
+          <mat-icon>view_list</mat-icon>
+          Виж всички известия
+        </button>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <button mat-button (click)="onInvoices()">
+        <mat-icon>receipt_long</mat-icon>
+        Фактури
+      </button>
+
+      <button mat-button (click)="onSettings()">
+        <mat-icon>settings</mat-icon>
+        Настройки
+      </button>
+
+      <button mat-button (click)="onLogout()" class="mobile-logout-btn">
+        <mat-icon>logout</mat-icon>
+        Излез
+      </button>
+    </div>
+
+    <div class="mobile-auth-actions" *ngIf="!isAuthenticated">
+      <button mat-button routerLink="/login" (click)="closeMobileMenu()">
+        <mat-icon>login</mat-icon>
+        Влез
+      </button>
+      <button mat-raised-button color="accent" routerLink="/register" (click)="closeMobileMenu()">
+        <mat-icon>person_add</mat-icon>
+        Регистрация
+      </button>
+    </div>
+  </div>
+</div>
+
 <ng-container *ngIf="showBuyCreditsModal">
   <div class="modal-overlay" (click)="closeBuyCreditsModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
