@@ -404,4 +404,10 @@ export class AuthService {
       return 0;
     }
   }
+
+  refreshUserInfo(): void {
+    console.log('🔄 Refreshing user info and credits...');
+    const isAuth = this.isAuthenticated();
+    this.authStatusSubject.next(isAuth);
+  }
 }

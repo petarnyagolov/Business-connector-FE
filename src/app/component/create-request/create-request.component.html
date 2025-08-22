@@ -1,7 +1,25 @@
 <form [formGroup]="requestForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data" class="request-form">
   <mat-card>
-    <mat-card-title>Създай публикация</mat-card-title>
+    <mat-card-title>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Създай публикация</span>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #2196F3; font-weight: 500;">
+          <mat-icon style="font-size: 18px;">account_balance_wallet</mat-icon>
+          <span>Кредити: {{ creditsService.getCurrentCredits() }}</span>
+        </div>
+      </div>
+    </mat-card-title>
     <mat-card-content>
+      <!-- Credits warning if low -->
+      <div *ngIf="creditsService.getCurrentCredits() <= 1" 
+           style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <mat-icon style="color: #e17055;">warning</mat-icon>
+        <span style="color: #d63031; font-weight: 500;">
+          <span *ngIf="creditsService.getCurrentCredits() === 0">Нямате кредити! Закупете кредити, за да създавате публикации. (горе вдясно Акаунт-> Купи кредити)</span>
+          <span *ngIf="creditsService.getCurrentCredits() === 1">Имате само 1 кредит останал. След тази публикация ще трябва да закупите още.</span>
+        </span>
+      </div>
+      
       <div class="form-fields">
         <mat-form-field appearance="fill">
           <mat-label>Фирма</mat-label>
@@ -173,10 +191,13 @@
         mat-raised-button 
         color="primary" 
         type="submit" 
-        [disabled]="requestForm.invalid"
-        [title]="requestForm.invalid ? 'Формата е невалидна - попълнете всички задължителни полета' : 'Създай публикация'"
+        [disabled]="requestForm.invalid || creditsService.getCurrentCredits() <= 0"
+        [title]="creditsService.getCurrentCredits() <= 0 ? 'Нямате достатъчно кредити' : (requestForm.invalid ? 'Формата е невалидна - попълнете всички задължителни полета' : 'Създай публикация')"
       >
-        Създай {{ requestForm.invalid ? '(DISABLED)' : '' }}
+        <mat-icon style="margin-right: 4px;">add</mat-icon>
+        Създай публикация 
+        <span *ngIf="creditsService.getCurrentCredits() <= 0" style="color: #f44336;"> (Няма кредити)</span>
+        <span *ngIf="requestForm.invalid && creditsService.getCurrentCredits() > 0" style="color: #ff9800;"> (Невалидна форма)</span>
       </button>
       <button mat-button color="warn" type="button" (click)="onCancel()">Отказ</button>
       

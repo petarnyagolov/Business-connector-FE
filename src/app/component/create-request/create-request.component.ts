@@ -19,6 +19,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../service/auth.service';
 import { EmailVerificationService } from '../../service/email-verification.service';
+import { CreditsService } from '../../service/credits.service';
 
 @Component({
   selector: 'app-create-request',
@@ -55,7 +56,8 @@ export class CreateRequestComponent implements OnDestroy {
     private companyService: CompanyService,
     private router: Router,
     private authService: AuthService,
-    private emailVerificationService: EmailVerificationService
+    private emailVerificationService: EmailVerificationService,
+    public creditsService: CreditsService
   ) {
     console.log('🚀 CreateRequestComponent constructor called - TESTING');
     this.requestForm = this.fb.group({
@@ -189,6 +191,13 @@ export class CreateRequestComponent implements OnDestroy {
 
   onSubmit(): void {
     console.log('🎯 onSubmit called');
+    
+    const currentCredits = this.creditsService.getCurrentCredits();
+    if (currentCredits <= 0) {
+      alert('Нямате достатъчно кредити за създаване на публикация. Моля, закупете кредити.');
+      return;
+    }
+    
     console.log('📧 Checking email verification...');
     
     this.emailVerificationService.checkVerificationOrPrompt().subscribe({
@@ -293,6 +302,10 @@ export class CreateRequestComponent implements OnDestroy {
     this.companyRequestService.createRequest(formData).subscribe({
       next: (response) => {
         console.log('✅ Request created successfully:', response);
+        
+        // Decrement credits after successful creation
+        this.creditsService.decrementCredits();
+        
         this.router.navigate(['/my-requests']);
       },
       error: err => {

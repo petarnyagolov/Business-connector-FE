@@ -22,6 +22,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { EmailVerificationService } from '../../service/email-verification.service';
+import { CreditsService } from '../../service/credits.service';
 
 @Component({
   selector: 'app-user-requests',
@@ -71,13 +73,13 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     private companyService: CompanyService,
     private sanitizer: DomSanitizer,
     private http: HttpClient,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private emailVerificationService: EmailVerificationService,
+    public creditsService: CreditsService
   ) {
-    // this.loadRequests(); // Remove initial call from constructor
   }
 
   ngOnInit(): void {
-    // Зареждаме user companies само веднъж
     this.companyService.getAllCompaniesByUser()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -439,6 +441,32 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   onSubmitRequest(): void {
     console.log('🎯 Modal onSubmitRequest called');
     
+    const currentCredits = this.creditsService.getCurrentCredits();
+    if (currentCredits <= 0) {
+      alert('Нямате достатъчно кредити за създаване на публикация. Моля, закупете кредити.');
+      return;
+    }
+    
+    console.log('📧 Checking email verification for modal request...');
+    
+    this.emailVerificationService.checkVerificationOrPrompt().subscribe({
+      next: (canProceed: boolean) => {
+        console.log('📧 Modal email verification result:', canProceed);
+        if (!canProceed) {
+          console.log('❌ Cannot proceed with modal request - email verification failed');
+          return; 
+        }
+        
+        console.log('✅ Modal email verification passed, proceeding to form submission');
+        this.processModalFormSubmission();
+      },
+      error: (error) => {
+        console.error('❌ Error during modal email verification check:', error);
+      }
+    });
+  }
+
+  private processModalFormSubmission(): void {
     if (this.requestForm.valid && !this.isSubmitting) {
       console.log('✅ Modal form is valid, proceeding...');
       
@@ -510,7 +538,10 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
             console.log('✅ Modal request created successfully:', response);
             this.isSubmitting = false;
             this.closeCreateRequestModal();
-            this.loadRequests(); // Reload the requests list
+            
+            this.creditsService.decrementCredits();
+            
+            this.loadRequests(); 
           },
           error: (err) => {
             console.error('❌ Modal error creating request:', err);

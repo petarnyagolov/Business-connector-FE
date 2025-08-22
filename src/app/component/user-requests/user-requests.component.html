@@ -167,12 +167,30 @@
     <form [formGroup]="requestForm" (ngSubmit)="onSubmitRequest()" enctype="multipart/form-data" class="request-form">
       <mat-card style="box-shadow: none;">
         <mat-card-header style="display: flex; justify-content: space-between; align-items: center; padding: 16px;">
-          <mat-card-title>Създай публикация</mat-card-title>
+          <mat-card-title>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span>Създай публикация</span>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #2196F3; font-weight: 500; margin-right: 40px;">
+                <mat-icon style="font-size: 18px;">account_balance_wallet</mat-icon>
+                <span>Кредити: {{ creditsService.getCurrentCredits() }}</span>
+              </div>
+            </div>
+          </mat-card-title>
           <button type="button" mat-icon-button (click)="closeCreateRequestModal()">
             <mat-icon>close</mat-icon>
           </button>
         </mat-card-header>
         <mat-card-content>
+          <!-- Credits warning if low -->
+          <div *ngIf="creditsService.getCurrentCredits() <= 1" 
+               style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <mat-icon style="color: #e17055;">warning</mat-icon>
+            <span style="color: #d63031; font-weight: 500;">
+              <span *ngIf="creditsService.getCurrentCredits() === 0">Нямате кредити! Закупете кредити за да създавате публикации.(Акаунт -> Купи кредити)</span>
+              <span *ngIf="creditsService.getCurrentCredits() === 1">Имате само 1 кредит останал. След тази публикация ще трябва да закупите още.</span>
+            </span>
+          </div>
+          
           <div class="form-fields">
             <mat-form-field appearance="fill" style="width: 100%;">
               <mat-label>Фирма</mat-label>
@@ -352,8 +370,14 @@
         <mat-card-actions style="display: flex; justify-content: flex-end; gap: 12px; padding: 16px;">
           <!-- <button mat-button color="accent" type="button" (click)="logModalFormStatus()">Debug Form</button> -->
           <button mat-button color="warn" type="button" (click)="closeCreateRequestModal()">Отказ</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="requestForm.invalid || isSubmitting">
-            <span *ngIf="!isSubmitting">Създай</span>
+          <button mat-raised-button color="primary" type="submit" 
+                  [disabled]="requestForm.invalid || isSubmitting || creditsService.getCurrentCredits() <= 0"
+                  [title]="creditsService.getCurrentCredits() <= 0 ? 'Нямате достатъчно кредити' : (requestForm.invalid ? 'Формата е невалидна' : 'Създай публикация')">
+            <mat-icon style="margin-right: 4px;" *ngIf="!isSubmitting">add</mat-icon>
+            <span *ngIf="!isSubmitting">
+              Създай публикация
+              <span *ngIf="creditsService.getCurrentCredits() <= 0" style="color: #f44336;"> (Няма кредити)</span>
+            </span>
             <span *ngIf="isSubmitting">Създава се...</span>
           </button>
         </mat-card-actions>

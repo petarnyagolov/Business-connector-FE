@@ -16,6 +16,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Subject, takeUntil } from 'rxjs';
+import { CreditsService } from '../../service/credits.service';
 
 interface CreditPackage {
   credits: number;
@@ -106,7 +107,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private savedRequestsService: SavedRequestsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private creditsService: CreditsService
   ) { }
 
   ngOnInit() {
@@ -115,7 +117,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (status) {
         this.userName = this.authService.getUserName();
         this.userEmail = this.authService.getUserEmail();
-        this.freeCredits = this.authService.getFreeCredits();
+        
+        this.creditsService.credits$
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(credits => {
+            this.freeCredits = credits;
+            console.log('🎯 Header credits updated:', credits);
+          });
 
         this.savedRequestsService.initializeForAuthenticatedUser();
 
@@ -227,6 +235,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     alert(`Успешно закупихте ${this.selectedPackage.credits} кредита за ${this.selectedPackage.price} лева!`);
     this.closeBuyCreditsModal();
 
-    this.freeCredits = this.authService.getFreeCredits();
+    // Update credits after purchase
+    this.creditsService.refreshFromToken();
   }
 }
