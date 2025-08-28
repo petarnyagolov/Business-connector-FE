@@ -404,6 +404,104 @@
   </button>
 </div>
 
+<div *ngIf="showSuccessModal" class="success-modal-overlay" (click)="closeSuccessModal()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 3000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease-out;">
+  <div class="success-modal-content" (click)="$event.stopPropagation()" style="background: white; border-radius: 16px; min-width: 400px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
+    
+    <div style="padding: 24px 24px 16px 24px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+      <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: linear-gradient(135deg, #4caf50, #45a049); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: bounceIn 0.6s ease-out 0.2s both;">
+        <mat-icon style="color: white; font-size: 28px; width: 28px; height: 28px;">
+          {{ successModalData.title === 'Грешка' ? 'error' : (successModalData.title === 'Внимание' ? 'warning' : 'check_circle') }}
+        </mat-icon>
+      </div>
+      <h3 style="margin: 0; font-size: 1.4rem; font-weight: 600; color: #333;">
+        {{ successModalData.title }}
+      </h3>
+    </div>
+    
+    <div style="padding: 20px 24px;">
+      <p style="margin: 0; font-size: 1rem; line-height: 1.6; color: #666; text-align: center;">
+        {{ successModalData.message }}
+      </p>
+    </div>
+    
+    <div style="padding: 16px 24px 24px; text-align: center;">
+      <button mat-raised-button 
+              [color]="successModalData.title === 'Грешка' ? 'warn' : 'primary'" 
+              (click)="closeSuccessModal()"
+              style="min-width: 120px; font-weight: 500; border-radius: 8px; text-transform: none;">
+        {{ successModalData.buttonText }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showConfirmModal" class="confirm-modal-overlay" (click)="closeConfirmModal(false)" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 3000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease-out;">
+  <div class="confirm-modal-content" (click)="$event.stopPropagation()" style="background: white; border-radius: 16px; min-width: 400px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
+    
+    <div style="padding: 24px 24px 16px 24px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+      <div style="width: 60px; height: 60px; margin: 0 auto 16px; background: linear-gradient(135deg, #ff9800, #f57c00); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: bounceIn 0.6s ease-out 0.2s both;">
+        <mat-icon style="color: white; font-size: 28px; width: 28px; height: 28px;">help</mat-icon>
+      </div>
+      <h3 style="margin: 0; font-size: 1.4rem; font-weight: 600; color: #333;">
+        {{ confirmModalData.title }}
+      </h3>
+    </div>
+    
+    <div style="padding: 20px 24px;">
+      <p style="margin: 0; font-size: 1rem; line-height: 1.6; color: #666; text-align: center;">
+        {{ confirmModalData.message }}
+      </p>
+    </div>
+    
+    <div style="padding: 16px 24px 24px; text-align: center; display: flex; gap: 12px; justify-content: center;">
+      <button mat-button 
+              (click)="closeConfirmModal(false)"
+              style="min-width: 100px; font-weight: 500; border-radius: 8px; text-transform: none;">
+        {{ confirmModalData.cancelText }}
+      </button>
+      <button mat-raised-button 
+              color="warn" 
+              (click)="confirmAction()"
+              style="min-width: 100px; font-weight: 500; border-radius: 8px; text-transform: none;">
+        {{ confirmModalData.confirmText }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInScale {
+    0% { 
+      opacity: 0; 
+      transform: scale(0.7) translateY(-20px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: scale(1) translateY(0); 
+    }
+  }
+  
+  @keyframes bounceIn {
+    0% { 
+      opacity: 0; 
+      transform: scale(0.3); 
+    }
+    50% { 
+      opacity: 1; 
+      transform: scale(1.1); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+  }
+</style>
+
 
 <ng-template #loading>
   <p>Зареждане...</p>

@@ -33,6 +33,21 @@ export class UserResponsesComponent implements OnInit {
   editResponseItem: any = null;
   editResponseRequiredFields: string[] = [];
 
+  showConfirmModal = false;
+  showSuccessModal = false;
+  confirmModalData: {
+    title: string;
+    message: string;
+    confirmText: string;
+    cancelText: string;
+  } = { title: '', message: '', confirmText: '', cancelText: '' };
+  successModalData: {
+    title: string;
+    message: string;
+    buttonText: string;
+  } = { title: '', message: '', buttonText: '' };
+  pendingDeleteItem: any = null;
+
   constructor(
     private responseService: ResponseService,
     private companyService: CompanyService,
@@ -182,7 +197,7 @@ export class UserResponsesComponent implements OnInit {
 
   submitEditResponse() {
     if (!this.editResponseData.newResponseText || this.editResponseData.newResponseText.trim() === '') {
-      alert('Моля, въведете нов текст към предложението!');
+      this.showSuccessMessage('Внимание', 'Моля, въведете нов текст към предложението!', 'ОК');
       return;
     }
     if (!this.editResponseItem) return;
@@ -193,7 +208,7 @@ export class UserResponsesComponent implements OnInit {
         this.closeEditResponseDialog();
       },
       error: () => {
-        alert('Грешка при редакция на предложението!');
+        this.showSuccessMessage('Грешка', 'Грешка при редакция на предложението!', 'ОК');
       }
     });
   }
@@ -201,20 +216,51 @@ export class UserResponsesComponent implements OnInit {
   deleteResponse(item: any) {
     if (!item || !item.id) return;
     
-    const confirmed = confirm('Сигурен ли си че искаш да премахнеш предложението завинаги?');
-    if (!confirmed) return;
-    
-    this.responseService.deleteResponse(item.id).subscribe({
-      next: () => {
-        // Премахваме отговора от локалния масив
-        this.userResponses = this.userResponses.filter(r => r.id !== item.id);
-        alert('Предложението е премахнато успешно!');
-      },
-      error: (error: any) => {
-        console.error('Error deleting response:', error);
-        alert('Грешка при изтриване на предложението!');
-      }
-    });
+    this.pendingDeleteItem = item;
+    this.showConfirmMessage(
+      'Потвърждение',
+      'Сигурен ли си че искаш да премахнеш предложението?',
+      'Да',
+      'Отказ'
+    );
+  }
+
+  showConfirmMessage(title: string, message: string, confirmText: string = 'Да', cancelText: string = 'Отказ'): void {
+    this.confirmModalData = { title, message, confirmText, cancelText };
+    this.showConfirmModal = true;
+  }
+
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.pendingDeleteItem = null;
+  }
+
+  confirmDeleteAction(): void {
+    if (this.pendingDeleteItem) {
+      const item = this.pendingDeleteItem;
+      this.closeConfirmModal();
+      
+      this.responseService.deleteResponse(item.id).subscribe({
+        next: () => {
+          // Премахваме отговора от локалния масив
+          this.userResponses = this.userResponses.filter(r => r.id !== item.id);
+          this.showSuccessMessage('Успех', 'Предложението е премахнато успешно!', 'ОК');
+        },
+        error: (error: any) => {
+          console.error('Error deleting response:', error);
+          this.showSuccessMessage('Грешка', 'Грешка при изтриване на предложението!', 'ОК');
+        }
+      });
+    }
+  }
+
+  showSuccessMessage(title: string, message: string, buttonText: string = 'ОК'): void {
+    this.successModalData = { title, message, buttonText };
+    this.showSuccessModal = true;
+  }
+
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
   }
 
   getFieldLabel(field: string): string {

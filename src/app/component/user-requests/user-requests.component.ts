@@ -45,6 +45,22 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     previewType = '';
     modalSelectedFiles: File[] = [];
     
+    showConfirmModal = false;
+    confirmModalData: {
+      title: string;
+      message: string;
+      confirmText: string;
+      cancelText: string;
+    } = { title: '', message: '', confirmText: '', cancelText: '' };
+    pendingDeleteId: string | null = null;
+    
+    showSuccessModal = false;
+    successModalData: {
+      title: string;
+      message: string;
+      buttonText: string;
+    } = { title: '', message: '', buttonText: '' };
+    
     requestForm!: FormGroup;
 
   companyRequest: CompanyRequest = {
@@ -140,10 +156,16 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   }
 
   loadRequests(): void {
+    console.log('🔄 loadRequests() called - making GET /request-company/user');
+    
+    const timestamp = new Date().getTime();
+    console.log('🕒 Using timestamp to prevent cache:', timestamp);
+    
     this.companyRequestService.getAllRequestsByUser().subscribe({
       next: (data: any[]) => {
-
+        console.log('✅ GET /request-company/user completed successfully');
         console.log('Received processed user requests data:', data);
+        
         this.companyRequests = data.map(req => {
           if (!req) {
             console.warn('Found null/undefined request item');
@@ -170,16 +192,93 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
           };
         }).filter(item => item !== null); 
         
-        console.log('Processed company requests for display:', this.companyRequests);
+        console.log('✅ Processed company requests for display, count:', this.companyRequests.length);
+        console.log('📋 Final requests list:', this.companyRequests.map(r => ({id: r.id, title: r.title})));
+        
+        console.log('🔄 Triggering change detection...');
+        setTimeout(() => {
+          console.log('⚡ Change detection triggered');
+        }, 100);
       },
       error: (error: Error) => {
-        console.error('Error fetching companies:', error);
+        console.error('❌ Error in GET /request-company/user:', error);
       }
     });
   }
 
   viewRequestDetails(requestId: string): void {
     this.router.navigate(['/requests', requestId]);
+  }
+
+  deleteRequest(requestId: string): void {
+    console.log('Delete request initiated for ID:', requestId);
+    
+    this.pendingDeleteId = requestId;
+    this.showConfirmMessage(
+      'Потвърждение',
+      'Сигурен ли си, че искаш да свалиш публикацията?',
+      'Да',
+      'Отказ'
+    );
+  }
+
+  showConfirmMessage(title: string, message: string, confirmText: string = 'Да', cancelText: string = 'Отказ'): void {
+    this.confirmModalData = { title, message, confirmText, cancelText };
+    this.showConfirmModal = true;
+  }
+
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.pendingDeleteId = null;
+  }
+
+  confirmDeleteAction(): void {
+    if (this.pendingDeleteId) {
+      const requestId = this.pendingDeleteId;
+      this.closeConfirmModal();
+      
+      console.log('✅ User confirmed deletion of request:', requestId);
+      console.log('🌐 Calling DELETE /request-company/' + requestId);
+      
+      this.companyRequestService.deleteRequest(requestId).subscribe({
+        next: () => {
+          console.log('✅ Request deleted successfully from backend:', requestId);
+          
+          console.log('🔄 Reloading requests from backend after successful deletion...');
+          this.loadRequests();
+          
+          this.showSuccessMessage('Успех', 'Публикацията е свалена успешно!', 'ОК');
+        },
+        error: (error: any) => {
+          console.error('❌ Error deleting request:', error);
+          console.log('🔍 Error details:');
+          console.log('Status:', error.status);
+          console.log('Error object:', error.error);
+          console.log('Error message:', error.error?.message);
+          
+          if (error.status === 404) {
+            console.log('✅ 404 detected - treating as already deleted');
+            
+            console.log('🔄 Reloading requests from backend after 404...');
+            this.loadRequests();
+            
+            this.showSuccessMessage('Успех', 'Публикацията е вече свалена!', 'ОК');
+          } else {
+            const errorMessage = error?.error?.message || error?.message || 'Неизвестна грешка';
+            this.showSuccessMessage('Грешка', 'Грешка при изтриване на публикацията: ' + errorMessage, 'ОК');
+          }
+        }
+      });
+    }
+  }
+
+  showSuccessMessage(title: string, message: string, buttonText: string = 'ОК'): void {
+    this.successModalData = { title, message, buttonText };
+    this.showSuccessModal = true;
+  }
+
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
   }
 
   onFileSelected(event: Event): void {
@@ -321,24 +420,6 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     this.resetForm();
   }
 
-  // // Debug метод за проверка на валидността на формата в модала
-  // logModalFormStatus(): void {
-  //   alert('MODAL DEBUG BUTTON CLICKED!');
-  //   console.log('🔍 MODAL DEBUG BUTTON CLICKED!');
-  //   console.log('📊 Modal Form valid:', this.requestForm.valid);
-  //   console.log('📊 Modal Form invalid:', this.requestForm.invalid);
-  //   console.log('📊 Modal Form errors:', this.requestForm.errors);
-    
-  //   Object.keys(this.requestForm.controls).forEach(key => {
-  //     const control = this.requestForm.get(key);
-  //     if (control && control.invalid) {
-  //       console.log(`❌ Modal Field "${key}" is invalid:`, control.errors);
-  //     } else if (control && control.valid) {
-  //       console.log(`✅ Modal Field "${key}" is valid:`, control.value);
-  //     }
-  //   });
-  // }
-
   private resetForm(): void {
     this.requestForm.reset({
       company: '',
@@ -387,13 +468,13 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     
     newFiles.forEach(newFile => {
       if (newFile.size > maxFileSize) {
-        alert(`Файлът "${newFile.name}" е твърде голям (${(newFile.size / (1024 * 1024)).toFixed(2)}MB). Максималният размер е 25MB.`);
+        this.showSuccessMessage('Внимание', `Файлът "${newFile.name}" е твърде голям (${(newFile.size / (1024 * 1024)).toFixed(2)}MB). Максималният размер е 25MB.`, 'ОК');
         console.warn('Modal file too large:', newFile.name, `${(newFile.size / (1024 * 1024)).toFixed(2)}MB`);
         return; 
       }
       
       if (!newFile.type.startsWith('image/') && newFile.type !== 'application/pdf') {
-        alert('Неподдържан тип файл: ' + newFile.name + '. Моля, използвайте само изображения или PDF файлове.');
+        this.showSuccessMessage('Внимание', 'Неподдържан тип файл: ' + newFile.name + '. Моля, използвайте само изображения или PDF файлове.', 'ОК');
         console.warn('Unsupported file type ignored in modal:', newFile.type);
         return; 
       }
@@ -443,7 +524,7 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     
     const currentCredits = this.creditsService.getCurrentCredits();
     if (currentCredits <= 0) {
-      alert('Нямате достатъчно кредити за създаване на публикация. Моля, закупете кредити.');
+      this.showSuccessMessage('Внимание', 'Нямате достатъчно кредити за създаване на публикация. Моля, закупете кредити.', 'ОК');
       return;
     }
     
@@ -474,7 +555,7 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       const oversizedFiles = this.modalSelectedFiles.filter(file => file.size > maxFileSize);
       if (oversizedFiles.length > 0) {
         const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)}MB)`).join(', ');
-        alert(`Следните файлове са твърде големи: ${fileNames}. Максималният размер е 25MB на файл.`);
+        this.showSuccessMessage('Внимание', `Следните файлове са твърде големи: ${fileNames}. Максималният размер е 25MB на файл.`, 'ОК');
         return;
       }
       
@@ -546,13 +627,13 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
           error: (err) => {
             console.error('❌ Modal error creating request:', err);
             this.isSubmitting = false;
-            alert('Грешка при създаване на публикация: ' + (err.message || err.error?.message || 'Неизвестна грешка'));
+            this.showSuccessMessage('Грешка', 'Грешка при създаване на публикация: ' + (err.message || err.error?.message || 'Неизвестна грешка'), 'ОК');
           }
         });
       } else {
         console.error('❌ No company selected in modal!');
         this.isSubmitting = false;
-        alert('Моля, изберете фирма!');
+        this.showSuccessMessage('Внимание', 'Моля, изберете фирма!', 'ОК');
       }
     } else {
       console.log('❌ Modal form is invalid or already submitting');

@@ -71,6 +71,22 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   };
   selectedResponse: any = null;
   
+  showSuccessModal: boolean = false;
+  successModalData = {
+    title: '',
+    message: '',
+    buttonText: 'ОК'
+  };
+  
+  showConfirmModal: boolean = false;
+  confirmModalData = {
+    title: '',
+    message: '',
+    confirmText: 'Да',
+    cancelText: 'Не'
+  };
+  pendingDeleteResponse: any = null;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -277,7 +293,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error submitting response:', error);
-        alert('Възникна грешка при изпращането на предложението.');
+        this.showSuccessMessage('Грешка', 'Възникна грешка при изпращането на предложението.', 'ОК');
       }
     });
   }
@@ -320,7 +336,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
 
   submitEditResponse() {
     if (!this.editResponseItem || !this.editResponseData.additionalText?.trim()) {
-      alert('Моля, въведете текст за добавяне към предложението.');
+      this.showSuccessMessage('Внимание', 'Моля, въведете текст за добавяне към предложението.', 'ОК');
       return;
     }
     
@@ -348,7 +364,11 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         console.error('Error updating response:', error);
-        alert('Грешка при обновяване на предложението!');
+        this.showSuccessMessage(
+          'Грешка',
+          'Грешка при обновяване на предложението! Моля, опитайте отново.',
+          'Затвори'
+        );
       }
     });
   }
@@ -356,18 +376,34 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   deleteResponse(resp: any) {
     if (!resp || !resp.id) return;
     
-    const confirmed = confirm('Сигурен ли си че искаш да премахнеш предложението завинаги?');
-    if (!confirmed) return;
-    
+    this.pendingDeleteResponse = resp;
+    this.confirmModalData = {
+      title: 'Потвърждение за изтриване',
+      message: 'Сигурен ли си че искаш да премахнеш предложението завинаги?',
+      confirmText: 'Изтрий',
+      cancelText: 'Отказ'
+    };
+    this.showConfirmModal = true;
+  }
+
+  executeDeleteResponse(resp: any): void {
     this.responseService.deleteResponse(resp.id).subscribe({
       next: () => {
         // Премахваме отговора от локалния масив
         this.responses = this.responses.filter(r => r.id !== resp.id);
-        alert('Предложението е премахнато успешно!');
+        this.showSuccessMessage(
+          'Успех! ✅',
+          'Предложението е премахнато успешно!',
+          'Отлично'
+        );
       },
       error: (error: any) => {
         console.error('Error deleting response:', error);
-        alert('Грешка при изтриване на предложението!');
+        this.showSuccessMessage(
+          'Грешка',
+          'Грешка при изтриване на предложението! Моля, опитайте отново.',
+          'Затвори'
+        );
       }
     });
   }
@@ -419,6 +455,44 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     };
   }
 
+  showSuccessMessage(title: string, message: string, buttonText: string = 'ОК'): void {
+    this.successModalData = { title, message, buttonText };
+    this.showSuccessModal = true;
+  }
+
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+  }
+
+  showConfirmMessage(title: string, message: string, confirmText: string = 'Да', cancelText: string = 'Не'): Promise<boolean> {
+    this.confirmModalData = { title, message, confirmText, cancelText };
+    this.showConfirmModal = true;
+    
+    return new Promise<boolean>((resolve) => {
+      const checkClosed = () => {
+        if (!this.showConfirmModal) {
+          resolve(this.confirmModalData.confirmText === 'CONFIRMED');
+        } else {
+          setTimeout(checkClosed, 100);
+        }
+      };
+      checkClosed();
+    });
+  }
+
+  closeConfirmModal(confirmed: boolean = false): void {
+    this.confirmModalData.confirmText = confirmed ? 'CONFIRMED' : this.confirmModalData.confirmText;
+    this.showConfirmModal = false;
+  }
+
+  confirmAction(): void {
+    this.closeConfirmModal(true);
+    if (this.pendingDeleteResponse) {
+      this.executeDeleteResponse(this.pendingDeleteResponse);
+      this.pendingDeleteResponse = null;
+    }
+  }
+
   canSubmitDeal(): boolean {
     return this.dealFormData.confirmDeal && 
            this.dealFormData.hidePublication && 
@@ -427,7 +501,11 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
 
   submitDeal(): void {
     if (!this.canSubmitDeal() || !this.selectedResponse) {
-      alert('Моля, отбележете всички полета за потвърждение!');
+      this.showSuccessMessage(
+        'Внимание', 
+        'Моля, отбележете всички полета за потвърждение!',
+        'Разбрах'
+      );
       return;
     }
 
@@ -449,12 +527,20 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     this.responseService.confirmDeal(dealData).subscribe({
       next: (response) => {
         console.log('Deal confirmed successfully:', response);
-        alert('Сделката е потвърдена успешно! Публикацията е скрита и чат сесията е започната.');
         this.closeDealDialog();
+        this.showSuccessMessage(
+          'Успех! 🎉',
+          'Сделката е потвърдена успешно! Публикацията е скрита и чат сесията е започната.',
+          'Отлично'
+        );
       },
       error: (error) => {
         console.error('Error confirming deal:', error);
-        alert('Възникна грешка при потвърждаване на сделката!');
+        this.showSuccessMessage(
+          'Грешка',
+          'Възникна грешка при потвърждаване на сделката! Моля, опитайте отново.',
+          'Затвори'
+        );
       }
     });
   }
@@ -489,9 +575,17 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     if (!this.hasAvailableCompaniesForResponse()) {
       const availableCompanies = this.getAvailableCompaniesForResponse();
       if (availableCompanies.length === 0 && this.userCompanies.length > 0) {
-        alert('Всички ваши фирми вече са направили предложения към тази публикация. Можете да редактирате.');
+        this.showSuccessMessage(
+          'Информация',
+          'Всички ваши фирми вече са направили предложения към тази публикация. Можете да редактирате.',
+          'Разбрах'
+        );
       } else {
-        alert('Нямате регистрирани фирми за правене на предложение.');
+        this.showSuccessMessage(
+          'Внимание',
+          'Нямате регистрирани фирми за правене на предложение.',
+          'Разбрах'
+        );
       }
       return;
     }

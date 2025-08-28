@@ -2,3 +2,47 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.header-toolbar .auth-buttons a[routerLink="/login"].mat-button.modern-login-btn {
+  position: relative !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  min-width: 80px !important;
+  height: 40px !important;
+  transition: all 0.3s ease !important;
+}
+
+.header-toolbar .auth-buttons a[routerLink="/login"].mat-button.modern-login-btn:hover {
+  background: linear-gradient(145deg, #87CEEB, #70B8E6) !important;
+  border-color: rgba(135, 206, 235, 0.8) !important;
+  color: white !important;
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 
+    0 15px 35px rgba(135, 206, 235, 0.4),
+    0 5px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+// Force any Material Design overrides
+.mat-button.modern-login-btn {
+  position: relative !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.mat-button.modern-login-btn:hover {
+  background: linear-gradient(145deg, #87CEEB, #70B8E6) !important;
+  transform: translateY(-3px) scale(1.05) !important;
+}

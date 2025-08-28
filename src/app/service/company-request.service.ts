@@ -126,7 +126,20 @@ export class CompanyRequestService {
         console.log(pair[0], pair[1] instanceof File ? `File: ${pair[1].name} (${pair[1].type})` : pair[1]);
       }
       
+      this.clearUserRequestsCache();
+      
       return this.http.post(`${this.apiUrl}`, formData);
+    }
+
+    deleteRequest(id: string): Observable<any> {
+      console.log('Deleting request with ID:', id);
+      this.clearUserRequestsCache();
+      return this.http.delete(`${this.apiUrl}/${id}`);
+    }
+
+    clearUserRequestsCache(): void {
+      console.log('🗑️ Clearing user requests cache');
+      this.userRequestsCache$ = null;
     }
 
     getRequestById(id: string): Observable<any> {
@@ -138,13 +151,11 @@ export class CompanyRequestService {
           
           if (Array.isArray(req.pictureUrls)) {
             pictures = req.pictureUrls.map((pic: string) => {
-              // Премахваме всички слашове в началото на pic
               const cleanPic = pic.replace(/^[\/\\]+/, '');
               return pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
             });
           } else if (Array.isArray(req.pictures)) {
             pictures = req.pictures.map((pic: string) => {
-              // Премахваме всички слашове в началото на pic
               const cleanPic = pic.replace(/^[\/\\]+/, '');
               return pic.startsWith('http') ? pic : `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
             });
@@ -152,7 +163,6 @@ export class CompanyRequestService {
           
           if (Array.isArray(req.fileUrls)) {
             files = req.fileUrls.map((fileUrl: string) => {
-              // Премахваме всички слашове в началото на fileUrl
               const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
               const url = fileUrl.startsWith('http') ? 
                         fileUrl : 
@@ -188,10 +198,6 @@ export class CompanyRequestService {
 
   cacheUserRequests(requests: CompanyRequest[]): void {
     this.userRequestsCache$ = of(requests).pipe(shareReplay(1));
-  }
-
-  clearUserRequestsCache(): void {
-    this.userRequestsCache$ = null;
   }
 
   isUserRequest(requestId: string): boolean {
