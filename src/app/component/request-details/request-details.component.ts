@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CompanyRequestService } from '../../service/company-request.service';
 import { CompanyRequest } from '../../model/companyRequest';
@@ -97,7 +97,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private emailVerificationService: EmailVerificationService,
     private dialog: MatDialog,
     private sanitizer: DomSanitizer,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {
     this.loadUserCompanies();
   }
@@ -387,21 +388,40 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   executeDeleteResponse(resp: any): void {
+    console.log('🗑️ Starting executeDeleteResponse for response:', resp.id);
+    console.log('📊 Current responses count:', this.responses.length);
+    console.log('📋 Current responses:', this.responses.map(r => ({id: r.id, status: r.status, text: r.responseText?.substring(0, 30)})));
+    
     this.responseService.deleteResponse(resp.id).subscribe({
       next: () => {
-        // Премахваме отговора от локалния масив
-        this.responses = this.responses.filter(r => r.id !== resp.id);
+        console.log('✅ Response deleted successfully on backend:', resp.id);
+        
+        const responseIndex = this.responses.findIndex(r => r.id === resp.id);
+        if (responseIndex !== -1) {
+          console.log('🔄 Updating response status to NOT_AVAILABLE for response:', resp.id);
+          this.responses[responseIndex].status = 'NOT_AVAILABLE';
+          
+          console.log('✅ Response status updated locally');
+          console.log('📋 Updated response:', {id: this.responses[responseIndex].id, status: this.responses[responseIndex].status});
+        } else {
+          console.warn('⚠️ Response not found in local array:', resp.id);
+        }
+        
+        console.log('⚡ Forcing change detection with ChangeDetectorRef...');
+        this.cdr.detectChanges();
+        console.log('✅ Change detection completed');
+        
         this.showSuccessMessage(
           'Успех! ✅',
-          'Предложението е премахнато успешно!',
+          'Предложението е оттеглено успешно!',
           'Отлично'
         );
       },
       error: (error: any) => {
-        console.error('Error deleting response:', error);
+        console.error('❌ Error deleting response:', error);
         this.showSuccessMessage(
           'Грешка',
-          'Грешка при изтриване на предложението! Моля, опитайте отново.',
+          'Грешка при оттегляне на предложението! Моля, опитайте отново.',
           'Затвори'
         );
       }

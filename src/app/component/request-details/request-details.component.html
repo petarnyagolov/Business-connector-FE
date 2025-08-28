@@ -137,12 +137,20 @@
     
     <div class="responses-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
       <mat-card class="response-card" *ngFor="let response of responses; let i = index" appearance="outlined" 
-                style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;">
-        <mat-card-header>
+                style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;"
+                [style.opacity]="response.status === 'NOT_AVAILABLE' ? '0.6' : '1'"
+                [style.background]="response.status === 'NOT_AVAILABLE' ? '#f5f5f5' : '#ffffff'">
+        
+        <div *ngIf="response.status === 'NOT_AVAILABLE'" 
+             style="position: absolute; top: 10px; right: 10px; background: #9e9e9e; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; z-index: 10;">
+          Оттеглено
+        </div>
+        
+        <mat-card-header [style.opacity]="response.status === 'NOT_AVAILABLE' ? '0.7' : '1'">
           <mat-icon mat-card-avatar color="accent" style="background: #e8f5e8; border-radius: 50%;">reply</mat-icon>
           <mat-card-title style="font-weight: 600; font-size: 1.1rem;">Предложение #{{ response.id }}</mat-card-title>
           <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">
-            {{ getCompanyName(response.responserCompanyId) || 'Неизвестна фирма' }}
+            {{ getCompanyName(response.responserCompanyName) || 'Неизвестна фирма' }}
           </mat-card-subtitle>
         </mat-card-header>
         
@@ -223,19 +231,31 @@
           </div>
         </mat-card-content>
         
-        <mat-card-actions style="display: flex; justify-content: center; gap: 8px;">
-          <button *ngIf="canMakeDeal(response)" mat-stroked-button color="accent" (click)="openDealDialog(response)" style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
+        <mat-card-actions style="display: flex; justify-content: center; gap: 8px;" [style.opacity]="response.status === 'NOT_AVAILABLE' ? '0.5' : '1'">
+          <button *ngIf="canMakeDeal(response) && response.status !== 'NOT_AVAILABLE'" 
+                  mat-stroked-button color="accent" (click)="openDealDialog(response)" 
+                  style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
             <mat-icon><svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="#005cbb" ><path d="M480-600 340-740l140-140 140 140-140 140ZM40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm120-280q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440Z"/></svg></mat-icon>
             Сделка
           </button>
-          <button *ngIf="canEditResponse(response)" mat-stroked-button color="primary" (click)="editResponse(response)" style="font-size: 14px; padding: 10px 16px; min-width: 100px;">
+          <button *ngIf="canEditResponse(response) && response.status !== 'NOT_AVAILABLE'" 
+                  mat-stroked-button color="primary" (click)="editResponse(response)" 
+                  style="font-size: 14px; padding: 10px 16px; min-width: 100px;">
             <mat-icon style="margin-right: 6px; font-size: 18px;">edit</mat-icon>
             Редактирай
           </button>
-          <button *ngIf="canEditResponse(response)" mat-stroked-button color="warn" (click)="deleteResponse(response)" style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
+          <button *ngIf="canEditResponse(response)" 
+                  mat-stroked-button color="warn" (click)="deleteResponse(response)" 
+                  style="font-size: 14px; padding: 10px 16px; min-width: 80px;"
+                  [disabled]="response.status === 'NOT_AVAILABLE'">
             <mat-icon style="margin-right: 6px; font-size: 18px;">delete</mat-icon>
             Изтрий
           </button>
+          
+          <div *ngIf="response.status === 'NOT_AVAILABLE'" style="display: flex; align-items: center; justify-content: center; color: #9e9e9e; font-style: italic; font-size: 14px; padding: 10px;">
+            <mat-icon style="margin-right: 4px; font-size: 18px;">block</mat-icon>
+            Предложението е оттеглено
+          </div>
         </mat-card-actions>
       </mat-card>
     </div>
