@@ -28,6 +28,9 @@
     </div>
 
     <div class="user-actions" *ngIf="isAuthenticated">
+      <!-- Real-time Notification Bell -->
+      <app-notification-bell></app-notification-bell>
+      
       <button mat-icon-button [matMenuTriggerFor]="accountMenu">
         <mat-icon>account_circle</mat-icon>
       </button>
@@ -54,17 +57,6 @@
         </button>
         <mat-divider></mat-divider>
         
-        <ng-container *ngFor="let notification of notifications">
-          <button mat-menu-item disabled style="white-space: normal; opacity: 1;">
-            <mat-icon color="primary" style="margin-right:8px;">notifications</mat-icon>
-            <span>{{ notification.text }}</span>
-          </button>
-        </ng-container>
-        <button mat-menu-item (click)="onSeeAllNotifications()">
-          <mat-icon>list</mat-icon>
-          <span>Виж всички</span>
-        </button>
-        <mat-divider></mat-divider>
         <button mat-menu-item (click)="onInvoices()">
           <mat-icon>receipt_long</mat-icon>
           <span>Фактури</span>
@@ -175,20 +167,10 @@
         Купи кредити
       </button>
 
-      <div class="mobile-notifications">
-        <div class="mobile-notifications-header">
-          <mat-icon>notifications</mat-icon>
-          <span>Известия ({{ notifications.length }})</span>
-        </div>
-        <div class="mobile-notification-item" *ngFor="let notification of notifications">
-          <mat-icon>notifications_none</mat-icon>
-          <span>{{ notification.text }}</span>
-        </div>
-        <button mat-button (click)="onSeeAllNotifications()">
-          <mat-icon>view_list</mat-icon>
-          Виж всички известия
-        </button>
-      </div>
+      <button mat-button routerLink="/notifications" (click)="closeMobileMenu()">
+        <mat-icon>notifications</mat-icon>
+        Известия
+      </button>
 
       <mat-divider></mat-divider>
 

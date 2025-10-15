@@ -141,12 +141,6 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
         };
       });
       
-      // Log для диагностики
-      console.log("Заредени заявки:", this.companyRequests);
-      this.companyRequests.forEach(req => {
-        console.log(`Заявка ${req.title} има ${req.files?.length || 0} файла и ${this.getPictureUrls(req).length} снимки`);
-      });
-      
       this.totalRequests = response.totalElements;
       this.cdr.markForCheck();
       this.loadAllPictures(); 
@@ -205,7 +199,6 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
 
   isMyRequest(requestId: string): boolean {
     const result = this.companyRequestService.isUserRequest(requestId);
-    console.log(`Checking if request ${requestId} is mine: ${result}`);
     return result;
   }
 

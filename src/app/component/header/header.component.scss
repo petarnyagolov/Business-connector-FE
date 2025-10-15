@@ -1,5 +1,4 @@
 
-// Force override для Material Design buttons
 :host ::ng-deep .auth-buttons a.mat-button {
   position: relative !important;
   color: white !important;
@@ -33,11 +32,13 @@
   align-items: center;
   padding: 0 16px;
   position: relative;
-  background-color: #63b175 !important; 
+  // background-color: #63b175 !important; 
+  background-color:  #009996 !important; 
   color: white !important; 
   
   &.mat-toolbar {
-    background-color: #63b175 !important;
+    // background-color: #63b175 !important;
+    background-color: #009996 !important; 
     color: white !important;
   }
   

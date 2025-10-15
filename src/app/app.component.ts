@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { ChatServiceNative as ChatService } from './service/chat-native.service';
 import { AuthService } from './service/auth.service';
+import { NotificationWebSocketService } from './service/notification-websocket.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -26,17 +27,25 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private chatService: ChatService, private authService: AuthService) {}
+  constructor(
+    private chatService: ChatService, 
+    private authService: AuthService,
+    private notificationService: NotificationWebSocketService
+  ) {}
 
   ngOnInit(): void {
-    // Следим статуса на автентикацията
     this.authService.authStatus$
       .pipe(takeUntil(this.destroy$))
       .subscribe(status => {
         this.isAuthenticated = status;
+        
+        if (status) {
+          this.notificationService.connect();
+        } else {
+          this.notificationService.disconnect();
+        }
       });
 
-    // Следим непрочетените съобщения само за автентикирани потребители
     this.chatService.unreadCount$
       .pipe(takeUntil(this.destroy$))
       .subscribe(count => {

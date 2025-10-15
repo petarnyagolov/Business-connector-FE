@@ -54,4 +54,13 @@ export const routes: Routes = [
     loadComponent: () => import('./component/saved-requests/saved-requests.component').then(m => m.SavedRequestsComponent),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'notifications',
+    loadComponent: () => import('./component/notifications/notifications.component').then(m => m.NotificationsComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'debug',
+    loadComponent: () => import('./component/debug/debug.component').then(m => m.DebugComponent)
+  },
 ];

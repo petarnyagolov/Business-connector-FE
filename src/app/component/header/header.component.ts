@@ -17,6 +17,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Subject, takeUntil } from 'rxjs';
 import { CreditsService } from '../../service/credits.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 interface CreditPackage {
   credits: number;
@@ -46,6 +47,7 @@ interface CreditPackage {
     MatOptionModule,
     MatFormFieldModule,
     MatInputModule,
+    NotificationBellComponent,
   ],
 })
 
@@ -92,16 +94,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     ];
   }
-
-
-
-  notifications = [
-    { id: 1, text: 'Нова оферта за вашата фирма.' },
-    { id: 2, text: 'Вашата публикация беше одобрена.' },
-    { id: 3, text: 'Получихте ново съобщение.' },
-    { id: 4, text: 'Профилът ви беше обновен.' },
-    { id: 5, text: 'Имате нова покана за сътрудничество.' }
-  ];
 
   constructor(
     private authService: AuthService,
@@ -155,11 +147,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onSettings() {
     this.closeMobileMenu();
     this.router.navigate(['/settings']);
-  }
-
-  onSeeAllNotifications() {
-    this.closeMobileMenu();
-    this.router.navigate(['/notifications']);
   }
 
   onInvoices() {

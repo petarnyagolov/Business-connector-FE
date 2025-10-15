@@ -17,9 +17,11 @@
   [matBadgeHidden]="unreadCount === 0"
   matBadgeColor="warn"
   matBadgeSize="small"
+  aria-label="Отваряне на чат"
+  [attr.aria-description]="'Непрочетени съобщения: ' + unreadCount"
   *ngIf="isAuthenticated"
 >
-  <mat-icon>chat</mat-icon>
+  <mat-icon aria-hidden="true">chat</mat-icon>
 </button>
 
 <app-chat-sidebar 
