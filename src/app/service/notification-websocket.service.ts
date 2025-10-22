@@ -25,17 +25,20 @@ export class NotificationWebSocketService {
   private unreadCount$ = new BehaviorSubject<number>(0);
   private newNotificationSubject = new BehaviorSubject<boolean>(false);
   
-  // Флаг, указващ дали имаме пълния списък с нотификации
   private fullNotificationsLoaded = false;
+  private authMessageSent = false;
 
   constructor(private authService: AuthService) {
     this.initializeWebSocketConnection();
+    
+    setTimeout(() => {
+      if (this.authService.getAccessToken()) {
+        console.log('🚀 Auto-connecting WebSocket after initialization...');
+        this.connect();
+      }
+    }, 100);
   }
 
-  /**
-   * Helper метод за правилно декодиране на JWT токен
-   * JWT токените използват Base64URL encoding, което е малко различно от стандартния Base64
-   */
   private decodeJwtToken(token: string): any {
     try {
       const base64Url = token.split('.')[1];
@@ -51,7 +54,6 @@ export class NotificationWebSocketService {
   }
 
   private initializeWebSocketConnection(): void {
-    // Получаваме токен за авторизация и email
     const token = this.authService.getAccessToken();
     let userEmail = '';
     
@@ -63,9 +65,7 @@ export class NotificationWebSocketService {
       }
     }
     
-    // Използваме същия WebSocket URL pattern като chat service
     const wsBaseUrl = environment.apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
-    // ВАЖНО: Добавяме username като query parameter
     const wsUrl = userEmail ? `${wsBaseUrl}/ws?username=${encodeURIComponent(userEmail)}` : `${wsBaseUrl}/ws`;
     
     console.log('🌐 Initializing WebSocket connection to:', wsUrl);
@@ -73,7 +73,6 @@ export class NotificationWebSocketService {
     
     this.client = new Client({
       brokerURL: wsUrl,
-      // Изпращаме токена директно в connectHeaders
       connectHeaders: token ? {
         'Authorization': `Bearer ${token}`
       } : {},
@@ -88,13 +87,21 @@ export class NotificationWebSocketService {
     this.client.onConnect = (frame) => {
       console.log('✅ Connected to WebSocket:', frame);
       this.connected$.next(true);
+      this.authMessageSent = false;
       
-      // ВАЖНО: Първо subscribe-ваме за нотификации, СЛЕД ТОВА изпращаме auth
-      // Backend автоматично ще изпрати notifications след успешна auth!
       this.subscribeToNotifications();
       
-      // Изпращаме auth message - backend ще отговори с notifications автоматично
-      this.sendAuthMessage();
+      setTimeout(() => {
+        this.sendAuthMessage();
+        this.authMessageSent = true;
+        
+        setTimeout(() => {
+          if (!this.fullNotificationsLoaded) {
+            console.log('⚠️ No notifications received yet, retrying auth...');
+            this.sendAuthMessage();
+          }
+        }, 3000);
+      }, 200);
     };
 
     this.client.onDisconnect = () => {
@@ -110,14 +117,29 @@ export class NotificationWebSocketService {
   }
 
   connect(): void {
-    if (!this.client.connected) {
-      const token = this.authService.getAccessToken();
-      if (!token) {
-        return;
-      }
-      
-      this.client.activate();
-    } 
+    if (!this.client) {
+      console.error('❌ WebSocket client not initialized');
+      return;
+    }
+    
+    if (this.client.connected) {
+      console.log('ℹ️ WebSocket already connected, skipping...');
+      return;
+    }
+    
+    if (this.client.active) {
+      console.log('ℹ️ WebSocket connection already in progress, skipping...');
+      return;
+    }
+    
+    const token = this.authService.getAccessToken();
+    if (!token) {
+      console.error('❌ Cannot connect - no authentication token available');
+      return;
+    }
+    
+    console.log('🔌 Activating WebSocket connection...');
+    this.client.activate();
   }
 
   disconnect(): void {
@@ -129,6 +151,12 @@ export class NotificationWebSocketService {
   private sendAuthMessage(): void {
     const token = this.authService.getAccessToken();
     if (!token) {
+      console.error('❌ Cannot send auth message - no token available');
+      return;
+    }
+    
+    if (!this.client || !this.client.connected) {
+      console.error('❌ Cannot send auth message - WebSocket not connected');
       return;
     }
     
@@ -140,8 +168,9 @@ export class NotificationWebSocketService {
       }
     } catch (e) {
       console.error('❌ Error in sendAuthMessage:', e);
-      console.log('🔑 Sending auth message...');
     }
+    
+    console.log('🔑 Sending auth message with user:', userEmail);
     
     this.client.publish({
       destination: '/app/auth',
@@ -153,7 +182,6 @@ export class NotificationWebSocketService {
         email: userEmail  
       })
     });
-    
   }
   
   private subscribeToNotifications(): void {
@@ -176,15 +204,9 @@ export class NotificationWebSocketService {
             this.notifications$.next(validNotifications);
             this.fullNotificationsLoaded = true;
             
-            // 🆕 Изчисляваме unread count локално от масива
             const unreadCount = validNotifications.filter(n => !n.isRead).length;
             this.unreadCount$.next(unreadCount);
-            
-            console.log('✅ Updated notifications list:', validNotifications.length);
-            console.log('📊 Initial unread count:', unreadCount);
           } else if (data && data.id) {
-            // Единично notification
-            console.log('📨 [PARSED] Single notification:', data);
             this.handleNewNotification(data);
           } else {
             console.error('❌ Invalid notification format:', message.body);
@@ -193,9 +215,6 @@ export class NotificationWebSocketService {
           console.error('❌ Error parsing notifications:', error, message.body);
         }
       });
-      console.log('✅ Subscribed to /user/topic/notifications, subscription ID:', sub1.id);
-      
-      console.log('✅ Successfully subscribed to notification channel');
     } catch (error) {
       console.error('❌ Error subscribing to notification channels:', error);
     }
@@ -373,9 +392,15 @@ export class NotificationWebSocketService {
 
   refreshNotifications(): void {
     if (this.connected$.value && this.client?.connected) {
+      console.log('🔄 Refreshing notifications...');
+      this.fullNotificationsLoaded = false;
       this.sendAuthMessage();
     } else {
       console.warn('⚠️ Cannot refresh notifications - WebSocket not connected');
+      if (!this.client?.connected) {
+        console.log('🔌 Attempting to reconnect...');
+        this.connect();
+      }
     }
   }
 
