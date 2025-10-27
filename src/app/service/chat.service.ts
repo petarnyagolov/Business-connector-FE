@@ -161,7 +161,7 @@ export class ChatService {
           console.log('� Sent authentication message');
           
           // Subscribe за съобщения
-          this.stompClient.subscribe(`/topic/chat/${requestId}`, (message: any) => {
+          this.stompClient.subscribe(`/queue/chat/${requestId}`, (message: any) => {
             console.log('📨 Received message:', message.body);
             try {
               const chatMessage = JSON.parse(message.body);
@@ -200,7 +200,7 @@ export class ChatService {
           });
           
           // Subscribe за typing events
-          this.stompClient.subscribe(`/topic/chat/${requestId}/typing`, (message: any) => {
+          this.stompClient.subscribe(`/queue/chat/${requestId}/typing`, (message: any) => {
             console.log('⌨️ Received typing event:', message.body);
             try {
               const typingData = JSON.parse(message.body);

@@ -60,7 +60,7 @@ import { Subscription } from 'rxjs';
         <div style="margin-top: 15px; padding: 10px; background-color: #f5f5f5; border-radius: 5px; font-family: monospace;">
           <h4>Debug Info:</h4>
           <div><strong>WS Connected:</strong> {{ wsConnected }}</div>
-          <div><strong>Subscription Channel:</strong> /user/topic/notifications</div>
+          <div><strong>Subscription Channel:</strong> /user/queue/notifications</div>
           <div><strong>Notifications (Local):</strong> {{ totalNotifications }}</div>
           <div><strong>Unread (Computed):</strong> {{ unreadCount }}</div>
           <button mat-button color="primary" (click)="refreshDebugInfo()" style="margin-top: 10px;">
@@ -396,7 +396,7 @@ export class DebugComponent implements OnInit, OnDestroy {
       endpoint: 'Re-authenticate (New Architecture)',
       success: true,
       message: 'Auth message sent - backend will send List<NotificationEvent>',
-      details: 'Check console for notifications from /user/topic/notifications'
+      details: 'Check console for notifications from /user/queue/notifications'
     });
   }
 

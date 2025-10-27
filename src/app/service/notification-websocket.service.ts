@@ -15,6 +15,40 @@ export interface NotificationEvent {
   device?: string;
 }
 
+export interface ChatMessageDto {
+  id?: number;
+  message?: string;
+  senderName: string;
+  senderEmail: string;
+  timestamp: string;
+  isRead: boolean;
+  messageType?: 'TEXT' | 'FILE' | 'IMAGE';
+  fileName?: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileSize?: number;
+}
+
+export interface ChatUpdateDto {
+  chatId: string;
+  messagePreview: string;
+  senderName: string;
+  senderEmail: string;
+  timestamp: string;
+  unreadCount: number;
+  updateType: 'NEW_MESSAGE' | 'TYPING' | 'MESSAGE_READ' | 'CHAT_CREATED';
+}
+
+export interface TypingIndicator {
+  userId: number;
+  userEmail: string;
+  isTyping: boolean;
+}
+
+export interface WebSocketError {
+  error: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -24,6 +58,15 @@ export class NotificationWebSocketService {
   private notifications$ = new BehaviorSubject<NotificationEvent[]>([]);
   private unreadCount$ = new BehaviorSubject<number>(0);
   private newNotificationSubject = new BehaviorSubject<boolean>(false);
+  
+  private chatUpdates$ = new BehaviorSubject<ChatUpdateDto[]>([]);
+  private activeChatMessages$ = new BehaviorSubject<ChatMessageDto[]>([]);
+  private typingIndicators$ = new BehaviorSubject<Map<string, TypingIndicator>>(new Map());
+  private chatErrors$ = new BehaviorSubject<WebSocketError | null>(null);
+  
+  private activeChatId: string | null = null;
+  private activeChatSubscription: any = null;
+  private typingSubscription: any = null;
   
   private fullNotificationsLoaded = false;
   private authMessageSent = false;
@@ -90,6 +133,8 @@ export class NotificationWebSocketService {
       this.authMessageSent = false;
       
       this.subscribeToNotifications();
+      
+      this.subscribeToChatUpdates();
       
       setTimeout(() => {
         this.sendAuthMessage();
@@ -188,7 +233,7 @@ export class NotificationWebSocketService {
     
     try {
       
-      const sub1 = this.client.subscribe('/user/topic/notifications', (message: IMessage) => {
+      const sub1 = this.client.subscribe('/user/queue/notifications', (message: IMessage) => {
         
         try {
           const data = JSON.parse(message.body);
@@ -219,6 +264,127 @@ export class NotificationWebSocketService {
       console.error('❌ Error subscribing to notification channels:', error);
     }
   }
+  
+  private subscribeToChatUpdates(): void {
+    
+    try {
+      this.client.subscribe('/user/queue/chat-updates', (message: IMessage) => {
+        
+        try {
+          const updates: ChatUpdateDto[] = JSON.parse(message.body);
+          
+          this.chatUpdates$.next(updates);
+          
+        } catch (error) {
+          console.error('❌ Error parsing chat updates:', error);
+        }
+      });
+      
+      this.client.subscribe('/user/queue/auth', (message: IMessage) => {
+        
+        try {
+          const response = JSON.parse(message.body);
+        } catch (error) {
+        }
+      });
+      
+      this.client.subscribe('/user/queue/errors', (message: IMessage) => {
+        
+        try {
+          const error: WebSocketError = JSON.parse(message.body);
+          
+          this.chatErrors$.next(error);
+          setTimeout(() => {
+            if (this.chatErrors$.value?.error === error.error) {
+              this.chatErrors$.next(null);
+            }
+          }, 5000);
+          
+        } catch (err) {
+        }
+      });
+      
+      
+    } catch (error) {
+    }
+  }
+  
+  subscribeToChat(chatId: string): void {
+    console.log('💬 Subscribing to chat:', chatId);
+    
+    this.unsubscribeFromActiveChat();
+    
+    this.activeChatId = chatId;
+    
+    try {
+      this.activeChatSubscription = this.client.subscribe(`/queue/chat/${chatId}`, (message: IMessage) => {
+        
+        try {
+          const data = JSON.parse(message.body);
+          
+          if (data.type === 'TYPING') {
+            this.handleTypingIndicator(chatId, data);
+          } else {
+            const chatMessage: ChatMessageDto = {
+              ...data,
+              timestamp: data.timestamp || data.createdAt || new Date().toISOString()
+            };
+            
+            const currentMessages = this.activeChatMessages$.value;
+            const updatedMessages = [...currentMessages, chatMessage];
+            this.activeChatMessages$.next(updatedMessages);
+            
+            this.playNotificationSound();
+          }
+          
+        } catch (error) {
+        }
+      });
+      
+      this.typingSubscription = this.client.subscribe(`/queue/chat/${chatId}/typing`, (message: IMessage) => {
+        
+        try {
+          const typing: TypingIndicator = JSON.parse(message.body);
+          this.handleTypingIndicator(chatId, typing);
+        } catch (error) {
+        }
+      });
+      
+      setTimeout(() => {
+        this.markChatAsRead(chatId);
+      }, 500);
+      
+    } catch (error) {
+    }
+  }
+  
+  unsubscribeFromActiveChat(): void {
+    if (this.activeChatSubscription) {
+      this.activeChatSubscription.unsubscribe();
+      this.activeChatSubscription = null;
+    }
+    
+    if (this.typingSubscription) {
+      this.typingSubscription.unsubscribe();
+      this.typingSubscription = null;
+    }
+    
+    this.activeChatId = null;
+    this.activeChatMessages$.next([]);
+    this.typingIndicators$.next(new Map());
+  }
+  
+  private handleTypingIndicator(chatId: string, typing: TypingIndicator): void {
+    const indicators = this.typingIndicators$.value;
+    
+    if (typing.isTyping) {
+      indicators.set(typing.userEmail, typing);
+    } else {
+      indicators.delete(typing.userEmail);
+    }
+    
+    this.typingIndicators$.next(new Map(indicators));
+  }
 
   private handleNewNotification(notification: NotificationEvent): void {
     console.log('🔔 Handling new notification:', notification);
@@ -238,9 +404,7 @@ export class NotificationWebSocketService {
     this.unreadCount$.next(unreadCount);
     
     this.playNotificationSound();
-    
     this.notifyNewNotification();
-    
   }
   
   private playNotificationSound(): void {
@@ -248,51 +412,40 @@ export class NotificationWebSocketService {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const now = audioContext.currentTime;
 
-    const gain = audioContext.createGain();
-    gain.connect(audioContext.destination);
+    const masterGain = audioContext.createGain();
+    masterGain.gain.value = 0.4;
+    masterGain.connect(audioContext.destination);
 
-    const delay = audioContext.createDelay();
-    delay.delayTime.value = 0.18; 
-    const feedback = audioContext.createGain();
-    feedback.gain.value = 0.3; 
-    delay.connect(feedback);
-    feedback.connect(delay);
-    gain.connect(delay);
-    delay.connect(audioContext.destination);
+    const createPianoTone = (
+      freq: number,
+      startTime: number,
+      duration: number,
+      fadeOutTime: number
+    ) => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
 
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.4, now + 0.05);
-    gain.gain.linearRampToValueAtTime(0.35, now + 0.25);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, startTime);
 
-    const osc1 = audioContext.createOscillator();
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(520, now); 
-    osc1.connect(gain);
-    osc1.start(now);
-    osc1.stop(now + 0.25);
+      osc.connect(gain);
+      gain.connect(masterGain);
 
-    const osc2 = audioContext.createOscillator();
-    osc2.type = "triangle";
-    osc2.frequency.setValueAtTime(400, now + 0.12); 
-    osc2.connect(gain);
-    osc2.start(now + 0.12);
-    osc2.stop(now + 0.6);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.5, startTime + 0.03); 
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration + fadeOutTime);
 
-    console.log("🔔 Soft messenger-style notification with echo played");
+      osc.start(startTime);
+      osc.stop(startTime + duration + fadeOutTime + 0.1);
+    };
+
+    createPianoTone(660, now, 0.15, 0.3); 
+    createPianoTone(440, now + 0.12, 0.3, 1.0); 
   } catch (err) {
-    console.error("❌ Error playing notification sound:", err);
   }
 }
 
-
-  /**
-   * 🎵 PUBLIC метод за тестване на notification звука
-   * Използвай в browser console: 
-   * notificationService.testNotificationSound()
-   */
   public testNotificationSound(): void {
-    console.log('🎵 Testing notification sound...');
     this.playNotificationSound();
   }
   
@@ -388,6 +541,92 @@ export class NotificationWebSocketService {
 
   get unreadCount(): Observable<number> {
     return this.unreadCount$.asObservable();
+  }
+
+  get chatUpdates(): Observable<ChatUpdateDto[]> {
+    return this.chatUpdates$.asObservable();
+  }
+  
+  get activeChatMessages(): Observable<ChatMessageDto[]> {
+    return this.activeChatMessages$.asObservable();
+  }
+  
+  get typingIndicators(): Observable<Map<string, TypingIndicator>> {
+    return this.typingIndicators$.asObservable();
+  }
+  
+  get chatErrors(): Observable<WebSocketError | null> {
+    return this.chatErrors$.asObservable();
+  }
+  
+  getActiveChatId(): string | null {
+    return this.activeChatId;
+  }
+  
+  sendChatMessage(chatId: string, message: string): void {
+    if (!this.client?.connected) {
+      console.error('❌ Cannot send message - WebSocket not connected');
+      return;
+    }
+    
+    if (!message || message.trim().length === 0) {
+      console.warn('⚠️ Cannot send empty message');
+      return;
+    }
+    
+    console.log('💬 Sending message to chat:', chatId);
+    
+    this.client.publish({
+      destination: `/app/chat/${chatId}/send`,
+      body: JSON.stringify({ message: message.trim() })
+    });
+  }
+  
+  sendChatFile(chatId: string, fileName: string, fileType: string, fileData: string, fileSize: number, message?: string): void {
+    if (!this.client?.connected) {
+      return;
+    }
+    
+    this.client.publish({
+      destination: `/app/chat/${chatId}/send-file`,
+      body: JSON.stringify({
+        fileName,
+        fileType,
+        fileData,
+        fileSize,
+        message: message || null
+      })
+    });
+  }
+  
+  sendTypingIndicator(chatId: string, isTyping: boolean): void {
+    if (!this.client?.connected) {
+      return;
+    }
+    
+    this.client.publish({
+      destination: `/app/chat/${chatId}/typing`,
+      body: JSON.stringify({ isTyping })
+    });
+  }
+  
+  markChatAsRead(chatId: string): void {
+    if (!this.client?.connected) {
+      return;
+    }
+    
+    this.client.publish({
+      destination: `/app/chat/${chatId}/mark-read`,
+      body: JSON.stringify({})
+    });
+  }
+  
+  setActiveChatMessages(messages: ChatMessageDto[]): void {
+    this.activeChatMessages$.next(messages);
+  }
+  
+  clearActiveChatMessages(): void {
+    this.activeChatMessages$.next([]);
   }
 
   refreshNotifications(): void {

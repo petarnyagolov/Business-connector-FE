@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription, takeUntil, debounceTime } from 'rxjs';
-import { ChatService, ChatMessage, ChatMessageDto, FileAttachment } from '../../service/chat.service';
+import { ChatServiceNative as ChatService, ChatMessage, ChatMessageDto, FileAttachment } from '../../service/chat-native.service';
 import { AuthService } from '../../service/auth.service';
 
 @Component({
@@ -568,45 +568,49 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       .subscribe(chats => {
         console.log('📨 Received chats:', chats.length);
         this.chats = chats;
+        
+        if (this.selectedChat) {
+          const updatedChat = chats.find(c => c.requestId === this.selectedChat!.requestId);
+          if (updatedChat) {
+            this.selectedChat = updatedChat;
+          }
+        }
       });
 
     this.chatService.typing$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(typing => {
+      .subscribe(typingMap => {
         const currentUserEmail = this.authService.getUserEmail();
-        if (typing.userEmail !== currentUserEmail && 
-            (!this.selectedChat || typing.requestId === this.selectedChat.requestId)) {
-          const wasTyping = this.typingUsers.length > 0;
-          
-          if (typing.isTyping) {
-            if (!this.typingUsers.includes(typing.userEmail)) {
-              this.typingUsers.push(typing.userEmail);
+        const wasTyping = this.typingUsers.length > 0;
+        this.typingUsers = [];
+        
+        typingMap.forEach((indicator, chatId) => {
+          if (this.selectedChat && chatId === this.selectedChat.requestId) {
+            if (indicator.isTyping && indicator.userEmail !== currentUserEmail) {
+              if (!this.typingUsers.includes(indicator.userEmail)) {
+                this.typingUsers.push(indicator.userEmail);
+              }
             }
-          } else {
-            this.typingUsers = this.typingUsers.filter(email => email !== typing.userEmail);
           }
-          
-          // Auto-scroll when typing status changes
-          const isTypingNow = this.typingUsers.length > 0;
-          if (wasTyping !== isTypingNow) {
-            setTimeout(() => this.scrollToBottom(), 50);
-          }
+        });
+        
+        const isTypingNow = this.typingUsers.length > 0;
+        if (wasTyping !== isTypingNow) {
+          setTimeout(() => this.scrollToBottom(), 50);
         }
       });
 
     this.chatService.fileError$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((fileError: string) => {
-        console.error('File upload error:', fileError);
-        // You could show a toast notification here
-        alert(`Грешка при изпращане на файл: ${fileError}`);
+      .subscribe((fileError: string | null) => {
+        if (fileError) {
+          alert(`Грешка при изпращане на файл: ${fileError}`);
+        }
       });
 
     if (this.isOpen) {
-      console.log('🔓 Chat sidebar is open, calling refreshChats');
       this.chatService.refreshChats();
     } else {
-      console.log('🔒 Chat sidebar is closed, not calling refreshChats');
     }
   }
 
@@ -624,52 +628,75 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   selectChat(chat: ChatMessageDto): void {
-    console.log('🔥 selectChat called with:', chat.requestId);
-    console.log('🔥 Chat details:', chat);
     
     this.selectedChat = chat;
     this.loadMessages(chat.requestId);
-    
-    if (!chat.isRead) {
-      this.chatService.markAsRead(chat.requestId).subscribe({
-        next: () => {
-          this.chatService.refreshChats();
-        }
-      });
-    }
 
-    console.log('🔥 About to call connectToChat with:', chat.requestId);
-    console.log('🔥 ChatService instance:', this.chatService);
-    console.log('🔥 connectToChat method exists:', typeof this.chatService.connectToChat);
-    
-    this.chatService.connectToChat(chat.requestId);
+    this.chatService.connectToChat(chat.requestId).subscribe(() => {
+      if (!chat.isRead || chat.unreadCount > 0) {
+        chat.unreadCount = 0;
+        chat.isRead = true;
+        
+        this.chatService.markAsRead(chat.requestId).subscribe();
+      }
+    });
     
     if (this.messageSubscription) {
-      console.log('🔄 Unsubscribing from previous message subscription');
       this.messageSubscription.unsubscribe();
     }
     
-    console.log('📡 Subscribing to messages for request:', chat.requestId);
-    this.messageSubscription = this.chatService.messages$.subscribe(message => {
-      console.log('🎯 Received new message from WebSocket:', message);
-      console.log('🎯 Message request ID:', message.requestId, 'Current chat:', chat.requestId);
+    this.messageSubscription = this.chatService.messages$.subscribe(messagesArray => {
       
-      if (message.requestId === chat.requestId) {
-        // Check if message already exists to avoid duplicates
-        const existingMessage = this.messages.find(m => 
-          m.id === message.id && m.createdAt === message.createdAt && m.message === message.message
+      if (messagesArray && messagesArray.length > 0) {
+        const transformedMessages = messagesArray
+          .filter(msg => msg.id !== undefined)
+          .map(msg => {
+            const timestamp = msg.timestamp || new Date().toISOString();
+            
+            const fileAttachments: FileAttachment[] = [];
+            if (msg.fileName && msg.messageType && (msg.messageType === 'FILE' || msg.messageType === 'IMAGE')) {
+              fileAttachments.push({
+                id: msg.id?.toString() || '',
+                fileName: msg.fileName,
+                fileSize: msg.fileSize || 0,
+                fileType: msg.fileType || '',
+                fileUrl: msg.fileUrl
+              });
+            }
+            
+            return {
+              id: msg.id!,
+              requestId: chat.requestId,
+              senderEmail: msg.senderEmail,
+              senderName: msg.senderName,
+              message: msg.message,
+              createdAt: timestamp,
+              isRead: msg.isRead,
+              messageType: msg.messageType,
+              fileName: msg.fileName,
+              fileUrl: msg.fileUrl,
+              fileAttachments: fileAttachments.length > 0 ? fileAttachments : undefined
+            };
+          });
+        
+        if (this.messages.length === 0) {
+          this.messages = transformedMessages;
+        } else {
+          transformedMessages.forEach(newMsg => {
+            const exists = this.messages.some(existingMsg => 
+              existingMsg.id === newMsg.id
+            );
+            
+            if (!exists) {
+              this.messages.push(newMsg);
+            }
+          });
+        }
+        this.messages.sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
         
-        if (existingMessage) {
-          console.log('🔄 Message already exists, skipping duplicate:', message.id);
-          return;
-        }
-        
-        console.log('✅ Message belongs to current chat, adding to messages');
-        this.messages.push(message);
-        this.scrollToBottom();
-      } else {
-        console.log('❌ Message does not belong to current chat');
+        setTimeout(() => this.scrollToBottom(), 100);
       }
     });
   }
@@ -681,17 +708,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   }
 
   loadMessages(requestId: string): void {
-    this.chatService.getChatMessages(requestId).subscribe({
-      next: (messages) => {
-        console.log('🔍 Loading messages from HTTP API:', messages.length);
-        
-        this.messages = messages;
-        this.scrollToBottom();
-      },
-      error: (error) => {
-        console.error('Error loading messages:', error);
-      }
-    });
+    this.messages = [];
   }
 
   sendMessage(): void {
@@ -699,7 +716,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
     const message = this.newMessage.trim();
     const filesToSend = [...this.selectedFiles];
-    
     this.selectedFiles = [];
 
     this.stopTyping();
@@ -710,18 +726,26 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
           this.newMessage = '';
         },
         error: (error) => {
-          console.error('Error sending files:', error);
+          let errorMessage = 'Грешка при изпращане на файловете';
+          
+          if (error.status === 413 || error.error?.message?.includes('размер') || error.error?.message?.includes('size')) {
+            errorMessage = 'Файловете са твърде големи. Максималният размер е 10MB.';
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          }
+          
+          alert(errorMessage);
+          
+          this.selectedFiles = filesToSend;
         }
       });
     } else {
-      console.log('📤 Sending text message:', message);
       
       this.chatService.sendMessage(this.selectedChat.requestId, message).subscribe({
         next: () => {
           this.newMessage = '';
         },
         error: (error) => {
-          console.error('Error sending message:', error);
           this.newMessage = message;
         }
       });
@@ -768,12 +792,10 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     let date: Date;
     
     if (typeof dateInput === 'number') {
-      // Check if the number is in seconds (smaller than current time in milliseconds / 1000)
-      // If it's a small number, it's in seconds, otherwise it's already in milliseconds
       if (dateInput < Date.now() / 1000) {
-        date = new Date(Math.floor(dateInput * 1000)); // Convert from seconds to milliseconds
+        date = new Date(Math.floor(dateInput * 1000)); 
       } else {
-        date = new Date(dateInput); // Already in milliseconds
+        date = new Date(dateInput); 
       }
     } else {
       date = new Date(dateInput);
@@ -789,8 +811,38 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-  formatTimestamp(timestamp: number): string {
-    const date = new Date(Math.floor(timestamp * 1000));
+  formatTimestamp(timestamp: number | string | undefined): string {
+    if (!timestamp) return '';
+    
+    let date: Date;
+    
+    if (typeof timestamp === 'string') {
+      if (timestamp.includes('T') || timestamp.includes('-')) {
+        date = new Date(timestamp);
+      } else {
+        const numericValue = parseInt(timestamp, 10);
+        if (isNaN(numericValue)) {
+          console.error('❌ Invalid timestamp string:', timestamp);
+          return '';
+        }
+        if (numericValue < 10000000000) {
+          date = new Date(numericValue * 1000); 
+        } else {
+          date = new Date(numericValue); 
+        }
+      }
+    } else {
+      if (timestamp < 10000000000) {
+        date = new Date(timestamp * 1000); 
+      } else {
+        date = new Date(timestamp); 
+      }
+    }
+    
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
@@ -838,10 +890,8 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       ];
       
       const allowedExtensions = ['.pdf', '.jpeg', '.jpg', '.png', '.doc', '.docx', '.xls', '.xlsx'];
-      const maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
       
       let rejectedFiles: string[] = [];
-      let oversizedFiles: string[] = [];
       
       const validFiles = newFiles.filter(file => {
         const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
@@ -854,21 +904,11 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
           return false;
         }
         
-        if (file.size > maxFileSize) {
-          console.warn(`File ${file.name} is too large (${this.formatFileSize(file.size)}). Maximum size is 10MB.`);
-          oversizedFiles.push(`${file.name} (${this.formatFileSize(file.size)})`);
-          return false;
-        }
-        
         return true;
       });
       
       if (rejectedFiles.length > 0) {
         alert(`Следните файлове не бяха добавени поради неподдържан формат:\n${rejectedFiles.join('\n')}\n\nРазрешени са само PDF, JPEG, JPG, PNG, Word и Excel файлове.`);
-      }
-      
-      if (oversizedFiles.length > 0) {
-        alert(`Следните файлове не бяха добавени поради големия им размер:\n${oversizedFiles.join('\n')}\n\nМаксималният размер е 10MB.`);
       }
       
       const uniqueFiles = validFiles.filter(newFile => 
@@ -927,10 +967,8 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Използваме ChatService за download
-    this.chatService.downloadFile(attachment, requestId, message.id).subscribe({
+    this.chatService.downloadFile(attachment, requestId).subscribe({
       next: (blob: Blob) => {
-        // Създаваме URL за blob-а и го download-ваме
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -941,7 +979,6 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
         link.click();
         document.body.removeChild(link);
         
-        // Почистваме URL-а
         window.URL.revokeObjectURL(url);
       },
       error: (error: any) => {
