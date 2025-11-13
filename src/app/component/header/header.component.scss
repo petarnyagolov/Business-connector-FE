@@ -56,16 +56,49 @@
   align-items: center;
   gap: 12px;
   
-  .app-logo {
-    height: 40px;
-    width: auto;
+  .logo-button {
+    display: inline-block;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 12px;
+    padding: 0;
+    transition: all 0.3s ease;
+    
+    // Flat - no 3D effect by default (залепено)
+    box-shadow: 
+      0 0 0 transparent,              // No 3D edge
+      0 2px 4px rgba(0, 0, 0, 0.1);   // Subtle shadow
+    
+    transform: translate(0, 0);
+    
+    &:hover {
+      // 3D effect appears on hover (отлепва се)
+      transform: translate(-2px, -2px);  // Lift up and left
+      box-shadow: 
+        6px 6px 0 #006663,              // 3D edge appears
+        0 10px 20px rgba(0, 0, 0, 0.4); // Stronger shadow
+    }
+    
+    &:active {
+      transform: translate(2px, 2px);  // Press down-right effect
+      box-shadow: 
+        2px 2px 0 #006663,
+        0 4px 8px rgba(0, 0, 0, 0.3);
+    }
   }
   
-  .page-title {
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: white !important;
+  .app-logo {
+    display: block;
+    height: 40px;
+    width: auto;
+    background-color: white;
+    padding: 6px 10px;
+    border-radius: 12px;
+    // Subtle inner glow for depth
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
   }
+  
+ 
 }
 
 .desktop-nav {
@@ -264,11 +297,7 @@
     display: block;
   }
 
-  .logo-section {
-    .page-title {
-      font-size: 1rem;
-    }
-  }
+
 }
 
 .mobile-menu-overlay {
@@ -498,7 +527,7 @@
 
 .app-logo {
   height: 40px;
-  margin-right: 10px;
+  margin-right: 5px;
 }
 
 .title {
