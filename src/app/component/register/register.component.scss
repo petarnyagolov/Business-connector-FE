@@ -28,9 +28,9 @@
 
 .container {
   display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: flex-start; /* Align to top so form grows down */
-  min-height: 100vh; /* Allow full height for scrolling */
+  justify-content: center; 
+  align-items: flex-start; 
+  min-height: 100vh; 
   height: auto;
 }
 
@@ -56,4 +56,48 @@ h2 {
 mat-form-field {
   display: block; 
   margin-bottom: 5px; 
+}
+
+::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50 !important;
+    color: white !important;
+    font-weight: 500;
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+    
+    .mat-mdc-button {
+      color: white !important;
+    }
+  }
+
+  .error-snackbar {
+    background-color: #f44336 !important;
+    color: white !important;
+    font-weight: 500;
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+    
+    .mat-mdc-button {
+      color: white !important;
+    }
+  }
+
+  .warning-snackbar {
+    background-color: #ff9800 !important;
+    color: white !important;
+    font-weight: 500;
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+    
+    .mat-mdc-button {
+      color: white !important;
+    }
+  }
 }

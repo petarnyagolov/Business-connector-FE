@@ -11,6 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { Industry } from '../../model/industry'
 import { Router } from '@angular/router';
 import { CompanyFormComponent } from '../company-form/company-form.component';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { CompanyValidationService } from '../../service/company-validation.service';
 
 @Component({
   selector: 'app-create-company',
@@ -21,7 +23,8 @@ import { CompanyFormComponent } from '../company-form/company-form.component';
     MatFormFieldModule,
     MatSelectModule,
     MatButtonModule,
-    CompanyFormComponent
+    CompanyFormComponent,
+    MatSnackBarModule
   ],
   templateUrl: './create-company.component.html',
   styleUrls: ['./create-company.component.scss']
@@ -47,7 +50,7 @@ export class CreateCompanyComponent {
   industries: Industry[] = [];
   selectedLogo: File | null = null;
 
-  constructor(private fb: FormBuilder, private companyService: CompanyService, private industryService: IndustryService, private router: Router) {
+  constructor(private fb: FormBuilder, private companyService: CompanyService, private industryService: IndustryService, private router: Router, private snackBar: MatSnackBar, private companyValidationService: CompanyValidationService) {
     this.getCountryNames();
   }
 
@@ -62,41 +65,33 @@ export class CreateCompanyComponent {
       tap({
         next: (response: any) => {
           console.log('✅ Company created successfully:', response);
-          alert('Имате нова фирма!');
-          this.companyCreated.emit(); // Emit event instead of navigate
+          this.companyValidationService.showCompanyCreatedSuccess();
+          this.companyCreated.emit(); 
         },
         error: (error: any) => {
           console.error('❌ Company creation failed:', error);
-          alert('Registration failed. Please try again.');
+          this.companyValidationService.showCompanyCreationError();
         }
       })
     ).subscribe();
   }
 
   onCompanyValidate(data: { vatNumber: string, country: string }) {
-    this.companyService.getCompanyInfoFromOutside(data.vatNumber, data.country).subscribe({
-      next: () => {
+    this.companyValidationService.validateCompany(data.vatNumber, data.country, {
+      onSuccess: () => {
         this.isValidVatNumber = true;
         this.showCompanyDetails = true;
         if (this.companyFormComponentRef) {
           this.companyFormComponentRef.setCompanyDetailsVisible(true);
           this.companyFormComponentRef.setVatValid(true);
         }
-        alert('Фирмата е валидирана успешно!');
       },
-      error: (error) => {
+      onError: () => {
         this.isValidVatNumber = false;
         this.showCompanyDetails = false;
         if (this.companyFormComponentRef) {
           this.companyFormComponentRef.setCompanyDetailsVisible(false);
           this.companyFormComponentRef.setVatValid(false);
-        }
-        if (error.status === 404) {
-          alert('Фирмата не е намерена в регистъра.');
-        } else if (error.status === 400) {
-          alert('Фирмата вече съществува в базата данни.');
-        } else {
-          alert('Фирмата неочаквана грешка. Опитайте отново.');
         }
       }
     });
@@ -144,7 +139,7 @@ export class CreateCompanyComponent {
 
   onCancelCompanyForm() {
     console.log('🔸 Company creation cancelled');
-    this.cancelled.emit(); // Emit cancel event
+    this.cancelled.emit(); 
   }
 
   submitForm(): void {

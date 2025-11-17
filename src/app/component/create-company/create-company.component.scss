@@ -13,7 +13,7 @@ form {
 }
 
 .form-group {
-  margin-bottom: 20px; /* Add margin-bottom to create space between form groups */
+  margin-bottom: 20px; 
 }
 
 label {
@@ -52,4 +52,48 @@ button:disabled {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50 !important;
+    color: white !important;
+    font-weight: 500;
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+    
+    .mat-mdc-button {
+      color: white !important;
+    }
+  }
+
+  .error-snackbar {
+    background-color: #f44336 !important;
+    color: white !important;
+    font-weight: 500;
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+    
+    .mat-mdc-button {
+      color: white !important;
+    }
+  }
+
+  .warning-snackbar {
+    background-color: #ff9800 !important;
+    color: white !important;
+    font-weight: 500;
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+    
+    .mat-mdc-button {
+      color: white !important;
+    }
+  }
 }
