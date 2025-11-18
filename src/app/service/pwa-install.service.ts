@@ -3,36 +3,36 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class PwaInstallService {
-  private promptEvent?: any;
-  canInstall$ = new BehaviorSubject<boolean>(false);
+	private promptEvent?: any;
 
-  constructor() {
-    console.log('[PWA] PwaInstallService initialized');
+	// Става true, когато браузърът е пратил beforeinstallprompt и има смисъл да показваме бутона
+	canInstall$ = new BehaviorSubject<boolean>(false);
 
-    window.addEventListener('beforeinstallprompt', (event: any) => {
-      console.log('[PWA] beforeinstallprompt fired', event);
-      event.preventDefault();
-      this.promptEvent = event;
-      this.canInstall$.next(true);
-    });
+	constructor() {
+		// Слушаме за beforeinstallprompt (Chrome/Edge, когато PWA е installable)
+		window.addEventListener('beforeinstallprompt', (event: any) => {
+			event.preventDefault();
+			this.promptEvent = event;
+			this.canInstall$.next(true);
+		});
 
-    window.addEventListener('appinstalled', () => {
-      console.log('[PWA] App installed');
-    });
-  }
+		// Когато приложението бъде инсталирано, скриваме бутона занапред
+		window.addEventListener('appinstalled', () => {
+			this.promptEvent = undefined;
+			this.canInstall$.next(false);
+		});
+	}
 
-  async promptInstall(): Promise<void> {
-    console.log('[PWA] promptInstall called', this.promptEvent);
+	async promptInstall(): Promise<void> {
+		// В dev (http://LAN) често няма beforeinstallprompt → просто излизаме тихо.
+		if (!this.promptEvent) {
+			return;
+		}
 
-    if (!this.promptEvent) {
-      alert('Инсталацията е налична само когато приложението е отворено през HTTPS и отговаря на PWA изискванията. В dev режим бутонът е само за тест.');
-      return;
-    }
-
-    this.promptEvent.prompt();
-    const choice = await this.promptEvent.userChoice;
-    console.log('[PWA] userChoice', choice);
-    this.promptEvent = undefined;
-    this.canInstall$.next(false);
-  }
+		this.promptEvent.prompt();
+		await this.promptEvent.userChoice;
+		this.promptEvent = undefined;
+		this.canInstall$.next(false);
+	}
 }
+
