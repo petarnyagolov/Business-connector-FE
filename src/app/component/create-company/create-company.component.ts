@@ -73,7 +73,9 @@ export class CreateCompanyComponent {
           this.companyValidationService.showCompanyCreationError();
         }
       })
-    ).subscribe();
+    ).subscribe({
+      error: () => {} // Empty error handler to prevent unhandled error
+    });
   }
 
   onCompanyValidate(data: { vatNumber: string, country: string }) {

@@ -1,14 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { UserCompaniesComponent } from './user-companies.component';
 
-describe('MyCompaniesComponent', () => {
+describe('UserCompaniesComponent', () => {
   let component: UserCompaniesComponent;
   let fixture: ComponentFixture<UserCompaniesComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UserCompaniesComponent]
+      imports: [UserCompaniesComponent, HttpClientTestingModule]
     })
     .compileComponents();
 

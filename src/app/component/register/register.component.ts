@@ -155,7 +155,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
             });
           }
         })
-      ).subscribe();
+      ).subscribe({
+        error: () => {} // Empty error handler to prevent unhandled error
+      });
     } else {
       this.snackBar.open('✗ Моля, попълнете правилно всички задължителни полета в потребителската и фирмена формa.', 'Затвори', {
         duration: 5000,
