@@ -1,0 +1,143 @@
+{
+  "configVersion": 1,
+  "timestamp": 1763487772796,
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/chunk-34TQBIJX.js",
+        "/chunk-37S7TXPA.js",
+        "/chunk-3AGDDXPP.js",
+        "/chunk-5AMYWERO.js",
+        "/chunk-5Z6BP4OW.js",
+        "/chunk-6EG2YPBL.js",
+        "/chunk-7MVJYEC2.js",
+        "/chunk-CKBSI4JA.js",
+        "/chunk-F4IOPT6J.js",
+        "/chunk-GJKBUC52.js",
+        "/chunk-GWWAVBU2.js",
+        "/chunk-IQ6UED67.js",
+        "/chunk-J2OXD32O.js",
+        "/chunk-K2D2K5D3.js",
+        "/chunk-KLWZYIG4.js",
+        "/chunk-KMFSGNG6.js",
+        "/chunk-OJTUGFXA.js",
+        "/chunk-PTHQAQ3C.js",
+        "/chunk-QXAMZ7OY.js",
+        "/chunk-STXK2JJD.js",
+        "/chunk-WX4UIWX5.js",
+        "/favicon.ico",
+        "/index.html",
+        "/main-JZRS45U3.js",
+        "/manifest.webmanifest",
+        "/polyfills-HPZ7KTN2.js",
+        "/styles-5IL47IZN.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/Announcement.jpg",
+        "/icons/icon-128x128.png",
+        "/icons/icon-144x144.png",
+        "/icons/icon-152x152.png",
+        "/icons/icon-192x192.png",
+        "/icons/icon-384x384.png",
+        "/icons/icon-512x512.png",
+        "/icons/icon-72x72.png",
+        "/icons/icon-96x96.png",
+        "/logo.png",
+        "/small-business-svgrepo-com.svg"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "static-api",
+      "patterns": [
+        "https:\\/\\/api\\.xdealhub\\.com\\/utils\\/countries",
+        "https:\\/\\/api\\.xdealhub\\.com\\/utils\\/industries"
+      ],
+      "strategy": "freshness",
+      "maxSize": 20,
+      "maxAge": 604800000,
+      "timeoutMs": 2000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    }
+  ],
+  "hashTable": {
+    "/Announcement.jpg": "3f8843248210c4e0dddd7f2cebba03d179d241e3",
+    "/chunk-34TQBIJX.js": "1c103e567ef080ec90fd269da84ccb973cc944e9",
+    "/chunk-37S7TXPA.js": "6061554db7bd5d8b641468e31fa6e46fe406bcce",
+    "/chunk-3AGDDXPP.js": "7020c5cb6d748ece032fafc2dd2677f965f6e744",
+    "/chunk-5AMYWERO.js": "13cfc391b81147611e728b6dd43e125c7db5578d",
+    "/chunk-5Z6BP4OW.js": "41f73ac3b8f6ffbf16b44a07d16b35aad7d979de",
+    "/chunk-6EG2YPBL.js": "e2b0fe5aa0fb29664808e68a5bd81347e97fa321",
+    "/chunk-7MVJYEC2.js": "0117eb8eeb58f87aaf75cee88ffe9600ca93ae15",
+    "/chunk-CKBSI4JA.js": "32064313be2d8c84b281f155850422c3ec779038",
+    "/chunk-F4IOPT6J.js": "ae82476f762bc353edebad527642378efbcc9ab8",
+    "/chunk-GJKBUC52.js": "abdc8881fc5267fc0b3695cd8f1c0fafeef210a6",
+    "/chunk-GWWAVBU2.js": "947b6896d9c62dbe8726b7d33e5d3f2647fc78dd",
+    "/chunk-IQ6UED67.js": "564b40617e7e4ec8ad4f40336f0b5932acf42890",
+    "/chunk-J2OXD32O.js": "d978018638cae0cb3a353b682e7a08e8eb0cc667",
+    "/chunk-K2D2K5D3.js": "f838accd8759ccffb3a581fc9e4e65fef8a77d6c",
+    "/chunk-KLWZYIG4.js": "feaea8a9811e28a719d54176e3793a4c2fe82220",
+    "/chunk-KMFSGNG6.js": "a6dd0865d7584a3a6b0f4e6a6d5497d91f624072",
+    "/chunk-OJTUGFXA.js": "75a65fc646448c94e370fd88056da7aaa27001e3",
+    "/chunk-PTHQAQ3C.js": "01961df0cbde20a7bd26cc4f16f2233514a818d1",
+    "/chunk-QXAMZ7OY.js": "d11000d82c2b544b0ae797e7da61b7d6bde7c8d0",
+    "/chunk-STXK2JJD.js": "0bba0a609f93bbd32237b75784e59d8a9ffc7563",
+    "/chunk-WX4UIWX5.js": "89997ff51f523836993d0bd5af7d6d96b1192d81",
+    "/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
+    "/icons/icon-128x128.png": "f912963bdc6d5a38d8f1dd0afbaab2ce8d657acb",
+    "/icons/icon-144x144.png": "b155fd5f2fd5d2ea7760721063003c4cd95fd783",
+    "/icons/icon-152x152.png": "eae6e0f0c8afb8aaae339e2a569b43e9238e5e6c",
+    "/icons/icon-192x192.png": "15c4180454633880d98674aa7394656196c91584",
+    "/icons/icon-384x384.png": "94a915751ef6c9282df9aea405ad679230631814",
+    "/icons/icon-512x512.png": "1de182f76f7329dfa8f9fcdd1fdcdd695bea6a99",
+    "/icons/icon-72x72.png": "aa88a6096bd973be7f6d7a5489bfa6bc2463f8c4",
+    "/icons/icon-96x96.png": "7fb8f59c30ce2ff12c700321a0b39e14b3dc8f95",
+    "/index.html": "690e89aa6df9e6fbbe7679f980458f96fc6200f0",
+    "/logo.png": "dcf4298c18ab461c486c07e28eeca0ae48f99eb2",
+    "/main-JZRS45U3.js": "4dc59f10f537b73453150a26620c71281b0acb1b",
+    "/manifest.webmanifest": "ee94f3c9328e15e353f0ca19c47672312ee4a8aa",
+    "/polyfills-HPZ7KTN2.js": "a328286aa2e927a96bf670f744a3fb4f9eec3a51",
+    "/small-business-svgrepo-com.svg": "6534897458d56bad748aa526134942c472f13e0b",
+    "/styles-5IL47IZN.css": "06b66fd49ef71255910206ca104f671f530b4fb8"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}
