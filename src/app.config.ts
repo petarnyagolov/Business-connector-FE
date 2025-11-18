@@ -1,4 +1,4 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
@@ -12,11 +12,10 @@ import { DateAdapter } from '@angular/material/core';
 import { registerLocaleData } from '@angular/common';
 import localeBg from '@angular/common/locales/bg';
 import { BulgarianMomentDateAdapter } from './app/services/bulgarian-moment-date-adapter';
+import { provideServiceWorker } from '@angular/service-worker';
 
-// Регистриране на българската локализация
 registerLocaleData(localeBg);
 
-// Български формат за дати
 export const BG_DATE_FORMATS = {
   parse: {
     dateInput: 'DD.MM.YYYY',
@@ -51,6 +50,9 @@ export const appConfig: ApplicationConfig = {
       useClass: BulgarianMomentDateAdapter, 
       deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS] 
     },
-    provideRouter(routes)
+    provideRouter(routes), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }),
   ]
 };

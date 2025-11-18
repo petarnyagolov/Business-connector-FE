@@ -1,12 +1,20 @@
+<div class="app-shell">
+  <div class="app-shell__header">
+    <div *ngIf="isOffline" class="offline-banner">
+      В момента сте офлайн. Част от данните може да не са актуални.
+    </div>
 
+    <app-header 
+      [logoSrc]="'assets/images/logo.png?v=2'"
+    ></app-header>
+  </div>
 
-  <app-header 
-  
-  [logoSrc]="'assets/images/logo.png?v=2'"
-  ></app-header>
-  
+  <div class="app-shell__content">
+    <router-outlet />
+  </div>
 
-<router-outlet />
+  <app-footer class="app-shell__footer"></app-footer>
+</div>
 
 <button 
   mat-fab 
