@@ -1,6 +1,10 @@
 <footer class="app-footer">
 
   <div class="footer-content">
+    <button mat-raised-button color="primary" (click)="onInstallClick()">
+      <mat-icon class="install-icon" aria-hidden="true">smartphone</mat-icon>
+      <span class="install-text">Инсталирай на iOS / Android</span>
+    </button>
     <div class="footer-left">
       <button mat-button routerLink="/about">За нас</button>
     </div>
