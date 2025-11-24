@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1763549320029,
+  "timestamp": 1764001308964,
   "index": "/index.html",
   "assetGroups": [
     {
@@ -34,7 +34,7 @@
         "/chunk-WX4UIWX5.js",
         "/favicon.ico",
         "/index.html",
-        "/main-HHIPL5CH.js",
+        "/main-FRQC3YWF.js",
         "/manifest.webmanifest",
         "/polyfills-HPZ7KTN2.js",
         "/styles-5IL47IZN.css"
@@ -113,9 +113,9 @@
     "/icons/icon-512x512.png": "cf1b5df224812b29134e098b8be15de43fbd1870",
     "/icons/icon-72x72.png": "361197430837890bbc41ec003ec60db7263e9308",
     "/icons/icon-96x96.png": "2f8f60e6daca1fe25cd5fb839e9b2b5d695d741e",
-    "/index.html": "e5b0e4caaf5c8175a6c1152465e3a0c68d0e2155",
+    "/index.html": "1e8f43fb1add659f403aba178e33b346dd48e063",
     "/logo.png": "dcf4298c18ab461c486c07e28eeca0ae48f99eb2",
-    "/main-HHIPL5CH.js": "90fc2eb5be78802ddbdbafe9c88d6034d965f816",
+    "/main-FRQC3YWF.js": "214c6cda9f2a831df4fb9f4eeb869a6f6fe05279",
     "/manifest.webmanifest": "ee94f3c9328e15e353f0ca19c47672312ee4a8aa",
     "/polyfills-HPZ7KTN2.js": "a328286aa2e927a96bf670f744a3fb4f9eec3a51",
     "/small-business-svgrepo-com.svg": "6534897458d56bad748aa526134942c472f13e0b",
