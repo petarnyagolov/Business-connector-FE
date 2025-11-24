@@ -10,6 +10,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconButton } from '@angular/material/button';
+import { CookieConsentComponent } from './component/cookie-consent/cookie-consent.component';
 import { PwaUpdateService } from './service/pwa-update.service';
 import { ChatServiceNative as ChatService } from './service/chat-native.service';
 import { AuthService } from './service/auth.service';
@@ -31,7 +32,8 @@ import { Subject, takeUntil } from 'rxjs';
     MatIconModule,
     MatBadgeModule,
     MatSnackBarModule,
-    MatToolbarModule
+    MatToolbarModule,
+    CookieConsentComponent
   ]
 })
 

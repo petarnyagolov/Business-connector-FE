@@ -1,0 +1,16 @@
+<div class="cookie-banner" *ngIf="showBanner">
+  <div class="cookie-banner__content">
+    <div class="cookie-banner__text">
+      <h3>Бисквитки</h3>
+      <p>
+        Използваме задължителни бисквитки за работата на сайта и, с ваше съгласие,
+        аналитични бисквитки за подобряване на услугите. Можете да научите повече в
+        <a routerLink="/cookies">Политика за бисквитки</a>.
+      </p>
+    </div>
+    <div class="cookie-banner__actions">
+      <button mat-button color="primary" (click)="rejectAnalytics()">Само необходими</button>
+      <button mat-raised-button color="primary" (click)="acceptAll()">Приемам всички</button>
+    </div>
+  </div>
+</div>

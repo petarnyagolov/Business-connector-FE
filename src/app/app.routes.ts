@@ -11,6 +11,8 @@ import { CompanyRequestsComponent } from './component/company-requests/company-r
 import { RequestDetailsComponent } from './component/request-details/request-details.component';
 import { EmailVerificationComponent } from './component/email-verification/email-verification.component'; // Added
 import { HomeComponent } from './component/home/home.component';
+import { PrivacyPolicyComponent } from './component/privacy-policy/privacy-policy.component';
+import { CookiePolicyComponent } from './component/cookie-policy/cookie-policy.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -18,6 +20,8 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'verify-email', component: EmailVerificationComponent }, // route за email verification
   { path: 'about', component: AboutComponent },
+  { path: 'privacy', component: PrivacyPolicyComponent },
+  { path: 'cookies', component: CookiePolicyComponent },
   { path: '', pathMatch: 'full', redirectTo: '/requests' },
   { path: 'list', component: CompanyListComponent },
   { path: 'companies', component: CompanyListComponent },

@@ -1,0 +1,35 @@
+.cookie-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 12px;
+}
+
+.cookie-banner__content {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.cookie-banner__text {
+  flex: 1 1 60%;
+}
+
+.cookie-banner__actions {
+  display: flex;
+  gap: 8px;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+.cookie-banner a {
+  color: #80cbc4;
+  text-decoration: underline;
+}
