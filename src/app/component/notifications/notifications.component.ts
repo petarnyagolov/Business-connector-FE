@@ -31,87 +31,102 @@ import { NotificationWebSocketService, NotificationEvent } from '../../service/n
         </h1>
         
         <div class="header-actions">
-          <button 
-            mat-raised-button
-            color="primary"
-            *ngIf="unreadCount > 0"
-            (click)="markAllAsRead()"
-            [disabled]="isLoading">
-            <mat-icon>done_all</mat-icon>
-            Маркирай всички като прочетени
-          </button>
+          @if (unreadCount > 0) {
+            <button 
+              mat-raised-button
+              color="primary"
+              (click)="markAllAsRead()"
+              [disabled]="isLoading">
+              <mat-icon>done_all</mat-icon>
+              Маркирай всички като прочетени
+            </button>
+          }
         </div>
       </div>
 
-      <div class="notifications-stats" *ngIf="!isLoading">
-        <div class="stat-card">
-          <div class="stat-number">{{ allNotifications.length }}</div>
-          <div class="stat-label">Общо известия</div>
+      @if (!isLoading) {
+        <div class="notifications-stats">
+          <div class="stat-card">
+            <div class="stat-number">{{ allNotifications.length }}</div>
+            <div class="stat-label">Общо известия</div>
+          </div>
+          <div class="stat-card unread">
+            <div class="stat-number">{{ unreadCount }}</div>
+            <div class="stat-label">Непрочетени</div>
+          </div>
         </div>
-        <div class="stat-card unread">
-          <div class="stat-number">{{ unreadCount }}</div>
-          <div class="stat-label">Непрочетени</div>
+      }
+
+      @if (isLoading) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Зареждане на известия...</p>
         </div>
-      </div>
+      }
 
-      <div class="loading-container" *ngIf="isLoading">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Зареждане на известия...</p>
-      </div>
-
-      <div class="notifications-container" *ngIf="!isLoading">
-        <div 
-          *ngFor="let notification of allNotifications; trackBy: trackByNotificationId"
-          class="notification-card"
-          [class.unread]="!notification.isRead"
-          (click)="onNotificationClick(notification)">
-          
-          <div class="notification-header">
-            <div class="notification-icon">
-              <mat-icon [color]="getNotificationColor(notification.type)">
-                {{ getNotificationIcon(notification.type) }}
-              </mat-icon>
-            </div>
-            
-            <div class="notification-meta">
-              <span class="notification-type">{{ getNotificationTypeLabel(notification.type) }}</span>
-              <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
-            </div>
-            
-            <div class="notification-actions">
-              <button 
-                *ngIf="!notification.isRead"
-                mat-icon-button
-                (click)="markAsRead(notification.id, $event)"
-                matTooltip="Маркирай като прочетено">
-                <mat-icon>done</mat-icon>
-              </button>
+      @if (!isLoading) {
+        <div class="notifications-container">
+          @for (notification of allNotifications; track notification.id) {
+            <div 
+              class="notification-card"
+              [class.unread]="!notification.isRead"
+              (click)="onNotificationClick(notification)">
               
-              <div *ngIf="notification.isRead" class="read-indicator">
-                <mat-icon color="primary">check_circle</mat-icon>
+              <div class="notification-header">
+                <div class="notification-icon">
+                  <mat-icon [color]="getNotificationColor(notification.type)">
+                    {{ getNotificationIcon(notification.type) }}
+                  </mat-icon>
+                </div>
+                
+                <div class="notification-meta">
+                  <span class="notification-type">{{ getNotificationTypeLabel(notification.type) }}</span>
+                  <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
+                </div>
+                
+                <div class="notification-actions">
+                  @if (!notification.isRead) {
+                    <button 
+                      mat-icon-button
+                      (click)="markAsRead(notification.id, $event)"
+                      matTooltip="Маркирай като прочетено">
+                      <mat-icon>done</mat-icon>
+                    </button>
+                  }
+                  
+                  @if (notification.isRead) {
+                    <div class="read-indicator">
+                      <mat-icon color="primary">check_circle</mat-icon>
+                    </div>
+                  }
+                </div>
+              </div>
+              
+              <div class="notification-body">
+                <h3 class="notification-title">{{ notification.title }}</h3>
+                @if (notification.referenceId) {
+                  <div class="notification-reference">
+                    <mat-icon>link</mat-icon>
+                    <span>ID: {{ notification.referenceId }}</span>
+                  </div>
+                }
               </div>
             </div>
-          </div>
-          
-          <div class="notification-body">
-            <h3 class="notification-title">{{ notification.title }}</h3>
-            <div class="notification-reference" *ngIf="notification.referenceId">
-              <mat-icon>link</mat-icon>
-              <span>ID: {{ notification.referenceId }}</span>
-            </div>
-          </div>
-        </div>
+          }
 
-        <div class="empty-state" *ngIf="allNotifications.length === 0">
-          <mat-icon>notifications_none</mat-icon>
-          <h2>Няма известия</h2>
-          <p>Все още няма получени известия.</p>
-          <button mat-raised-button color="primary" routerLink="/requests">
-            <mat-icon>explore</mat-icon>
-            Разгледай публикации
-          </button>
+          @if (allNotifications.length === 0) {
+            <div class="empty-state">
+              <mat-icon>notifications_none</mat-icon>
+              <h2>Няма известия</h2>
+              <p>Все още няма получени известия.</p>
+              <button mat-raised-button color="primary" routerLink="/requests">
+                <mat-icon>explore</mat-icon>
+                Разгледай публикации
+              </button>
+            </div>
+          }
         </div>
-      </div>
+      }
     </div>
   `,
   styleUrls: ['./notifications.component.scss']

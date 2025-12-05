@@ -66,16 +66,22 @@ export interface EmailVerificationModalData {
                         (click)="resendVerificationLink()" 
                         [disabled]="isResending"
                         class="resend-button">
-                  <mat-spinner *ngIf="isResending" diameter="20"></mat-spinner>
-                  <mat-icon *ngIf="!isResending">send</mat-icon>
+                  @if (isResending) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isResending) {
+                    <mat-icon>send</mat-icon>
+                  }
                   {{ isResending ? 'Изпращаме...' : 'Изпрати линк' }}
                 </button>
                 
-                <div *ngIf="resendMessage" class="result-message" 
-                     [ngClass]="{'success': resendMessage.includes('успешно'), 'error': !resendMessage.includes('успешно')}">
-                  <mat-icon>{{ resendMessage.includes('успешно') ? 'check_circle' : 'error' }}</mat-icon>
-                  <span>{{ resendMessage }}</span>
-                </div>
+                @if (resendMessage) {
+                  <div class="result-message" 
+                       [ngClass]="{'success': resendMessage.includes('успешно'), 'error': !resendMessage.includes('успешно')}">
+                    <mat-icon>{{ resendMessage.includes('успешно') ? 'check_circle' : 'error' }}</mat-icon>
+                    <span>{{ resendMessage }}</span>
+                  </div>
+                }
               </div>
             </mat-tab>
             
@@ -101,16 +107,22 @@ export interface EmailVerificationModalData {
                         (click)="verifyManualToken()" 
                         [disabled]="!manualToken || isVerifyingManual || isRefreshingToken"
                         class="verify-button">
-                  <mat-spinner *ngIf="isVerifyingManual || isRefreshingToken" diameter="20"></mat-spinner>
-                  <mat-icon *ngIf="!isVerifyingManual && !isRefreshingToken">verified_user</mat-icon>
+                  @if (isVerifyingManual || isRefreshingToken) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isVerifyingManual && !isRefreshingToken) {
+                    <mat-icon>verified_user</mat-icon>
+                  }
                   {{ getVerifyButtonText() }}
                 </button>
                 
-                <div *ngIf="manualVerificationMessage" class="result-message"
-                     [ngClass]="{'success': manualVerificationSuccess, 'error': !manualVerificationSuccess}">
-                  <mat-icon>{{ manualVerificationSuccess ? 'check_circle' : 'error' }}</mat-icon>
-                  <span>{{ manualVerificationMessage }}</span>
-                </div>
+                @if (manualVerificationMessage) {
+                  <div class="result-message"
+                       [ngClass]="{'success': manualVerificationSuccess, 'error': !manualVerificationSuccess}">
+                    <mat-icon>{{ manualVerificationSuccess ? 'check_circle' : 'error' }}</mat-icon>
+                    <span>{{ manualVerificationMessage }}</span>
+                  </div>
+                }
               </div>
             </mat-tab>
             
@@ -122,14 +134,16 @@ export interface EmailVerificationModalData {
         <button mat-button (click)="closeModal()" [disabled]="isVerifyingManual || isRefreshingToken">
           {{ (manualVerificationSuccess || resendMessage?.includes('успешно')) ? 'Готово' : 'Отказ' }}
         </button>
-        <button *ngIf="manualVerificationSuccess" 
-                mat-raised-button 
-                color="primary" 
-                (click)="continueWithAction()"
-                [disabled]="isRefreshingToken">
-          <mat-icon>arrow_forward</mat-icon>
-          Продължи
-        </button>
+        @if (manualVerificationSuccess) {
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="continueWithAction()"
+            [disabled]="isRefreshingToken">
+            <mat-icon>arrow_forward</mat-icon>
+            Продължи
+          </button>
+        }
       </mat-dialog-actions>
     </div>
   `,

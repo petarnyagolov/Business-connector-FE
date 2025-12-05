@@ -43,64 +43,75 @@ import { NotificationWebSocketService, NotificationEvent } from '../../service/n
       <mat-menu #notificationMenu="matMenu" class="notification-menu">
         <div class="notification-header" (click)="$event.stopPropagation()">
           <h4>Известия</h4>
-          <button 
-            mat-button 
-            *ngIf="unreadCount > 0"
-            (click)="markAllAsRead()"
-            class="mark-all-btn">
-            Маркирай всички
-          </button>
+          @if (unreadCount > 0) {
+            <button 
+              mat-button 
+              (click)="markAllAsRead()"
+              class="mark-all-btn">
+              Маркирай всички
+            </button>
+          }
         </div>
         
         <mat-divider></mat-divider>
         
-        <div class="notifications-list" *ngIf="notifications.length > 0">
+        @if (notifications.length > 0) {
+          <div class="notifications-list">
+            @for (notification of notifications.slice(0, 5); track notification.id) {
+              <button 
+                mat-menu-item
+                [class.unread]="!notification.isRead"
+                (click)="onNotificationClick(notification)"
+                class="notification-item">
+                
+                <div class="notification-content">
+                  <div class="notification-icon">
+                    <mat-icon [color]="getNotificationColor(notification.type)">
+                      {{ getNotificationIcon(notification.type) }}
+                    </mat-icon>
+                  </div>
+                  
+                  <div class="notification-text">
+                    <p class="notification-title">{{ notification.title }}</p>
+                    <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
+                  </div>
+                  
+                  @if (!notification.isRead) {
+                    <div class="notification-actions">
+                      <button 
+                        mat-icon-button 
+                        (click)="markAsRead(notification.id, $event)"
+                        class="mark-read-btn">
+                        <mat-icon>done</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </button>
+            }
+          </div>
+        }
+        
+        @if (notifications.length === 0) {
+          <div class="empty-state" (click)="$event.stopPropagation()">
+            <mat-icon>notifications_none</mat-icon>
+            <p>Няма нови известия</p>
+          </div>
+        }
+        
+        @if (notifications.length > 0) {
+          <mat-divider></mat-divider>
+        }
+        
+        @if (notifications.length > 5) {
           <button 
-            *ngFor="let notification of notifications.slice(0, 5)" 
             mat-menu-item
-            [class.unread]="!notification.isRead"
-            (click)="onNotificationClick(notification)"
-            class="notification-item">
-            
-            <div class="notification-content">
-              <div class="notification-icon">
-                <mat-icon [color]="getNotificationColor(notification.type)">
-                  {{ getNotificationIcon(notification.type) }}
-                </mat-icon>
-              </div>
-              
-              <div class="notification-text">
-                <p class="notification-title">{{ notification.title }}</p>
-                <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
-              </div>
-              
-              <div class="notification-actions" *ngIf="!notification.isRead">
-                <button 
-                  mat-icon-button 
-                  (click)="markAsRead(notification.id, $event)"
-                  class="mark-read-btn">
-                  <mat-icon>done</mat-icon>
-                </button>
-              </div>
-            </div>
+            (click)="seeAllNotifications()"
+            class="see-all-btn">
+            <mat-icon>visibility</mat-icon>
+            <span>Виж всички известия</span>
           </button>
-        </div>
-        
-        <div class="empty-state" *ngIf="notifications.length === 0" (click)="$event.stopPropagation()">
-          <mat-icon>notifications_none</mat-icon>
-          <p>Няма нови известия</p>
-        </div>
-        
-        <mat-divider *ngIf="notifications.length > 0"></mat-divider>
-        
-        <button 
-          *ngIf="notifications.length > 5"
-          mat-menu-item
-          (click)="seeAllNotifications()"
-          class="see-all-btn">
-          <mat-icon>visibility</mat-icon>
-          <span>Виж всички известия</span>
-        </button>
+        }
       </mat-menu>
     </div>
   `,

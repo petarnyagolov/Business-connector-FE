@@ -39,127 +39,150 @@ import { NotificationService } from '../../service/notification.service';
         </button>
       </div>
 
-      <div class="chat-list" *ngIf="!selectedChat">
-        <div *ngIf="chats.length === 0" class="no-chats">
-          <mat-icon>chat_bubble_outline</mat-icon>
-          <p>Няма активни чатове</p>
+      @if (!selectedChat) {
+        <div class="chat-list">
+          @if (chats.length === 0) {
+            <div class="no-chats">
+              <mat-icon>chat_bubble_outline</mat-icon>
+              <p>Няма активни чатове</p>
+            </div>
+          }
+          
+          @for (chat of chats; track chat.requestId) {
+            <div 
+              class="chat-item"
+              (click)="selectChat(chat)"
+              [class.unread]="!chat.isRead"
+            >
+              <div class="chat-avatar">
+                <mat-icon>business</mat-icon>
+              </div>
+              <div class="chat-content">
+                <div class="chat-title">{{ chat.requestTitle }}</div>
+                <div class="chat-last-message">{{ chat.displaySenderName }}: {{ (chat.message || '') | slice:0:45 }}{{ (chat.message || '').length > 45 ? '...' : '' }}</div>
+                <div class="chat-time">{{ formatTimestamp(chat.createdAt) }}</div>
+              </div>
+              @if (!chat.isRead) {
+                <div class="chat-badge">
+                  <span class="unread-count">1</span>
+                </div>
+              }
+            </div>
+          }
         </div>
-        
-        <div 
-          *ngFor="let chat of chats" 
-          class="chat-item"
-          (click)="selectChat(chat)"
-          [class.unread]="!chat.isRead"
-        >
-          <div class="chat-avatar">
-            <mat-icon>business</mat-icon>
-          </div>
-          <div class="chat-content">
-            <div class="chat-title">{{ chat.requestTitle }}</div>
-            <div class="chat-last-message">{{ chat.displaySenderName }}: {{ (chat.message || '') | slice:0:45 }}{{ (chat.message || '').length > 45 ? '...' : '' }}</div>
-            <div class="chat-time">{{ formatTimestamp(chat.createdAt) }}</div>
-          </div>
-          <div class="chat-badge" *ngIf="!chat.isRead">
-            <span class="unread-count">1</span>
-          </div>
-        </div>
-      </div>
+      }
 
-      <div class="chat-messages-view" *ngIf="selectedChat">
-        <div class="chat-messages-header">
-          <button mat-icon-button (click)="backToList()">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-          <div class="chat-info">
-            <div class="chat-title">{{ selectedChat.requestTitle }}</div>
+      @if (selectedChat) {
+        <div class="chat-messages-view">
+          <div class="chat-messages-header">
+            <button mat-icon-button (click)="backToList()">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div class="chat-info">
+              <div class="chat-title">{{ selectedChat.requestTitle }}</div>
+            </div>
           </div>
-        </div>
 
-        <div class="messages-container" #messagesContainer>
-          <div *ngFor="let message of messages" class="message" [class.own]="isOwnMessage(message)">
-            <div class="message-content">
-              <div class="message-text">{{ message.message }}</div>
-              
-              <div *ngIf="message.fileAttachments && message.fileAttachments.length > 0" class="message-attachments">
-                <div *ngFor="let attachment of message.fileAttachments; let i = index" class="attachment-item">
-                  <mat-icon class="attachment-icon">{{ getFileIcon(attachment.fileType) }}</mat-icon>
-                  <div class="attachment-info">
-                    <div class="attachment-name">{{ attachment.fileName }}</div>
-                    <div class="attachment-size">{{ formatFileSize(attachment.fileSize) }}</div>
-                  </div>
-                  <button 
-                    mat-icon-button 
-                    class="download-btn" 
-                    (click)="downloadFile(attachment, message.requestId)"
-                    matTooltip="Изтегли файл"
-                  >
-                    <mat-icon>download</mat-icon>
-                  </button>
+          <div class="messages-container" #messagesContainer>
+            @for (message of messages; track message.id) {
+              <div class="message" [class.own]="isOwnMessage(message)">
+                <div class="message-content">
+                  <div class="message-text">{{ message.message }}</div>
+                  
+                  @if (message.fileAttachments && message.fileAttachments.length > 0) {
+                    <div class="message-attachments">
+                      @for (attachment of message.fileAttachments; track attachment.fileName; let i = $index) {
+                        <div class="attachment-item">
+                          <mat-icon class="attachment-icon">{{ getFileIcon(attachment.fileType) }}</mat-icon>
+                          <div class="attachment-info">
+                            <div class="attachment-name">{{ attachment.fileName }}</div>
+                            <div class="attachment-size">{{ formatFileSize(attachment.fileSize) }}</div>
+                          </div>
+                          <button 
+                            mat-icon-button 
+                            class="download-btn" 
+                            (click)="downloadFile(attachment, message.requestId)"
+                            matTooltip="Изтегли файл"
+                          >
+                            <mat-icon>download</mat-icon>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+                  
+                  <div class="message-time">{{ formatTime(message.createdAt) }}</div>
                 </div>
               </div>
-              
-              <div class="message-time">{{ formatTime(message.createdAt) }}</div>
-            </div>
-          </div>
-          
-          <div *ngIf="typingUsers.length > 0" class="typing-indicator">
-            <div class="typing-content">
-              <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
+            }
+            
+            @if (typingUsers.length > 0) {
+              <div class="typing-indicator">
+                <div class="typing-content">
+                  <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <div class="typing-text">{{ getTypingText() }}</div>
+                </div>
               </div>
-              <div class="typing-text">{{ getTypingText() }}</div>
-            </div>
+            }
           </div>
-        </div>
 
-        <div class="message-input-container">
-          <div *ngIf="selectedFiles.length > 0" class="selected-files-preview">
-            <div *ngFor="let file of selectedFiles; let i = index" class="file-preview-item">
-              <mat-icon class="file-icon">{{ getFileIcon(file.type) }}</mat-icon>
-              <div class="file-info">
-                <div class="file-name">{{ file.name }}</div>
-                <div class="file-size">{{ formatFileSize(file.size) }}</div>
+          <div class="message-input-container">
+            @if (selectedFiles.length > 0) {
+              <div class="selected-files-preview">
+                @for (file of selectedFiles; track file.name; let i = $index) {
+                  <div class="file-preview-item">
+                    <mat-icon class="file-icon">{{ getFileIcon(file.type) }}</mat-icon>
+                    <div class="file-info">
+                      <div class="file-name">{{ file.name }}</div>
+                      <div class="file-size">{{ formatFileSize(file.size) }}</div>
+                    </div>
+                    <button mat-icon-button (click)="removeSelectedFile(i)" class="remove-file-btn">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                }
               </div>
-              <button mat-icon-button (click)="removeSelectedFile(i)" class="remove-file-btn">
-                <mat-icon>close</mat-icon>
+            }
+
+            <div class="input-row">
+              <button mat-icon-button (click)="triggerFileInput()" matTooltip="Прикачи файл">
+                <mat-icon>attach_file</mat-icon>
+              </button>
+              
+              <mat-form-field appearance="outline" class="message-input">
+                <input 
+                  matInput 
+                  [(ngModel)]="newMessage" 
+                  placeholder="Напишете съобщение..."
+                  (keydown.enter)="sendMessage()"
+                  (input)="onMessageInput()"
+                >
+              </mat-form-field>
+              
+              <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!canSendMessage()">
+                <mat-icon>send</mat-icon>
               </button>
             </div>
-          </div>
 
-          <div class="input-row">
-            <button mat-icon-button (click)="triggerFileInput()" matTooltip="Прикачи файл">
-              <mat-icon>attach_file</mat-icon>
-            </button>
-            
-            <mat-form-field appearance="outline" class="message-input">
-              <input 
-                matInput 
-                [(ngModel)]="newMessage" 
-                placeholder="Напишете съобщение..."
-                (keydown.enter)="sendMessage()"
-                (input)="onMessageInput()"
-              >
-            </mat-form-field>
-            
-            <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!canSendMessage()">
-              <mat-icon>send</mat-icon>
-            </button>
+            <input 
+              #fileInput 
+              type="file" 
+              multiple 
+              accept=".pdf,.jpeg,.jpg,.png,.doc,.docx,.xls,.xlsx" 
+              (change)="onFilesSelected($event)"
+              style="display: none;"
+            >
           </div>
-
-          <input 
-            #fileInput 
-            type="file" 
-            multiple 
-            accept=".pdf,.jpeg,.jpg,.png,.doc,.docx,.xls,.xlsx" 
-            (change)="onFilesSelected($event)"
-            style="display: none;"
-          >
         </div>
-      </div>
+      }
     </div>
-    <div class="chat-overlay" *ngIf="isOpen" (click)="closeSidebar()"></div>
+    @if (isOpen) {
+      <div class="chat-overlay" (click)="closeSidebar()"></div>
+    }
   `,
   styles: [`
     .chat-sidebar {

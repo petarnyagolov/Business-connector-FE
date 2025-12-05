@@ -31,25 +31,33 @@ import { EmailVerificationService } from '../../service/email-verification.servi
         <strong>Имейл:</strong> {{data.email}}
       </div>
 
-      <div *ngIf="!isLoading && !isSuccess" class="actions">
-        <p class="resend-info">Ще изпратим нов линк за верификация на вашия имейл.</p>
-      </div>
+      @if (!isLoading && !isSuccess) {
+        <div class="actions">
+          <p class="resend-info">Ще изпратим нов линк за верификация на вашия имейл.</p>
+        </div>
+      }
 
-      <div *ngIf="isLoading" class="loading">
-        <mat-spinner diameter="30"></mat-spinner>
-        <p>Изпращаме линк за верификация...</p>
-      </div>
+      @if (isLoading) {
+        <div class="loading">
+          <mat-spinner diameter="30"></mat-spinner>
+          <p>Изпращаме линк за верификация...</p>
+        </div>
+      }
 
-      <div *ngIf="isSuccess" class="success">
-        <mat-icon color="primary">check_circle</mat-icon>
-        <p>Линкът за верификация е изпратен успешно!</p>
-        <p class="check-email">Моля проверете вашия имейл и кликнете върху линка.</p>
-      </div>
+      @if (isSuccess) {
+        <div class="success">
+          <mat-icon color="primary">check_circle</mat-icon>
+          <p>Линкът за верификация е изпратен успешно!</p>
+          <p class="check-email">Моля проверете вашия имейл и кликнете върху линка.</p>
+        </div>
+      }
 
-      <div *ngIf="hasError" class="error">
-        <mat-icon color="warn">error</mat-icon>
-        <p>Възникна грешка при изпращането. Моля опитайте отново.</p>
-      </div>
+      @if (hasError) {
+        <div class="error">
+          <mat-icon color="warn">error</mat-icon>
+          <p>Възникна грешка при изпращането. Моля опитайте отново.</p>
+        </div>
+      }
     </div>
 
     <div mat-dialog-actions class="dialog-actions">

@@ -40,9 +40,11 @@ import { Subscription } from 'rxjs';
           Test WebSocket (Auth)
         </button>
         
-        <div *ngIf="testing" style="margin-top: 10px;">
-          <p>Testing... ⏳</p>
-        </div>
+        @if (testing) {
+          <div style="margin-top: 10px;">
+            <p>Testing... ⏳</p>
+          </div>
+        }
       </mat-card>
       
       <mat-card style="margin: 10px 0; padding: 15px;">
@@ -71,14 +73,18 @@ import { Subscription } from 'rxjs';
 
       <mat-card style="margin: 10px 0; padding: 15px;">
         <h3>Test Results</h3>
-        <div *ngFor="let result of testResults" 
-             [style.color]="result.success ? 'green' : 'red'"
-             style="margin: 5px 0; font-family: monospace;">
-          <strong>{{ result.endpoint }}:</strong> {{ result.message }}
-          <div *ngIf="result.details" style="margin-left: 20px; color: #666; font-size: 12px;">
-            {{ result.details }}
+        @for (result of testResults; track result.endpoint) {
+          <div 
+            [style.color]="result.success ? 'green' : 'red'"
+            style="margin: 5px 0; font-family: monospace;">
+            <strong>{{ result.endpoint }}:</strong> {{ result.message }}
+            @if (result.details) {
+              <div style="margin-left: 20px; color: #666; font-size: 12px;">
+                {{ result.details }}
+              </div>
+            }
           </div>
-        </div>
+        }
       </mat-card>
 
       <mat-card style="margin: 10px 0; padding: 15px;">
@@ -105,15 +111,21 @@ import { Subscription } from 'rxjs';
         </div>
       </mat-card>
       
-      <mat-card *ngIf="wsConnected" style="margin: 10px 0; padding: 15px;">
-        <h3>WebSocket Subscriptions</h3>
-        <div style="font-family: monospace; background-color: #f5f5f5; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
-          <div *ngFor="let sub of activeSubscriptions" style="margin-bottom: 4px;">
-            <strong>ID #{{ sub.id }}:</strong> {{ sub.destination }}
+      @if (wsConnected) {
+        <mat-card style="margin: 10px 0; padding: 15px;">
+          <h3>WebSocket Subscriptions</h3>
+          <div style="font-family: monospace; background-color: #f5f5f5; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+            @for (sub of activeSubscriptions; track sub.id) {
+              <div style="margin-bottom: 4px;">
+                <strong>ID #{{ sub.id }}:</strong> {{ sub.destination }}
+              </div>
+            }
+            @if (activeSubscriptions.length === 0) {
+              <div>No active subscriptions found</div>
+            }
           </div>
-          <div *ngIf="activeSubscriptions.length === 0">No active subscriptions found</div>
-        </div>
-      </mat-card>
+        </mat-card>
+      }
     </div>
   `
 })

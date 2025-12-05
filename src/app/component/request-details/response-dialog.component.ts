@@ -51,87 +51,121 @@ export interface ResponseDialogData {
           <mat-label>Фирма</mat-label>
           <mat-select formControlName="responserCompanyId" required>
             <mat-option [value]="''">-- Избери Фирма --</mat-option>
-            <mat-option *ngFor="let company of userCompanies" [value]="company.id">
-              {{ company.name }} ({{ company.vatNumber }})
-            </mat-option>
+            @for (company of userCompanies; track company.id) {
+              <mat-option [value]="company.id">
+                {{ company.name }} ({{ company.vatNumber }})
+              </mat-option>
+            }
           </mat-select>
-          <mat-error *ngIf="responseForm.get('responserCompanyId')?.hasError('required')">Фирмата е задължителна</mat-error>
-          <mat-hint *ngIf="userCompanies.length === 0">Няма налични фирми</mat-hint>
-          <mat-hint *ngIf="userCompanies.length > 0">Налични фирми: {{ userCompanies.length }}</mat-hint>
+          @if (responseForm.get('responserCompanyId')?.hasError('required')) {
+            <mat-error>Фирмата е задължителна</mat-error>
+          }
+          @if (userCompanies.length === 0) {
+            <mat-hint>Няма налични фирми</mat-hint>
+          }
+          @if (userCompanies.length > 0) {
+            <mat-hint>Налични фирми: {{ userCompanies.length }}</mat-hint>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="fill" style="width: 100%;">
           <mat-label>Съобщение</mat-label>
           <textarea matInput formControlName="message" rows="4" placeholder="Опишете вашето предложение..."></textarea>
-          <mat-error *ngIf="responseForm.get('message')?.hasError('required')">Съобщението е задължително</mat-error>
+          @if (responseForm.get('message')?.hasError('required')) {
+            <mat-error>Съобщението е задължително</mat-error>
+          }
         </mat-form-field>
 
-        <mat-form-field appearance="fill" style="width: 100%;" *ngIf="isFieldRequired('fixedPrice')">
-          <mat-label>Фиксирана цена</mat-label>
-          <input matInput type="number" formControlName="fixedPrice" required>
-        </mat-form-field>
+        @if (isFieldRequired('fixedPrice')) {
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Фиксирана цена</mat-label>
+            <input matInput type="number" formControlName="fixedPrice" required>
+          </mat-form-field>
+        }
 
-        <mat-form-field appearance="fill" style="width: 100%;" *ngIf="isFieldRequired('priceFrom')">
-          <mat-label>Цена от</mat-label>
-          <input matInput type="number" formControlName="priceFrom" required>
-        </mat-form-field>
+        @if (isFieldRequired('priceFrom')) {
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Цена от</mat-label>
+            <input matInput type="number" formControlName="priceFrom" required>
+          </mat-form-field>
+        }
 
-        <mat-form-field appearance="fill" style="width: 100%;" *ngIf="isFieldRequired('priceTo')">
-          <mat-label>Цена до</mat-label>
-          <input matInput type="number" formControlName="priceTo" required>
-        </mat-form-field>
+        @if (isFieldRequired('priceTo')) {
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Цена до</mat-label>
+            <input matInput type="number" formControlName="priceTo" required>
+          </mat-form-field>
+        }
 
-        <mat-form-field appearance="fill" style="width: 100%;" *ngIf="isFieldRequired('availableFrom')">
-          <mat-label>Налично от</mat-label>
-          <input matInput [matDatepicker]="pickerFrom" formControlName="availableFrom" required placeholder="дд.мм.гггг">
-          <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
-          <mat-datepicker #pickerFrom></mat-datepicker>
-        </mat-form-field>
+        @if (isFieldRequired('availableFrom')) {
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Налично от</mat-label>
+            <input matInput [matDatepicker]="pickerFrom" formControlName="availableFrom" required placeholder="дд.мм.гггг">
+            <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFrom></mat-datepicker>
+          </mat-form-field>
+        }
 
-        <mat-form-field appearance="fill" style="width: 100%;" *ngIf="isFieldRequired('availableTo')">
-          <mat-label>Налично до</mat-label>
-          <input matInput [matDatepicker]="pickerTo" formControlName="availableTo" required placeholder="дд.мм.гггг">
-          <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
-          <mat-datepicker #pickerTo></mat-datepicker>
-        </mat-form-field>
+        @if (isFieldRequired('availableTo')) {
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Налично до</mat-label>
+            <input matInput [matDatepicker]="pickerTo" formControlName="availableTo" required placeholder="дд.мм.гггг">
+            <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
+            <mat-datepicker #pickerTo></mat-datepicker>
+          </mat-form-field>
+        }
 
         <div style="margin: 16px 0; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; background-color: #f5f9ff;">
           <label style="font-weight: 600; display: block; margin-bottom: 10px; color: #1976d2; font-size: 16px;">
             <mat-icon style="vertical-align: middle; margin-right: 8px;">attach_file</mat-icon>
             Прикачете файлове (снимки, PDF)
-            <span *ngIf="isFieldRequired('files')" style="color: #f44336; margin-left: 4px;">*</span>
+            @if (isFieldRequired('files')) {
+              <span style="color: #f44336; margin-left: 4px;">*</span>
+            }
           </label>
           <input type="file" (change)="onFileChange($event)" accept="image/*,.pdf" style="margin-bottom: 12px; width: 100%; padding: 8px 0;" multiple>
           <div class="file-hint" style="font-size: 0.85rem; margin-top: 8px; color: #666;">
             Можете да качите няколко файла (изображения: jpg, png, gif и документи: pdf)
           </div>
           
-          <div *ngIf="selectedFiles.length > 0" style="margin: 10px 0; color: green; font-weight: 500; display: flex; align-items: center;">
-            <mat-icon style="margin-right: 8px;">check_circle</mat-icon>
-            Успешно избрани {{ selectedFiles.length }} файла
-          </div>
+          @if (selectedFiles.length > 0) {
+            <div style="margin: 10px 0; color: green; font-weight: 500; display: flex; align-items: center;">
+              <mat-icon style="margin-right: 8px;">check_circle</mat-icon>
+              Успешно избрани {{ selectedFiles.length }} файла
+            </div>
+          }
 
-          <div *ngIf="selectedFiles.length > 0" style="margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px; max-height: 160px; overflow-y: auto;">
-            <div *ngFor="let file of selectedFiles; let i = index" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0;">
-              <div style="display: flex; align-items: center; overflow: hidden; flex: 1;">
-                <mat-icon [style.color]="file.type.startsWith('image/') ? '#1976d2' : '#f44336'" style="font-size: 18px; margin-right: 8px;">
-                  {{ file.type.startsWith('image/') ? 'image' : 'picture_as_pdf' }}
-                </mat-icon>
-                <span style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ file.name }}</span>
-              </div>
-              <button mat-icon-button color="warn" (click)="removeFile(i)" type="button" style="width: 24px; height: 24px; line-height: 24px;">
-                <mat-icon style="font-size: 18px;">delete</mat-icon>
-              </button>
+          @if (selectedFiles.length > 0) {
+            <div style="margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 4px; padding: 8px; max-height: 160px; overflow-y: auto;">
+              @for (file of selectedFiles; track file.name; let i = $index) {
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0;">
+                  <div style="display: flex; align-items: center; overflow: hidden; flex: 1;">
+                    <mat-icon [style.color]="file.type.startsWith('image/') ? '#1976d2' : '#f44336'" style="font-size: 18px; margin-right: 8px;">
+                      {{ file.type.startsWith('image/') ? 'image' : 'picture_as_pdf' }}
+                    </mat-icon>
+                    <span style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ file.name }}</span>
+                  </div>
+                  <button mat-icon-button color="warn" (click)="removeFile(i)" type="button" style="width: 24px; height: 24px; line-height: 24px;">
+                    <mat-icon style="font-size: 18px;">delete</mat-icon>
+                  </button>
+                </div>
+              }
             </div>
-          </div>
+          }
           
-          <div *ngIf="filePreview">
-            <img *ngIf="previewType === 'image'" [src]="filePreview" alt="Преглед" style="max-width: 120px; max-height: 120px; display: block; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); margin-top: 10px;">
-            <div *ngIf="previewType === 'pdf'" style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-              <mat-icon color="primary">picture_as_pdf</mat-icon>
-              <span>PDF файл е качен успешно</span>
+          @if (filePreview) {
+            <div>
+              @if (previewType === 'image') {
+                <img [src]="filePreview" alt="Преглед" style="max-width: 120px; max-height: 120px; display: block; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); margin-top: 10px;">
+              }
+              @if (previewType === 'pdf') {
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                  <mat-icon color="primary">picture_as_pdf</mat-icon>
+                  <span>PDF файл е качен успешно</span>
+                </div>
+              }
             </div>
-          </div>
+          }
         </div>
       </form>
     </mat-dialog-content>
@@ -200,10 +234,9 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
       priceTo: [''],
       availableFrom: [null],
       availableTo: [null],
-      files: [[]] // инициализираме с празен масив вместо null
+      files: [[]] 
     });
     
-    // Използваме подадените налични фирми или зареждаме всички
     if (data.availableCompanies) {
       this.userCompanies = data.availableCompanies;
       console.log(`Using ${this.userCompanies.length} available companies:`, this.userCompanies);
