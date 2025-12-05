@@ -617,6 +617,30 @@
   }
 }
 
+.invoice-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.invoice-section .company-select {
+  margin-bottom: 16px;
+}
+
+.invoice-row {
+  display: flex;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.half-width {
+  flex: 1 1 0;
+}
+
 .package-select {
   width: 100%;
   margin-bottom: 24px;

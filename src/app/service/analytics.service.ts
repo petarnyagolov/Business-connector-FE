@@ -6,7 +6,7 @@ const GTM_STORAGE_KEY = 'xdealhub-gtm-loaded';
   providedIn: 'root'
 })
 export class AnalyticsService {
-  private gtmId = 'GTM-XXXXXXX'; // TODO: add real google tag manager GTM ID
+  private gtmId = 'GTM-5FGBC3GD'; // Google Tag Manager container ID
 
   enableAnalyticsIfNeeded(): void {
     if (typeof window === 'undefined' || typeof document === 'undefined') {

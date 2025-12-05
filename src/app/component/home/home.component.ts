@@ -6,30 +6,68 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="home-section">
-      <h2>⏰ Изтичащи Публикации</h2>
-      <div class="section-content">Тук ще се показват изтичащите публикации.</div>
-    </div>
-    <div class="home-section">
-      <h2>🛒 Публикации за продаване на използвани машини</h2>
-      <div class="section-content">Тук ще се показват публикации за продаване на използвани машини.</div>
-    </div>
-    <div class="home-section">
-      <h2>🔎 Публикации за купуване на машини</h2>
-      <div class="section-content">Тук ще се показват публикации за купуване на машини.</div>
-    </div>
-    <div class="home-section">
-      <h2>⚙️ Металообработка</h2>
-      <div class="section-content">Тук ще се показват публикации за металообработка.</div>
-    </div>
-    <div class="home-section">
-      <h2>🪵 Дървообработка</h2>
-      <div class="section-content">Тук ще се показват публикации за дървообработка.</div>
-    </div>
-    <div class="home-section">
-      <h2>🧴 Производство на пластмасови изделия</h2>
-      <div class="section-content">Тук ще се показват публикации за производство на пластмасови изделия.</div>
-    </div>
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <h1>Намерете точния партньор за вашия бизнес</h1>
+          <p>
+            XDealHub свързва фирми за покупка, продажба и услуги от различни индустрии
+            и производства – бързо, прозрачно и сигурно.
+          </p>
+          <div class="hero-actions">
+            <button class="btn ghost" routerLink="/requests">Прегледай публикации</button>
+            <button class="btn ghost" routerLink="/about">Научи повече</button>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-notification hero-notification--primary">
+            <div class="hero-notification-icon">
+              <span class="material-symbol">notifications</span>
+            </div>
+            <div class="hero-notification-text">
+              <div class="title">Ново запитване</div>
+              <div class="subtitle">Получихте нова публикация от партньор</div>
+            </div>
+          </div>
+
+          <div class="hero-notification hero-notification--secondary">
+            <div class="hero-notification-icon">
+              <span class="material-symbol">chat</span>
+            </div>
+            <div class="hero-notification-text">
+              <div class="title">Съобщение</div>
+              <div class="subtitle">Нов отговор по ваша оферта</div>
+            </div>
+          </div>
+
+          <div class="hero-orbit"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="feature">
+        <div class="feature-icon">
+          <span class="material-symbol">insights</span>
+        </div>
+        <h3>Интелигентни съвпадения</h3>
+        <p>Получавате предложения само от релевантни партньори и доставчици.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <span class="material-symbol">handshake</span>
+        </div>
+        <h3>Прозрачни сделки</h3>
+        <p>Управлявайте оферти, договаряне и финализиране на едно място.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <span class="material-symbol">lock</span>
+        </div>
+        <h3>Сигурна платформа</h3>
+        <p>Защитени данни и надеждни партньори за вашия бизнес.</p>
+      </div>
+    </section>
   `,
   styleUrls: ['./home.component.scss']
 })

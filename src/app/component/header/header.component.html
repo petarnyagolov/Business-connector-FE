@@ -8,34 +8,33 @@
   <div class="desktop-nav">
     <div class="nav-links">
       <a mat-button routerLink="/home">Начало</a>
-      <a mat-button routerLink="/requests" *ngIf="isAuthenticated">Публикации</a>
-      <a mat-button routerLink="/user/companies" *ngIf="isAuthenticated">Моите фирми</a>
-      <a mat-button routerLink="/my-requests" *ngIf="isAuthenticated">Моите Публикации</a>
-      <a mat-button routerLink="/my-responses" *ngIf="isAuthenticated">Моите Предложения</a>
-      <a mat-button routerLink="/saved-requests" *ngIf="isAuthenticated">
-        <mat-icon 
-          style="margin-right: 4px; font-size: 18px;" 
-          [matBadge]="savedRequestsCount" 
-          [matBadgeHidden]="savedRequestsCount === 0"
-          matBadgeColor="accent"
-          matBadgeSize="small"
-          aria-hidden="false"
+      @if (isAuthenticated) {
+      <a mat-button routerLink="/requests">Публикации</a>
+      <a mat-button routerLink="/user/companies">Моите фирми</a>
+      <a mat-button routerLink="/my-requests">Моите Публикации</a>
+      <a mat-button routerLink="/my-responses">Моите Предложения</a>
+      <a mat-button routerLink="/saved-requests">
+        <mat-icon style="margin-right: 4px; font-size: 18px;" [matBadge]="savedRequestsCount"
+          [matBadgeHidden]="savedRequestsCount === 0" matBadgeColor="accent" matBadgeSize="small" aria-hidden="false"
           [attr.aria-label]="'Запазени публикации: ' + savedRequestsCount">
           bookmark
         </mat-icon>
         Запазени
       </a>
+      }
     </div>
 
-    <div class="user-actions" *ngIf="isAuthenticated">
+    @if (isAuthenticated) {
+    <div class="user-actions">
       <!-- Real-time Notification Bell -->
       <app-notification-bell></app-notification-bell>
-      
+
       <button mat-icon-button [matMenuTriggerFor]="accountMenu">
         <mat-icon>account_circle</mat-icon>
       </button>
       <mat-menu #accountMenu="matMenu" class="account-menu">
-        <div mat-menu-item disabled style="white-space: normal; opacity: 1; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-bottom: 8px;">
+        <div mat-menu-item disabled
+          style="white-space: normal; opacity: 1; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-bottom: 8px;">
           <div style="display: flex; flex-direction: column; align-items: flex-start;">
             <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
               <mat-icon style="margin-right: 8px; vertical-align: middle;">person</mat-icon>
@@ -45,18 +44,19 @@
               {{ userEmail }}
             </div>
             <div style="font-size: 14px; color: #2e7d32; font-weight: 500;">
-              <mat-icon style="margin-right: 8px; vertical-align: middle; font-size: 16px;">account_balance_wallet</mat-icon>
+              <mat-icon
+                style="margin-right: 8px; vertical-align: middle; font-size: 16px;">account_balance_wallet</mat-icon>
               <span>Кредити: {{ freeCredits }}</span>
             </div>
           </div>
         </div>
-        
+
         <button mat-menu-item (click)="onBuyCredits()">
           <mat-icon color="accent">add_shopping_cart</mat-icon>
           <span>Купи кредити</span>
         </button>
         <mat-divider></mat-divider>
-        
+
         <button mat-menu-item (click)="onInvoices()">
           <mat-icon>receipt_long</mat-icon>
           <span>Фактури</span>
@@ -71,11 +71,10 @@
         </button>
       </mat-menu>
     </div>
+    }
 
-    <div class="auth-buttons" *ngIf="!isAuthenticated">
-      <a mat-button routerLink="/login" 
-         class="modern-login-btn"
-         style="position: relative !important; 
+    @if (!isAuthenticated) {<div class="auth-buttons">
+      <a mat-button routerLink="/login" class="modern-login-btn" style="position: relative !important; 
                 color: white !important; 
                 border: 1px solid rgba(255, 255, 255, 0.6) !important; 
                 background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1)) !important; 
@@ -89,7 +88,9 @@
                 transition: all 0.3s ease !important;">Влез</a>
       <a mat-raised-button color="accent" routerLink="/register">Регистрация</a>
     </div>
+    }
   </div>
+
 
   <div class="mobile-nav">
     <button mat-icon-button (click)="toggleMobileMenu()" class="mobile-menu-btn">
@@ -98,10 +99,12 @@
   </div>
 </mat-toolbar>
 
-<div class="mobile-menu-overlay" *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()">
+@if (isMobileMenuOpen) {
+<div class="mobile-menu-overlay" (click)="closeMobileMenu()">
   <div class="mobile-menu-content" (click)="$event.stopPropagation()">
-    
-    <div class="mobile-user-info" *ngIf="isAuthenticated">
+
+    @if (isAuthenticated) {
+    <div class="mobile-user-info">
       <div class="mobile-user-details">
         <mat-icon class="user-avatar">account_circle</mat-icon>
         <div class="mobile-user-text">
@@ -114,16 +117,20 @@
         </div>
       </div>
     </div>
+    }
 
-    <mat-divider *ngIf="isAuthenticated"></mat-divider>
+    @if (isAuthenticated) {
+    <mat-divider></mat-divider>
+    }
 
     <div class="mobile-nav-links">
       <button mat-button routerLink="/home" (click)="closeMobileMenu()">
         <mat-icon>home</mat-icon>
         Начало
       </button>
-      
-      <ng-container *ngIf="isAuthenticated">
+
+      @if (isAuthenticated) {
+      <ng-container>
         <button mat-button routerLink="/requests" (click)="closeMobileMenu()">
           <mat-icon>business</mat-icon>
           Публикации
@@ -141,27 +148,28 @@
           Моите Предложения
         </button>
         <button mat-button routerLink="/saved-requests" (click)="closeMobileMenu()">
-          <mat-icon 
-            [matBadge]="savedRequestsCount" 
-            [matBadgeHidden]="savedRequestsCount === 0" 
-            matBadgeColor="accent"
-            aria-hidden="false"
-            [attr.aria-label]="'Запазени публикации: ' + savedRequestsCount">
+          <mat-icon [matBadge]="savedRequestsCount" [matBadgeHidden]="savedRequestsCount === 0" matBadgeColor="accent"
+            aria-hidden="false" [attr.aria-label]="'Запазени публикации: ' + savedRequestsCount">
             bookmark
           </mat-icon>
           Запазени
         </button>
       </ng-container>
-      
+      }
+
       <button mat-button routerLink="/about" (click)="closeMobileMenu()">
         <mat-icon>info</mat-icon>
         За нас
       </button>
     </div>
 
-    <mat-divider *ngIf="isAuthenticated"></mat-divider>
 
-    <div class="mobile-user-actions" *ngIf="isAuthenticated">
+    @if (isAuthenticated) {
+    <mat-divider></mat-divider>
+    }
+
+    @if (isAuthenticated) {
+    <div class="mobile-user-actions">
       <button mat-button (click)="onBuyCredits()">
         <mat-icon>add_shopping_cart</mat-icon>
         Купи кредити
@@ -189,8 +197,10 @@
         Излез
       </button>
     </div>
+    }
 
-    <div class="mobile-auth-actions" *ngIf="!isAuthenticated">
+    @if (!isAuthenticated) {
+    <div class="mobile-auth-actions">
       <button mat-button routerLink="/login" (click)="closeMobileMenu()">
         <mat-icon>login</mat-icon>
         Влез
@@ -200,10 +210,13 @@
         Регистрация
       </button>
     </div>
+    }
   </div>
 </div>
+}
 
-<ng-container *ngIf="showBuyCreditsModal">
+@if (showBuyCreditsModal) {
+<ng-container>
   <div class="modal-overlay" (click)="closeBuyCreditsModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
@@ -216,67 +229,103 @@
       <div class="modal-body">
         <div class="credit-packages">
           <h3>Избери от промоционалните пакети:</h3>
-          
+
           <mat-form-field appearance="outline" class="package-select">
             <mat-label>Изберете пакет</mat-label>
-            <mat-select [(ngModel)]="selectedPackage" name="packageSelect" placeholder="Изберете пакет" (selectionChange)="onPackageChange($event)">
-              <mat-option *ngFor="let pkg of creditPackages; trackBy: trackByCredits" [value]="pkg">
-                {{ pkg.credits }} кредита - {{ pkg.price }} лв ({{ convertBgnToEur(pkg.price) }}€)
-                <span *ngIf="pkg.discount"> ({{ pkg.discount }})</span>
+            <mat-select [(ngModel)]="selectedPackage" name="packageSelect" placeholder="Изберете пакет"
+              (selectionChange)="onPackageChange($event)">
+              @for (pkg of creditPackages; track pkg.id) {
+              <mat-option [value]="pkg">
+                {{ pkg.credits }} кредита - {{ pkg.priceWithVat }} {{ pkg.currency }}
+                @if (pkg.name) {
+                <span> - {{ pkg.name }}</span>
+                }
               </mat-option>
-            </mat-select>
+              } </mat-select>
           </mat-form-field>
 
-          <div class="selected-package" *ngIf="selectedPackage">
+          @if (selectedPackage) {
+          <div class="selected-package">
             <div class="package-details">
               <h4>Избран пакет:</h4>
               <div class="package-info">
                 <mat-icon color="accent">stars</mat-icon>
-                <span>{{ selectedPackage.credits }} кредита за {{ selectedPackage.price }} лева ({{ convertBgnToEur(selectedPackage.price) }}€)</span>
+                <span>
+                  {{ selectedPackage.credits }} кредита за
+                  {{ selectedPackage.priceWithVat }} {{ selectedPackage.currency }}
+                </span>
               </div>
-              <p class="package-description" *ngIf="selectedPackage.description">
-                {{ selectedPackage.description }}
+              @if (selectedPackage.description) {
+              <p class="package-description">{{ selectedPackage.description }}
               </p>
+              }
             </div>
           </div>
-        </div>
+          }
+          @if (selectedPackage) {
+          <div class="payment-section">
+            <h3>Плащане през ePay.bg</h3>
+            <p>
+              След потвърждение ще бъдете пренасочени към защитената платежна страница на ePay.bg,
+              където ще въведете данните за плащане.
+            </p>
+          </div>
+          }
 
-        <div class="payment-section" *ngIf="selectedPackage">
-          <h3>Картово плащане:</h3>
-          <form class="payment-form">
-            <mat-form-field appearance="outline">
-              <mat-label>Номер на карта</mat-label>
-              <input matInput [(ngModel)]="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+          <div class="invoice-section">
+            <h3>Данни за фактура</h3>
+
+            @if (userCompanies.length > 0) {
+            <mat-form-field appearance="outline" class="full-width company-select">
+              <mat-label>Фирма за фактура</mat-label>
+              <mat-select [(ngModel)]="selectedCompanyId" name="invoiceCompany"
+                          (selectionChange)="onCompanySelected($event.value)">
+                @for (company of userCompanies; track company.id) {
+                <mat-option [value]="company.id">{{ company.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            }
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Име/Фирма за фактура</mat-label>
+              <input matInput [(ngModel)]="invoiceName" name="invoiceName" required readonly>
             </mat-form-field>
 
-            <div class="card-details">
-              <mat-form-field appearance="outline">
-                <mat-label>MM/YY</mat-label>
-                <input matInput [(ngModel)]="cardExpiry" name="cardExpiry" placeholder="12/25" maxlength="5">
+            <div class="invoice-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>ЕИК/Булстат</mat-label>
+                <input matInput [(ngModel)]="invoiceBulstat" name="invoiceBulstat" readonly>
               </mat-form-field>
-              
-              <mat-form-field appearance="outline">
-                <mat-label>CVV</mat-label>
-                <input matInput [(ngModel)]="cardCvv" name="cardCvv" placeholder="123" maxlength="3" type="password">
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>ДДС номер</mat-label>
+                <input matInput [(ngModel)]="invoiceVatNumber" name="invoiceVatNumber" readonly>
               </mat-form-field>
             </div>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Име на картодържателя</mat-label>
-              <input matInput [(ngModel)]="cardHolderName" name="cardHolderName" placeholder="IVAN IVANOV">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Адрес за фактура</mat-label>
+              <input matInput [(ngModel)]="invoiceAddress" name="invoiceAddress" readonly>
             </mat-form-field>
-          </form>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Имейл за фактура</mat-label>
+              <input matInput [(ngModel)]="invoiceEmail" name="invoiceEmail" type="email">
+            </mat-form-field>
+          </div>
         </div>
       </div>
 
       <div class="modal-footer">
         <button mat-button (click)="closeBuyCreditsModal()">Затвори</button>
-        <button mat-raised-button color="primary" 
-                [disabled]="!selectedPackage || !isPaymentFormValid()"
-                (click)="processPurchase()">
-          Купи за {{ selectedPackage?.price || 0 }} лв ({{ selectedPackage ? convertBgnToEur(selectedPackage.price) : 0 }}€)
+        <button mat-raised-button color="primary" [disabled]="!selectedPackage || isProcessingPurchase || !invoiceName"
+          (click)="processPurchase()">
+          Купи за {{ selectedPackage?.priceWithVat || 0 }} {{ selectedPackage?.currency || '€' }}
+          
         </button>
       </div>
     </div>
   </div>
 </ng-container>
+}

@@ -2,7 +2,6 @@ import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
 import { SavedRequestsService } from '../../service/saved-requests.service';
-import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,14 +15,31 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Subject, takeUntil } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { CreditsService } from '../../service/credits.service';
+import { CompanyService } from '../../service/company.service';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
+import { environment } from '../../../environments/environment';
 
 interface CreditPackage {
+  id: number;
+  code: string;
+  name: string;
   credits: number;
-  price: number;
-  discount?: string;
+  priceWithVat: number;
+  currency: string;
+  // по желание:
   description?: string;
+  discount?: string;
+}
+
+interface UserCompany {
+  id: string | number;
+  name: string;
+  eikBulstat: string;
+  vatNumber?: string;
+  invoiceAddress?: string;
+  invoiceEmail?: string;
 }
 
 @Component({
@@ -33,8 +49,6 @@ interface CreditPackage {
   styleUrls: ['./header.component.scss'],
   imports: [
     RouterModule,
-    NgIf,
-    NgFor,
     FormsModule,
     MatMenuModule,
     MatButtonModule,
@@ -64,43 +78,32 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenuOpen: boolean = false;
   showBuyCreditsModal: boolean = false;
   selectedPackage: CreditPackage | null = null;
+  creditPackages: CreditPackage[] = [];
+
+  userCompanies: UserCompany[] = [];
+  selectedCompanyId: number | null = null;
+  private userCompaniesLoaded = false;
 
   private readonly EUR_TO_BGN_RATE = 1.95583;
 
+  // Данни за фактура
+  invoiceName: string = '';
+  invoiceBulstat: string = '';
+  invoiceVatNumber: string = '';
+  invoiceAddress: string = '';
+  invoiceEmail: string = '';
 
-  cardNumber: string = '';
-  cardExpiry: string = '';
-  cardCvv: string = '';
-  cardHolderName: string = '';
 
-  get creditPackages(): CreditPackage[] {
-    return [
-      {
-        credits: 10,
-        price: 100,
-        description: 'Стартов пакет за малки проекти'
-      },
-      {
-        credits: 20,
-        price: 150,
-        // discount: '-25%!',
-        description: 'Най-популярен избор за средни компании'
-      },
-      {
-        credits: 35,
-        price: 200,
-        // discount: 'Икономия от 225 лв!',
-        description: 'Професионален пакет за големи компании'
-      }
-    ];
-  }
+  isProcessingPurchase = false;
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private savedRequestsService: SavedRequestsService,
     private cdr: ChangeDetectorRef,
-    private creditsService: CreditsService
+    private creditsService: CreditsService,
+    private http: HttpClient,
+    private companyService: CompanyService
   ) { }
 
   ngOnInit() {
@@ -124,11 +127,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
           .subscribe(count => {
             this.savedRequestsCount = count;
           });
+
+        this.loadUserCompanies();
+        this.loadCreditPackages();
       } else {
         this.savedRequestsCount = 0;
         this.userName = null;
         this.userEmail = null;
         this.freeCredits = 0;
+        this.creditPackages = [];
       }
     });
   }
@@ -159,7 +166,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     console.log('🔍 Opening buy credits modal');
     console.log('🔍 Credit packages:', this.creditPackages);
     this.showBuyCreditsModal = true;
-    this.resetPaymentForm();
+    this.prefillInvoiceEmail();
 
     setTimeout(() => {
       this.cdr.detectChanges();
@@ -174,9 +181,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isMobileMenuOpen = false;
   }
 
-  convertBgnToEur(bgnAmount: number): number {
-    return Math.round((bgnAmount / this.EUR_TO_BGN_RATE) * 100) / 100; // Round to 2 decimal places
-  }
   trackByCredits(index: number, item: CreditPackage): number {
     return item.credits;
   }
@@ -194,35 +198,132 @@ export class HeaderComponent implements OnInit, OnDestroy {
   closeBuyCreditsModal() {
     this.showBuyCreditsModal = false;
     this.selectedPackage = null;
-    this.resetPaymentForm();
-  }
-
-  resetPaymentForm() {
-    this.cardNumber = '';
-    this.cardExpiry = '';
-    this.cardCvv = '';
-    this.cardHolderName = '';
-  }
-
-  isPaymentFormValid(): boolean {
-    return !!(this.cardNumber && this.cardExpiry && this.cardCvv && this.cardHolderName);
   }
 
   processPurchase() {
-    if (!this.selectedPackage || !this.isPaymentFormValid()) {
+    if (!this.selectedPackage || this.isProcessingPurchase) {
       return;
     }
 
-    console.log('Processing purchase:', {
-      package: this.selectedPackage,
-      cardNumber: this.cardNumber.substring(0, 4) + '****', // Security
-      amount: this.selectedPackage.price
+    this.isProcessingPurchase = true;
+
+    this.http.post<EpayInitResponse>(
+      `${environment.apiUrl}/payments/epay/init/${this.selectedPackage.id}`,
+      {
+        invoiceName: this.invoiceName,
+        invoiceBulstat: this.invoiceBulstat,
+        invoiceVatNumber: this.invoiceVatNumber,
+        invoiceAddress: this.invoiceAddress,
+        invoiceEmail: this.invoiceEmail || this.userEmail
+      }
+    ).subscribe({
+      next: (res) => {
+        console.log('ePay init response:', res);
+        alert(`ePay INIT:\nURL: ${res.url}\nENCODED: ${res.encoded}\nCHECKSUM: ${res.checksum}`);
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = res.url;
+
+        const pageInput = document.createElement('input');
+        pageInput.type = 'hidden';
+        pageInput.name = 'PAGE';
+        pageInput.value = 'paylogin';
+        form.appendChild(pageInput);
+
+        const encodedInput = document.createElement('input');
+        encodedInput.type = 'hidden';
+        encodedInput.name = 'ENCODED';
+        encodedInput.value = res.encoded;
+        form.appendChild(encodedInput);
+
+        const checksumInput = document.createElement('input');
+        checksumInput.type = 'hidden';
+        checksumInput.name = 'CHECKSUM';
+        checksumInput.value = res.checksum;
+        form.appendChild(checksumInput);
+
+        document.body.appendChild(form);
+        form.submit();
+      },
+      error: (err) => {
+        console.error('Error initializing ePay payment', err);
+        this.isProcessingPurchase = false;
+      }
     });
-
-    alert(`Успешно закупихте ${this.selectedPackage.credits} кредита за ${this.selectedPackage.price} лева!`);
-    this.closeBuyCreditsModal();
-
-    // Update credits after purchase
-    this.creditsService.refreshFromToken();
   }
+
+  private loadCreditPackages(): void {
+    this.http.get<CreditPackage[]>(`${environment.apiUrl}/credit-packages`)
+      .subscribe({
+        next: (pkgs) => {
+          this.creditPackages = pkgs;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          if (err.status === 403) {
+            console.warn('Credit packages forbidden (probably not authenticated).');
+            return;
+          }
+          console.error('Error loading credit packages', err);
+        }
+      });
+  }
+
+  private prefillInvoiceEmail(): void {
+    if (!this.invoiceEmail && this.userEmail) {
+      this.invoiceEmail = this.userEmail;
+    }
+  }
+
+  loadUserCompanies(): void {
+    if (this.userCompaniesLoaded) {
+      return;
+    }
+
+    this.companyService.getAllCompaniesByUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (companies) => {
+          this.userCompanies = (companies || []).map((c) => {
+            const mapped = this.companyService.mapCompanyToInvoice(c as any);
+            return {
+              id: mapped.id ?? '',
+              name: mapped.name,
+              eikBulstat: mapped.eikBulstat,
+              vatNumber: mapped.vatNumber,
+              invoiceAddress: mapped.invoiceAddress,
+              invoiceEmail: mapped.invoiceEmail,
+            } as UserCompany;
+          });
+          this.userCompaniesLoaded = true;
+        },
+        error: () => {
+          this.userCompanies = [];
+          this.userCompaniesLoaded = true;
+        }
+      });
+  }
+
+
+  onCompanySelected(companyId: number | string): void {
+    const idStr = String(companyId);
+    this.selectedCompanyId = companyId as any;
+    const company = this.userCompanies.find(c => String(c.id) === idStr);
+    if (!company) {
+      return;
+    }
+
+    this.invoiceName = company.name;
+    this.invoiceBulstat = company.eikBulstat;
+    this.invoiceVatNumber = company.vatNumber || '';
+    this.invoiceAddress = company.invoiceAddress || '';
+    this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+  }
+}
+
+interface EpayInitResponse {
+  url: string;
+  encoded: string;
+  checksum: string;
 }

@@ -112,4 +112,33 @@ getLogoByPath(path: string): Observable<Blob> {
   clearUserCompaniesCache(): void {
     this.userCompaniesCache$ = null;
   }
+
+  mapCompanyToInvoice(company: Company | null | undefined): {
+    id: string | undefined;
+    name: string;
+    eikBulstat: string;
+    vatNumber: string;
+    invoiceAddress: string;
+    invoiceEmail: string;
+  } {
+    if (!company) {
+      return {
+        id: undefined,
+        name: '',
+        eikBulstat: '',
+        vatNumber: '',
+        invoiceAddress: '',
+        invoiceEmail: ''
+      };
+    }
+
+    return {
+      id: company.id,
+      name: company.name,
+      eikBulstat: company.vatNumber,
+      vatNumber: company.vatNumber,
+      invoiceAddress: company.address,
+      invoiceEmail: company.email
+    };
+  }
 }
