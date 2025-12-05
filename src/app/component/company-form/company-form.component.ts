@@ -9,6 +9,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon'; // Import MatIconModule
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { NotificationService } from '../../service/notification.service';
 
 @Component({
   selector: 'app-company-form',
@@ -59,7 +60,7 @@ export class CompanyFormComponent implements OnInit, OnChanges {
   @Input() showRegisterButton: boolean = false; // New input property to control register button visibility
   @Input() isLoading: boolean = false; // New input property to control loading spinner visibility
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private notificationService: NotificationService) {
     // Use disabled state at creation time for controls
     const controlsConfig: any = {
       country: [{ value: '', disabled: this.disabledFields.includes('country') }, [Validators.required , Validators.maxLength(50)]],
@@ -129,7 +130,7 @@ export class CompanyFormComponent implements OnInit, OnChanges {
         this.logoChange.emit(this.selectedLogo);
         console.log('CompanyFormComponent: Logo selected and emitted:', this.selectedLogo); // DEBUG
       } else {
-        alert('Invalid file type. Please select a PNG, JPG, or JPEG file.');
+        this.notificationService.warning('Invalid file type. Please select a PNG, JPG, or JPEG file.');
         this.selectedLogo = null;
         this.logoChange.emit(null);
         if (this.logoInputRef) {

@@ -20,6 +20,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { AuthService } from '../../service/auth.service';
 import { EmailVerificationService } from '../../service/email-verification.service';
 import { CreditsService } from '../../service/credits.service';
+import { NotificationService } from '../../service/notification.service';
 
 @Component({
   selector: 'app-create-request',
@@ -57,7 +58,8 @@ export class CreateRequestComponent implements OnDestroy {
     private router: Router,
     private authService: AuthService,
     private emailVerificationService: EmailVerificationService,
-    public creditsService: CreditsService
+    public creditsService: CreditsService,
+    private notificationService: NotificationService
   ) {
     console.log('🚀 CreateRequestComponent constructor called - TESTING');
     this.requestForm = this.fb.group({
@@ -102,7 +104,7 @@ export class CreateRequestComponent implements OnDestroy {
   }
 
   logFormStatus(): void {
-    alert('DEBUG BUTTON CLICKED!');
+    this.notificationService.info('Debug mode activated');
     console.log('🔍 DEBUG BUTTON CLICKED!');
     console.log('📊 Form valid:', this.requestForm.valid);
     console.log('📊 Form invalid:', this.requestForm.invalid);
@@ -129,7 +131,7 @@ export class CreateRequestComponent implements OnDestroy {
         const file = input.files[i];
         
         if (file.size > maxFileSize) {
-          alert(`Файлът "${file.name}" е твърде голям (${(file.size / (1024 * 1024)).toFixed(2)}MB). Максималният размер е 25MB.`);
+          this.notificationService.warning(`Файлът "${file.name}" е твърде голям (${(file.size / (1024 * 1024)).toFixed(2)}MB). Максималният размер е 25MB.`);
           console.warn('File too large:', file.name, `${(file.size / (1024 * 1024)).toFixed(2)}MB`);
           continue; 
         }
@@ -143,7 +145,7 @@ export class CreateRequestComponent implements OnDestroy {
           }
         } else {
           console.warn('Unsupported file type ignored:', file.type);
-          alert('Неподдържан тип файл: ' + file.name + '. Моля, използвайте само изображения или PDF файлове.');
+          this.notificationService.warning('Неподдържан тип файл: ' + file.name + '. Моля, използвайте само изображения или PDF файлове.');
         }
       }
       
@@ -194,7 +196,7 @@ export class CreateRequestComponent implements OnDestroy {
     
     const currentCredits = this.creditsService.getCurrentCredits();
     if (currentCredits <= 0) {
-      alert('Нямате достатъчно кредити за създаване на публикация. Моля, закупете кредити.');
+      this.notificationService.error('Нямате достатъчно кредити за създаване на публикация. Моля, закупете кредити.');
       return;
     }
     
@@ -236,7 +238,7 @@ export class CreateRequestComponent implements OnDestroy {
     const oversizedFiles = this.selectedFiles.filter(file => file.size > maxFileSize);
     if (oversizedFiles.length > 0) {
       const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)}MB)`).join(', ');
-      alert(`Следните файлове са твърде големи: ${fileNames}. Максималният размер е 25MB на файл.`);
+      this.notificationService.warning(`Следните файлове са твърде големи: ${fileNames}. Максималният размер е 25MB на файл.`);
       return;
     }
     
@@ -313,7 +315,7 @@ export class CreateRequestComponent implements OnDestroy {
         console.error('❌ Error status:', err.status);
         console.error('❌ Error message:', err.message);
         console.error('❌ Full error:', err);
-        alert('Грешка при създаване на публикация: ' + (err.message || err.error?.message || 'Неизвестна грешка'));
+        this.notificationService.error('Грешка при създаване на публикация: ' + (err.message || err.error?.message || 'Неизвестна грешка'));
       }
     });
   }

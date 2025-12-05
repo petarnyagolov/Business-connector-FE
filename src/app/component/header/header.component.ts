@@ -218,9 +218,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     ).subscribe({
       next: (res) => {
-        console.log('ePay init response:', res);
-        alert(`ePay INIT:\nURL: ${res.url}\nENCODED: ${res.encoded}\nCHECKSUM: ${res.checksum}`);
-
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = res.url;

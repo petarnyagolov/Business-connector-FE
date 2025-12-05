@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, Subscription, takeUntil, debounceTime } from 'rxjs';
 import { ChatServiceNative as ChatService, ChatMessage, ChatMessageDto, FileAttachment } from '../../service/chat-native.service';
 import { AuthService } from '../../service/auth.service';
+import { NotificationService } from '../../service/notification.service';
 
 @Component({
   selector: 'app-chat-sidebar',
@@ -557,7 +558,8 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
 
   constructor(
     private chatService: ChatService,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -604,7 +606,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((fileError: string | null) => {
         if (fileError) {
-          alert(`Грешка при изпращане на файл: ${fileError}`);
+          this.notificationService.error(`Грешка при изпращане на файл: ${fileError}`);
         }
       });
 
@@ -734,7 +736,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
             errorMessage = error.error.message;
           }
           
-          alert(errorMessage);
+          this.notificationService.error(errorMessage);
           
           this.selectedFiles = filesToSend;
         }
@@ -908,7 +910,7 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
       });
       
       if (rejectedFiles.length > 0) {
-        alert(`Следните файлове не бяха добавени поради неподдържан формат:\n${rejectedFiles.join('\n')}\n\nРазрешени са само PDF, JPEG, JPG, PNG, Word и Excel файлове.`);
+        this.notificationService.warning(`Следните файлове не бяха добавени поради неподдържан формат:\n${rejectedFiles.join('\n')}\n\nРазрешени са само PDF, JPEG, JPG, PNG, Word и Excel файлове.`);
       }
       
       const uniqueFiles = validFiles.filter(newFile => 

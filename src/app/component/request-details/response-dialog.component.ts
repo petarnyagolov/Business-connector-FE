@@ -13,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subject, takeUntil } from 'rxjs';
 import { Company } from '../../model/company';
 import { CompanyService } from '../../service/company.service';
+import { NotificationService } from '../../service/notification.service';
 
 export interface ResponseDialogData {
   requestId: string;
@@ -188,7 +189,8 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private companyService: CompanyService,
     public dialogRef: MatDialogRef<ResponseDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ResponseDialogData
+    @Inject(MAT_DIALOG_DATA) public data: ResponseDialogData,
+    private notificationService: NotificationService
   ) {
     this.responseForm = this.fb.group({
       responserCompanyId: ['', Validators.required],
@@ -289,7 +291,7 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
           }
         } else {
           console.warn('Unsupported file type ignored:', file.type);
-          alert('Неподдържан тип файл: ' + file.name + '. Моля, използвайте само изображения или PDF файлове.');
+          this.notificationService.warning('Неподдържан тип файл: ' + file.name + '. Моля, използвайте само изображения или PDF файлове.');
         }
       }
       

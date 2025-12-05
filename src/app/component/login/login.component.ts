@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../service/auth.service';
+import { NotificationService } from '../../service/notification.service';
 import { tap } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -18,7 +19,8 @@ export class LoginComponent {
     constructor(
       private fb: FormBuilder, 
       private authService: AuthService, 
-      private router: Router
+      private router: Router,
+      private notificationService: NotificationService
     ) {
       this.loginForm = this.fb.group({
         email: ['', [Validators.required, Validators.email]],
@@ -33,11 +35,11 @@ export class LoginComponent {
                       tap({
                         next: (loginResponse: any) => {
                           console.log('Login Response:', loginResponse); 
-                          alert('Login successful!');
+                          this.notificationService.success('Успешно влизане!');
                         },
                         error: (loginError: any) => {
-                          console.error('Login Error:', loginError); // Handle the login error
-                          alert('Login failed. Please try again.');
+                          console.error('Login Error:', loginError);
+                          this.notificationService.error('Неуспешно влизане. Моля, опитайте отново.');
                         }
                       })
                     ).subscribe();
