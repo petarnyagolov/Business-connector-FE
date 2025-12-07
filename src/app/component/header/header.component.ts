@@ -14,11 +14,13 @@ import { MatSelectModule, MatSelectChange } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CreditsService } from '../../service/credits.service';
 import { CompanyService } from '../../service/company.service';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
+import { EpayPaymentDialogComponent } from '../epay-payment-dialog/epay-payment-dialog.component';
 import { environment } from '../../../environments/environment';
 
 interface CreditPackage {
@@ -61,8 +63,9 @@ interface UserCompany {
     MatOptionModule,
     MatFormFieldModule,
     MatInputModule,
-    NotificationBellComponent,
-  ],
+    MatDialogModule,
+    NotificationBellComponent
+  ]
 })
 
 export class HeaderComponent implements OnInit, OnDestroy {
@@ -103,7 +106,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private creditsService: CreditsService,
     private http: HttpClient,
-    private companyService: CompanyService
+    private companyService: CompanyService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit() {
@@ -218,48 +222,50 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     ).subscribe({
       next: (res) => {
-        // ВАЖНО: Показваме ясно съобщение преди redirect към ePay
-        // За да избегнем фишинг detection от Google Safe Browsing
-        console.log('🔐 Redirecting to ePay payment gateway:', res.url);
+        console.log('🔐 Opening ePay payment modal:', res.url);
         
-        // Създаваме форма с видимо потвърждение
         const pkg = this.selectedPackage!;
-        const confirmMessage = `Ще бъдете пренасочени към сигурната страница за плащане на ePay.bg.\n\nСума: ${pkg.priceWithVat} ${pkg.currency}\nКредити: ${pkg.credits}\n\nПродължавате?`;
         
-        if (!confirm(confirmMessage)) {
+        // Build the payment URL with query parameters
+        const paymentParams = new URLSearchParams({
+          'PAGE': 'paylogin',
+          'ENCODED': res.encoded,
+          'CHECKSUM': res.checksum
+        });
+        
+        const paymentUrl = `${res.url}?${paymentParams.toString()}`;
+        
+        // Open payment in modal iframe - much better UX and security
+        const dialogRef = this.dialog.open(EpayPaymentDialogComponent, {
+          width: '800px',
+          maxWidth: '95vw',
+          height: '600px',
+          maxHeight: '90vh',
+          disableClose: true,
+          data: {
+            paymentUrl,
+            packageInfo: {
+              name: pkg.name,
+              credits: pkg.credits,
+              price: pkg.priceWithVat,
+              currency: pkg.currency
+            }
+          }
+        });
+
+        dialogRef.afterClosed().subscribe((result: any) => {
           this.isProcessingPurchase = false;
-          return;
-        }
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = res.url;
-        // Правим формата видима за по-добра прозрачност
-        form.style.display = 'none';
-
-        const pageInput = document.createElement('input');
-        pageInput.type = 'hidden';
-        pageInput.name = 'PAGE';
-        pageInput.value = 'paylogin';
-        form.appendChild(pageInput);
-
-        const encodedInput = document.createElement('input');
-        encodedInput.type = 'hidden';
-        encodedInput.name = 'ENCODED';
-        encodedInput.value = res.encoded;
-        form.appendChild(encodedInput);
-
-        const checksumInput = document.createElement('input');
-        checksumInput.type = 'hidden';
-        checksumInput.name = 'CHECKSUM';
-        checksumInput.value = res.checksum;
-        form.appendChild(checksumInput);
-
-        document.body.appendChild(form);
-        
-        // Добавяме видим индикатор за redirect
-        console.log('💳 Submitting payment form to ePay...');
-        form.submit();
+          
+          if (result?.success) {
+            console.log('✅ Payment completed successfully');
+            // Refresh credits from token
+            this.creditsService.refreshFromToken();
+            // Navigate to success page
+            this.router.navigate(['/payment-success']);
+          } else if (result?.cancelled) {
+            console.log('❌ Payment cancelled by user');
+          }
+        });
       },
       error: (err) => {
         console.error('Error initializing ePay payment', err);
