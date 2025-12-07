@@ -1,11 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
 <head>
   <meta charset="utf-8">
   <meta name="theme-color" content="#009996">
+  
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy" 
+        content="default-src 'self'; 
+                 script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://cdnjs.cloudflare.com; 
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+                 font-src 'self' https://fonts.gstatic.com; 
+                 img-src 'self' data: https:; 
+                 connect-src 'self' https://api.xdealhub.com wss://api.xdealhub.com https://www.google-analytics.com; 
+                 frame-src 'self' https://www.googletagmanager.com https://demo.epay.bg https://epay.bg;
+                 form-action 'self' https://demo.epay.bg https://epay.bg;
+                 base-uri 'self';
+                 object-src 'none';">
+  
   <title>XDealHub - Business Platform</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="XDealHub - Бизнес платформа за свързване на фирми и търговски възможности">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
