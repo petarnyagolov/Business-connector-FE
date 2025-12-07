@@ -85,51 +85,80 @@ export class NotificationService {
       backdrop-filter: blur(10px);
     `;
 
-    // Определяме иконата
+    // Определяме иконата и title
     const icon = this.getIcon(config.type);
     const title = config.title || this.getDefaultTitle(config.type);
 
-    toast.innerHTML = `
-      <div style="display: flex; align-items: flex-start; gap: 12px;">
-        <span style="font-size: 20px; flex-shrink: 0; margin-top: 2px;">${icon}</span>
-        <div style="flex: 1;">
-          <div style="font-weight: 600; margin-bottom: 6px; color: ${colors.accent};">
-            ${title}
-          </div>
-          <div style="color: ${colors.text};">${config.message}</div>
-        </div>
-        <button class="toast-close-btn" style="
-          background: none;
-          border: none;
-          color: ${colors.closeButton};
-          font-size: 18px;
-          cursor: pointer;
-          padding: 0;
-          margin-left: 8px;
-          line-height: 1;
-          flex-shrink: 0;
-          border-radius: 4px;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background-color 0.2s;
-        " onmouseover="this.style.backgroundColor='rgba(0,0,0,0.1)'" 
-           onmouseout="this.style.backgroundColor='transparent'"
-           onclick="this.parentElement.parentElement.remove()">×</button>
-      </div>
-      <div class="progress-bar" style="
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 3px;
-        background: ${colors.accent};
-        border-radius: 0 0 8px 8px;
-        animation: progressBar ${(config.duration || 4000) / 1000}s linear;
-        transform-origin: left center;
-      "></div>
+    // SECURITY FIX: Escape HTML за да избегнем XSS
+    const escapedTitle = this.escapeHtml(title);
+    const escapedMessage = this.escapeHtml(config.message);
+
+    // Създаваме структурата със DOM методи вместо innerHTML
+    const contentWrapper = document.createElement('div');
+    contentWrapper.style.cssText = 'display: flex; align-items: flex-start; gap: 12px;';
+
+    const iconSpan = document.createElement('span');
+    iconSpan.style.cssText = 'font-size: 20px; flex-shrink: 0; margin-top: 2px;';
+    iconSpan.textContent = icon;
+
+    const textContainer = document.createElement('div');
+    textContainer.style.cssText = 'flex: 1;';
+
+    const titleDiv = document.createElement('div');
+    titleDiv.style.cssText = `font-weight: 600; margin-bottom: 6px; color: ${colors.accent};`;
+    titleDiv.textContent = title;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `color: ${colors.text};`;
+    messageDiv.textContent = config.message;
+
+    textContainer.appendChild(titleDiv);
+    textContainer.appendChild(messageDiv);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close-btn';
+    closeBtn.textContent = '×';
+    closeBtn.style.cssText = `
+      background: none;
+      border: none;
+      color: ${colors.closeButton};
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 8px;
+      line-height: 1;
+      flex-shrink: 0;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
     `;
+    closeBtn.onmouseover = () => closeBtn.style.backgroundColor = 'rgba(0,0,0,0.1)';
+    closeBtn.onmouseout = () => closeBtn.style.backgroundColor = 'transparent';
+    closeBtn.onclick = () => toast.remove();
+
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress-bar';
+    progressBar.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: ${colors.accent};
+      border-radius: 0 0 8px 8px;
+      animation: progressBar ${(config.duration || 4000) / 1000}s linear;
+      transform-origin: left center;
+    `;
+
+    contentWrapper.appendChild(iconSpan);
+    contentWrapper.appendChild(textContainer);
+    contentWrapper.appendChild(closeBtn);
+
+    toast.appendChild(contentWrapper);
+    toast.appendChild(progressBar);
 
     // Добавяме към контейнера
     container.appendChild(toast);
@@ -148,6 +177,12 @@ export class NotificationService {
         this.removeToast(toast);
       }
     });
+  }
+
+  private escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   private removeToast(toast: HTMLElement): void {
