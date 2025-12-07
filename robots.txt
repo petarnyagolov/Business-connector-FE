@@ -1,0 +1,11 @@
+# XDealHub - Business Platform
+User-agent: *
+Allow: /
+
+# Важни страници
+Sitemap: https://xdealhub.com/sitemap.xml
+
+# Забрани достъп до чувствителни директории
+Disallow: /admin
+Disallow: /api
+Disallow: /debug
