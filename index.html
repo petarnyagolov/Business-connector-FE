@@ -10,6 +10,9 @@
   <meta http-equiv="X-XSS-Protection" content="1; mode=block">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   
+  <!-- Permissions Policy -->
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=()">
+  
   <!-- Content Security Policy -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
                  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://cdnjs.cloudflare.com; 
@@ -18,9 +21,10 @@
                  img-src 'self' data: https:; 
                  connect-src 'self' https://api.xdealhub.com wss://api.xdealhub.com https://www.google-analytics.com; 
                  frame-src 'self' https://www.googletagmanager.com https://demo.epay.bg https://epay.bg;
-                 form-action 'self' https://demo.epay.bg https://epay.bg;
+                 form-action 'self';
                  base-uri 'self';
-                 object-src 'none';">
+                 object-src 'none';
+                 upgrade-insecure-requests;">
   
   <title>XDealHub - Business Platform</title>
   <base href="/">
@@ -60,5 +64,5 @@
   </noscript>
   <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
-<link rel="modulepreload" href="chunk-Y2KIR6CN.js"><link rel="modulepreload" href="chunk-AVM5EYH2.js"><link rel="modulepreload" href="chunk-2ODWTB72.js"><link rel="modulepreload" href="chunk-RPEVMXRY.js"><link rel="modulepreload" href="chunk-F2LJYZNO.js"><link rel="modulepreload" href="chunk-4CTGKIR7.js"><link rel="modulepreload" href="chunk-MA27MSDB.js"><link rel="modulepreload" href="chunk-URGYG6IW.js"><link rel="modulepreload" href="chunk-TYKAZQJM.js"><link rel="modulepreload" href="chunk-JSZ4FIEI.js"><script src="polyfills-HPZ7KTN2.js" type="module"></script><script src="main-OMVTGK5V.js" type="module"></script></body>
+<link rel="modulepreload" href="chunk-BY3YGF2F.js"><link rel="modulepreload" href="chunk-ECHSDKKH.js"><link rel="modulepreload" href="chunk-DJNGY343.js"><link rel="modulepreload" href="chunk-6ZNKTVAL.js"><link rel="modulepreload" href="chunk-OMNJZJUA.js"><link rel="modulepreload" href="chunk-GEH7C5ED.js"><link rel="modulepreload" href="chunk-5MJSZUZ5.js"><link rel="modulepreload" href="chunk-GFVWOHJC.js"><link rel="modulepreload" href="chunk-32SBW3QV.js"><link rel="modulepreload" href="chunk-2EZMJHKP.js"><script src="polyfills-HPZ7KTN2.js" type="module"></script><script src="main-7KC45F5M.js" type="module"></script></body>
 </html>
