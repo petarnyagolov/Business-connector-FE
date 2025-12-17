@@ -1,11 +1,77 @@
 <section class="payment-result">
-  <h1>Плащането е успешно</h1>
-  <p>
-    Благодарим ви! Плащането през ePay.bg беше успешно обработено.
-    Кредитите ще бъдат добавени към акаунта ви в рамките на няколко секунди.
-  </p>
+  @if (isProcessing) {
+    <div class="processing">
+      <mat-spinner diameter="60"></mat-spinner>
+      <h1>Обработване на плащането...</h1>
+      <p>
+        Моля изчакайте, докато потвърдим плащането от ePay.bg.
+        Това обикновено отнема няколко секунди.
+      </p>
+      <p class="info">
+        <mat-icon>info</mat-icon>
+        Проверяваме вашето плащане...
+      </p>
+    </div>
+  }
 
-  <button mat-raised-button color="primary" routerLink="/requests">
-    Към публикациите
-  </button>
+  @if (!isProcessing && isSuccess) {
+    <div class="success">
+      <mat-icon color="primary" class="success-icon">check_circle</mat-icon>
+      <h1>Плащането е успешно!</h1>
+      <p>{{ paymentStatus?.message }}</p>
+      @if (paymentStatus?.creditsPurchased) {
+        <div class="credits-info">
+          <mat-icon>stars</mat-icon>
+          <p>
+            Добавени кредити: <strong class="new-credits">{{ paymentStatus.creditsPurchased }}</strong>
+          </p>
+        </div>
+      }
+      <button mat-raised-button color="primary" routerLink="/requests">
+        <mat-icon>arrow_forward</mat-icon>
+        Към публикациите
+      </button>
+    </div>
+  }
+
+  @if (!isProcessing && isDenied) {
+    <div class="denied">
+      <mat-icon color="warn" class="warning-icon">cancel</mat-icon>
+      <h1>Плащането е отказано</h1>
+      <p>{{ paymentStatus?.message || 'Плащането беше отказано или отменено.' }}</p>
+      <button mat-raised-button color="primary" routerLink="/requests">
+        Към публикациите
+      </button>
+      <button mat-button routerLink="/requests">
+        <mat-icon>shopping_cart</mat-icon>
+        Опитай отново
+      </button>
+    </div>
+  }
+
+  @if (!isProcessing && isExpired) {
+    <div class="expired">
+      <mat-icon color="warn" class="warning-icon">schedule</mat-icon>
+      <h1>Сесията е изтекла</h1>
+      <p>{{ paymentStatus?.message || 'Времето за плащане изтече.' }}</p>
+      <button mat-raised-button color="primary" routerLink="/requests">
+        Към публикациите
+      </button>
+      <button mat-button routerLink="/requests">
+        <mat-icon>shopping_cart</mat-icon>
+        Опитай отново
+      </button>
+    </div>
+  }
+
+  @if (!isProcessing && !isSuccess && !isDenied && !isExpired && !transactionId) {
+    <div class="no-transaction">
+      <mat-icon color="warn" class="warning-icon">error_outline</mat-icon>
+      <h1>Липсва информация за плащане</h1>
+      <p>Не можахме да намерим информация за вашето плащане.</p>
+      <button mat-raised-button color="primary" routerLink="/requests">
+        Към публикациите
+      </button>
+    </div>
+  }
 </section>

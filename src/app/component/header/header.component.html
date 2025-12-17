@@ -264,11 +264,37 @@
           }
           @if (selectedPackage) {
           <div class="payment-section">
-            <h3>Плащане през ePay.bg</h3>
-            <p>
-              След потвърждение ще бъдете пренасочени към защитената платежна страница на ePay.bg,
-              където ще въведете данните за плащане.
-            </p>
+            <h3>Начин на плащане</h3>
+            
+            <mat-radio-group [(ngModel)]="paymentMethod" class="payment-method-group">
+              <mat-radio-button value="card" class="payment-option">
+                <div class="payment-option-content">
+                  <mat-icon color="accent">credit_card</mat-icon>
+                  <div class="payment-option-text">
+                    <strong>Банкова карта</strong>
+                    <span>Директно плащане с дебитна/кредитна карта</span>
+                  </div>
+                </div>
+              </mat-radio-button>
+              
+              <mat-radio-button value="profile" class="payment-option">
+                <div class="payment-option-content">
+                  <mat-icon>account_balance_wallet</mat-icon>
+                  <div class="payment-option-text">
+                    <strong>ePay профил</strong>
+                    <span>Плащане през вашия ePay.bg акаунт</span>
+                  </div>
+                </div>
+              </mat-radio-button>
+            </mat-radio-group>
+            
+            <div class="payment-info">
+              <mat-icon>info</mat-icon>
+              <p>
+                След потвърждение ще бъдете пренасочени към защитената платежна страница на ePay.bg,
+                където ще въведете данните за плащане.
+              </p>
+            </div>
           </div>
           }
 

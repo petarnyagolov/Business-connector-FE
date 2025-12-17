@@ -52,13 +52,32 @@ interface PaymentDialogData {
           </div>
         }
 
+        @if (hasError) {
+          <div class="error-overlay">
+            <mat-icon color="warn">error_outline</mat-icon>
+            <h3>Грешка при зареждане</h3>
+            <p>{{ errorMessage }}</p>
+            <p class="error-details">
+              Възможни причини:<br>
+              • ePay сървърът не отговаря<br>
+              • Невалидни данни за плащане<br>
+              • Проблем с мрежовата връзка
+            </p>
+            <button mat-raised-button color="primary" (click)="reloadIframe()">
+              <mat-icon>refresh</mat-icon>
+              Опитай отново
+            </button>
+          </div>
+        }
+
         <iframe
           #paymentFrame
           [src]="safePaymentUrl"
           (load)="onIframeLoad()"
+          (error)="onIframeError($event)"
           frameborder="0"
           class="payment-iframe"
-          sandbox="allow-forms allow-scripts allow-same-origin allow-popups"
+          sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation"
         ></iframe>
       </div>
 
@@ -67,9 +86,14 @@ interface PaymentDialogData {
           <mat-icon>lock</mat-icon>
           Сигурно плащане чрез ePay.bg - лицензиран платежен оператор от БНБ
         </p>
-        <button mat-button (click)="onCancel()" color="warn">
-          Откажи плащането
-        </button>
+        <div class="footer-buttons">
+          <button mat-raised-button (click)="simulateSuccess()" color="primary" class="demo-button">
+            🧪 Симулирай успешно плащане (DEMO)
+          </button>
+          <button mat-button (click)="onCancel()" color="warn">
+            Откажи плащането
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -148,12 +172,63 @@ interface PaymentDialogData {
       border: none;
     }
 
+    .error-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      padding: 32px;
+      max-width: 400px;
+      z-index: 20;
+    }
+
+    .error-overlay mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+    }
+
+    .error-overlay h3 {
+      margin: 0 0 8px 0;
+      color: #f44336;
+    }
+
+    .error-overlay p {
+      margin: 8px 0;
+      color: #666;
+    }
+
+    .error-details {
+      font-size: 12px;
+      margin-top: 16px;
+      padding: 12px;
+      background: #fff3cd;
+      border-radius: 4px;
+      text-align: left;
+    }
+
     .dialog-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 16px 24px;
       border-top: 1px solid #e0e0e0;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .demo-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      color: white !important;
     }
 
     .security-note {
@@ -189,6 +264,8 @@ interface PaymentDialogData {
 export class EpayPaymentDialogComponent implements OnInit, OnDestroy {
   safePaymentUrl: SafeResourceUrl;
   isLoading = true;
+  hasError = false;
+  errorMessage = '';
   private messageListener: ((event: MessageEvent) => void) | null = null;
 
   constructor(
@@ -196,6 +273,9 @@ export class EpayPaymentDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: PaymentDialogData,
     private sanitizer: DomSanitizer
   ) {
+    // Log the payment URL for debugging
+    console.log('🔗 Payment URL:', data.paymentUrl);
+    
     // Sanitize the payment URL for iframe
     this.safePaymentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(data.paymentUrl);
   }
@@ -231,8 +311,43 @@ export class EpayPaymentDialogComponent implements OnInit, OnDestroy {
   }
 
   onIframeLoad() {
+    console.log('✅ ePay iframe loaded');
+    
+    // Wait a bit to see if content actually loaded
+    setTimeout(() => {
+      const iframe = document.querySelector('.payment-iframe') as HTMLIFrameElement;
+      if (iframe) {
+        try {
+          // Try to access iframe document (will fail if cross-origin)
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDoc) {
+            console.log('📄 Iframe document accessible');
+          }
+        } catch (e) {
+          console.log('🔒 Iframe is cross-origin (expected for ePay)');
+        }
+      }
+      this.isLoading = false;
+    }, 500);
+  }
+
+  onIframeError(event: any) {
+    console.error('❌ Iframe loading error:', event);
     this.isLoading = false;
-    console.log('✅ ePay iframe loaded successfully');
+    this.hasError = true;
+    this.errorMessage = 'Не успя да се зареди страницата за плащане.';
+  }
+
+  reloadIframe() {
+    console.log('🔄 Reloading iframe...');
+    this.hasError = false;
+    this.isLoading = true;
+    
+    // Force iframe reload
+    const iframe = document.querySelector('.payment-iframe') as HTMLIFrameElement;
+    if (iframe) {
+      iframe.src = iframe.src;
+    }
   }
 
   onCancel() {
@@ -245,6 +360,19 @@ export class EpayPaymentDialogComponent implements OnInit, OnDestroy {
   onPaymentSuccess() {
     console.log('🎉 Payment successful!');
     this.dialogRef.close({ success: true });
+  }
+
+  simulateSuccess() {
+    console.log('🧪 DEMO MODE: Simulating successful payment');
+    const confirmed = confirm(
+      '🧪 DEMO MODE\n\n' +
+      'Това ще симулира успешно плащане БЕЗ реална транзакция.\n' +
+      'Използвай само за тестване!\n\n' +
+      'Продължи?'
+    );
+    if (confirmed) {
+      this.onPaymentSuccess();
+    }
   }
 
   private startUrlMonitoring() {

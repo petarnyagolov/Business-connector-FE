@@ -14,6 +14,7 @@ import { MatSelectModule, MatSelectChange } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -63,6 +64,7 @@ interface UserCompany {
     MatOptionModule,
     MatFormFieldModule,
     MatInputModule,
+    MatRadioModule,
     MatDialogModule,
     NotificationBellComponent
   ]
@@ -96,6 +98,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   invoiceAddress: string = '';
   invoiceEmail: string = '';
 
+  // Payment method selection
+  paymentMethod: 'profile' | 'card' = 'card'; // Default to direct card payment
 
   isProcessingPurchase = false;
 
@@ -222,53 +226,71 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     ).subscribe({
       next: (res) => {
-        console.log('🔐 Opening ePay payment modal:', res.url);
+        console.log('🔐 ePay payment initialized:', res);
         
-        const pkg = this.selectedPackage!;
+        // Save transaction ID for status checking after redirect
+        if (res.transactionId) {
+          sessionStorage.setItem('epay_transaction_id', res.transactionId);
+        }
         
-        // Build the payment URL with query parameters
-        const paymentParams = new URLSearchParams({
-          'PAGE': 'paylogin',
-          'ENCODED': res.encoded,
-          'CHECKSUM': res.checksum
+        console.log(`📋 PAGE parameter: ${res.PAGE}`);
+        
+        // Create a hidden form and submit it to redirect to ePay
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = res.url;
+        form.style.display = 'none';
+        
+        // Add all form parameters from backend response
+        const params: { [key: string]: string } = {
+          'PAGE': res.PAGE,
+          'ENCODED': res.ENCODED,
+          'CHECKSUM': res.CHECKSUM,
+          'LANG': 'bg'
+        };
+        
+        // Add optional URL_OK and URL_CANCEL if provided by backend
+        if (res.URL_OK) {
+          params['URL_OK'] = res.URL_OK;
+        }
+        if (res.URL_CANCEL) {
+          params['URL_CANCEL'] = res.URL_CANCEL;
+        }
+        
+        console.log('📤 Submitting form with params:', {
+          PAGE: params.PAGE,
+          url: res.url,
+          URL_OK: params.URL_OK,
+          URL_CANCEL: params.URL_CANCEL
         });
         
-        const paymentUrl = `${res.url}?${paymentParams.toString()}`;
+        // Create hidden input fields
+        Object.keys(params).forEach(key => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = params[key];
+          form.appendChild(input);
+        });
         
-        // Open payment in modal iframe - much better UX and security
-        const dialogRef = this.dialog.open(EpayPaymentDialogComponent, {
-          width: '800px',
-          maxWidth: '95vw',
-          height: '600px',
-          maxHeight: '90vh',
-          disableClose: true,
-          data: {
-            paymentUrl,
-            packageInfo: {
-              name: pkg.name,
-              credits: pkg.credits,
-              price: pkg.priceWithVat,
-              currency: pkg.currency
-            }
+        // Append form to body, submit, and remove
+        document.body.appendChild(form);
+        console.log('🚀 Redirecting to ePay.bg...');
+        form.submit();
+        
+        // Clean up - the page will redirect, but just in case
+        setTimeout(() => {
+          try {
+            document.body.removeChild(form);
+          } catch (e) {
+            // Form already removed by navigation
           }
-        });
-
-        dialogRef.afterClosed().subscribe((result: any) => {
           this.isProcessingPurchase = false;
-          
-          if (result?.success) {
-            console.log('✅ Payment completed successfully');
-            // Refresh credits from token
-            this.creditsService.refreshFromToken();
-            // Navigate to success page
-            this.router.navigate(['/payment-success']);
-          } else if (result?.cancelled) {
-            console.log('❌ Payment cancelled by user');
-          }
-        });
+        }, 1000);
       },
       error: (err) => {
-        console.error('Error initializing ePay payment', err);
+        console.error('❌ Error initializing ePay payment:', err);
+        alert('Грешка при инициализиране на плащането. Моля опитайте отново.');
         this.isProcessingPurchase = false;
       }
     });
@@ -345,6 +367,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 interface EpayInitResponse {
   url: string;
-  encoded: string;
-  checksum: string;
+  ENCODED: string;
+  CHECKSUM: string;
+  PAGE: string;
+  URL_OK?: string;
+  URL_CANCEL?: string;
+  transactionId?: string; // For tracking payment status
 }
