@@ -20,10 +20,9 @@
       var basePath = currentLocation.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/');
       
       // Encode the current path by replacing '&' with '~and~' to preserve query string integrity
-      // Skip the first pathSegmentsToKeep segments and the leading slash
+      // For root deployment (pathSegmentsToKeep = 0), use the full path
       var pathParts = currentLocation.pathname.slice(1).split('/');
-      var relevantPathParts = pathSegmentsToKeep > 0 ? pathParts.slice(pathSegmentsToKeep) : pathParts;
-      var encodedPath = relevantPathParts.join('/').replace(/&/g, '~and~');
+      var encodedPath = pathParts.join('/').replace(/&/g, '~and~');
       
       // Encode the query string (if any)
       var encodedQuery = currentLocation.search ? 

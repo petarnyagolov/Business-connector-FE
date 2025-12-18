@@ -62,7 +62,8 @@
     (function(location) {
       // Check if this is a redirect from 404.html
       // Indicated by search string starting with '/' (format: /?/path&query)
-      if (location.search && location.search.length > 1 && location.search[1] === '/' ) {
+      // Need at least 2 characters: '?' and '/'
+      if (location.search && location.search.length >= 2 && location.search[1] === '/' ) {
         // Split the encoded URL into segments (path and query params)
         var segments = location.search.slice(1).split('&');
         
