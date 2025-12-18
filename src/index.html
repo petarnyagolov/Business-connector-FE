@@ -62,15 +62,24 @@
     (function(location) {
       // Check if this is a redirect from 404.html (indicated by search starting with '/')
       if (location.search[1] === '/' ) {
-        // Decode the original path and query string
-        var decoded = location.search.slice(1).split('&').map(function(segment) { 
-          return segment.replace(/~and~/g, '&')
-        }).join('?');
+        // Split the encoded URL into segments (path and query params)
+        var segments = location.search.slice(1).split('&');
+        
+        // Decode '~and~' back to '&' in all segments
+        var decodedSegments = segments.map(function(segment) { 
+          return segment.replace(/~and~/g, '&');
+        });
+        
+        // First segment is the path, rest are query parameters
+        var decodedPath = decodedSegments[0];
+        var decodedQuery = decodedSegments.length > 1 ? 
+                           '?' + decodedSegments.slice(1).join('&') : '';
+        
+        // Construct the full decoded URL
+        var decodedUrl = location.pathname.slice(0, -1) + decodedPath + decodedQuery + location.hash;
         
         // Restore the original URL in browser history
-        window.history.replaceState(null, null,
-          location.pathname.slice(0, -1) + decoded + location.hash
-        );
+        window.history.replaceState(null, null, decodedUrl);
       }
     }(window.location))
   </script>
