@@ -30,19 +30,42 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="XDealHub - Бизнес платформа за свързване на фирми и търговски възможности">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="keywords" content="бизнес платформа, фирми, търговски възможности, B2B, България, оферти, предложения">
+  <meta name="author" content="XDealHub">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://xdealhub.com/">
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="XDealHub - Business Platform">
+  <meta property="og:description" content="Бизнес платформа за свързване на фирми и търговски възможности">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://xdealhub.com/">
+  <meta property="og:site_name" content="XDealHub">
+  <meta property="og:locale" content="bg_BG">
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="XDealHub - Business Platform">
+  <meta name="twitter:description" content="Бизнес платформа за свързване на фирми и търговски възможности">
+  
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   
   <!-- GitHub Pages SPA redirect handling -->
   <script>
-    (function(){
-      var redirect = sessionStorage.redirect;
-      delete sessionStorage.redirect;
-      if (redirect && redirect != location.href) {
-        history.replaceState(null, null, redirect);
+    (function(l) {
+      if (l.search[1] === '/' ) {
+        var decoded = l.search.slice(1).split('&').map(function(s) { 
+          return s.replace(/~and~/g, '&')
+        }).join('?');
+        window.history.replaceState(null, null,
+          l.pathname.slice(0, -1) + decoded + l.hash
+        );
       }
-    })();
+    }(window.location))
   </script>
   
   <!-- STOMP.js library for WebSocket communication -->

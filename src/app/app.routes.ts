@@ -71,4 +71,6 @@ export const routes: Routes = [
     path: 'debug',
     loadComponent: () => import('./component/debug/debug.component').then(m => m.DebugComponent)
   },
+  // Wildcard route for 404 - redirect to home instead of showing blank page
+  { path: '**', redirectTo: '/home' }
 ];
