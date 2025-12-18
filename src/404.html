@@ -8,6 +8,7 @@
     // This script encodes the current path into a query string and redirects to index.html
     // The main app (index.html) will then restore the correct route from the query string
     (function() {
+      // Path segments to keep for subdirectory deployments (0 for root deployment)
       var pathSegmentsToKeep = 0;
       var currentLocation = window.location;
       
@@ -15,12 +16,14 @@
       var baseUrl = currentLocation.protocol + '//' + currentLocation.hostname + 
                     (currentLocation.port ? ':' + currentLocation.port : '');
       
-      // Extract the path (excluding segments to keep, typically 0 for root deployment)
+      // Extract the base path (for subdirectory deployments, typically just '/' for root)
       var basePath = currentLocation.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/');
       
       // Encode the current path by replacing '&' with '~and~' to preserve query string integrity
-      var encodedPath = currentLocation.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/')
-                          .replace(/&/g, '~and~');
+      // Skip the first pathSegmentsToKeep segments and the leading slash
+      var pathParts = currentLocation.pathname.slice(1).split('/');
+      var relevantPathParts = pathSegmentsToKeep > 0 ? pathParts.slice(pathSegmentsToKeep) : pathParts;
+      var encodedPath = relevantPathParts.join('/').replace(/&/g, '~and~');
       
       // Encode the query string (if any)
       var encodedQuery = currentLocation.search ? 
