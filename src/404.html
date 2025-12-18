@@ -21,16 +21,14 @@
       // because we'll be adding '/?/' next, which already contains the slash
       // Split pathname and filter out empty segments (caused by leading/trailing slashes)
       var pathSegments = currentLocation.pathname.split('/').filter(function(segment) { 
-        return segment; // Remove empty strings from split result
+        return segment !== ''; // Remove empty strings from split result
       });
       var basePath = pathSegmentsToKeep > 0 ? 
                      '/' + pathSegments.slice(0, pathSegmentsToKeep).join('/') : '';
       
       // Encode the current path by replacing '&' with '~and~' to preserve query string integrity
-      // Extract path after base segments (for root deployment, this is the full path minus leading slash)
-      var remainingPath = pathSegmentsToKeep > 0 ? 
-                          pathSegments.slice(pathSegmentsToKeep).join('/') :
-                          pathSegments.join('/');
+      // Extract path after base segments (for root deployment, slice(0) returns full array)
+      var remainingPath = pathSegments.slice(pathSegmentsToKeep).join('/');
       var encodedPath = remainingPath.replace(/&/g, '~and~');
       
       // Encode the query string (if any)
