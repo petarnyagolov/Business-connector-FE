@@ -19,7 +19,10 @@
       // Extract the base path (for subdirectory deployments)
       // For root deployment (pathSegmentsToKeep = 0), basePath should be empty string
       // because we'll be adding '/?/' next, which already contains the slash
-      var pathSegments = currentLocation.pathname.split('/').filter(function(s) { return s; });
+      // Split pathname and filter out empty segments (caused by leading/trailing slashes)
+      var pathSegments = currentLocation.pathname.split('/').filter(function(segment) { 
+        return segment; // Remove empty strings from split result
+      });
       var basePath = pathSegmentsToKeep > 0 ? 
                      '/' + pathSegments.slice(0, pathSegmentsToKeep).join('/') : '';
       
