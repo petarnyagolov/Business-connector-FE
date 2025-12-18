@@ -71,6 +71,8 @@ export const routes: Routes = [
     path: 'debug',
     loadComponent: () => import('./component/debug/debug.component').then(m => m.DebugComponent)
   },
-  // Wildcard route for 404 - redirect to requests (same as root path) for consistency
-  { path: '**', redirectTo: '/requests' }
+  // Wildcard route for 404 - redirect to home (public route) for better UX
+  // Note: Root path ('') redirects to /requests, but unknown URLs go to /home
+  // This prevents forcing unauthenticated users to login when accessing invalid URLs
+  { path: '**', redirectTo: '/home' }
 ];
