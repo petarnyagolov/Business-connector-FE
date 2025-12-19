@@ -30,19 +30,62 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="XDealHub - Бизнес платформа за свързване на фирми и търговски възможности">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="keywords" content="бизнес платформа, фирми, търговски възможности, B2B, България, оферти, предложения">
+  <meta name="author" content="XDealHub">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://xdealhub.com/">
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="XDealHub - Business Platform">
+  <meta property="og:description" content="Бизнес платформа за свързване на фирми и търговски възможности">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://xdealhub.com/">
+  <meta property="og:site_name" content="XDealHub">
+  <meta property="og:locale" content="bg_BG">
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="XDealHub - Business Platform">
+  <meta name="twitter:description" content="Бизнес платформа за свързване на фирми и търговски възможности">
+  
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   
   <!-- GitHub Pages SPA redirect handling -->
   <script>
-    (function(){
-      var redirect = sessionStorage.redirect;
-      delete sessionStorage.redirect;
-      if (redirect && redirect != location.href) {
-        history.replaceState(null, null, redirect);
+    // Single Page Application redirect handler for GitHub Pages
+    // This script decodes the path from the query string (set by 404.html)
+    // and restores the original URL without the redirect artifacts
+    (function(location) {
+      // Check if this is a redirect from 404.html
+      // Indicated by search string starting with '/' (format: /?/path&query)
+      // Need at least 2 characters: '?' and '/'
+      if (location.search && location.search.length >= 2 && location.search.charAt(1) === '/' ) {
+        // Split the encoded URL into segments (path and query params)
+        var segments = location.search.slice(1).split('&');
+        
+        // Decode '~and~' back to '&' in all segments
+        var decodedSegments = segments.map(function(segment) { 
+          return segment.replace(/~and~/g, '&');
+        });
+        
+        // First segment is the path, rest are query parameters
+        var decodedPath = decodedSegments[0];
+        var decodedQuery = decodedSegments.length > 1 ? 
+                           '?' + decodedSegments.slice(1).join('&') : '';
+        
+        // Construct the full decoded URL
+        // Handle root path case where pathname might be just '/'
+        var basePath = location.pathname.length > 1 ? location.pathname.slice(0, -1) : '';
+        var decodedUrl = basePath + decodedPath + decodedQuery + location.hash;
+        
+        // Restore the original URL in browser history
+        window.history.replaceState(null, null, decodedUrl);
       }
-    })();
+    }(window.location));
   </script>
   
   <!-- STOMP.js library for WebSocket communication -->
