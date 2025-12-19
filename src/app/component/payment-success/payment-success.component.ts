@@ -34,7 +34,7 @@ export class PaymentSuccessComponent implements OnInit, OnDestroy {
   initialCredits = 0;
   newCredits = 0;
   private pollingSubscription?: Subscription;
-  private transactionId: string | null = null;
+  transactionId: string | null = null;
   
   constructor(
     private http: HttpClient,
