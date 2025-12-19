@@ -27,6 +27,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate production environment config
+        run: |
+          echo "🔍 Validating production environment configuration..."
+          
+          # Check environment.ts
+          if grep -q "localhost" src/environments/environment.ts; then
+            echo "❌ ERROR: environment.ts contains localhost URLs!"
+            echo "Production file must use production URLs only."
+            exit 1
+          fi
+          
+          # Check environment.prod.ts
+          if grep -q "localhost" src/environments/environment.prod.ts; then
+            echo "❌ ERROR: environment.prod.ts contains localhost URLs!"
+            echo "Production file must use production URLs only."
+            exit 1
+          fi
+          
+          # Verify production URLs are present
+          if ! grep -q "api.xdealhub.com" src/environments/environment.prod.ts; then
+            echo "❌ ERROR: environment.prod.ts missing production API URL!"
+            exit 1
+          fi
+          
+          echo "✅ Production environment configuration is valid!"
+
       - name: Build production
         run: npm run build
 

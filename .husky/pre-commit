@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Validate environment configuration before commit
+echo "🔍 Checking environment configuration..."
+
+# Check if environment files are being committed
+if git diff --cached --name-only | grep -q "src/environments/"; then
+  echo "📝 Environment files detected in commit, validating..."
+  
+  # Run validation script
+  node scripts/validate-env.js
+  
+  if [ $? -ne 0 ]; then
+    echo "❌ Commit aborted: Environment validation failed!"
+    echo "Fix the errors and try again."
+    exit 1
+  fi
+fi
+
+echo "✅ Pre-commit checks passed!"
