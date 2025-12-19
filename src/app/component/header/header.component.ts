@@ -258,10 +258,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
         
         console.log('📤 Submitting form with params:', {
-          PAGE: params.PAGE,
+          PAGE: params['PAGE'],
           url: res.url,
-          URL_OK: params.URL_OK,
-          URL_CANCEL: params.URL_CANCEL
+          URL_OK: params['URL_OK'],
+          URL_CANCEL: params['URL_CANCEL']
         });
         
         // Create hidden input fields
