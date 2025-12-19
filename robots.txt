@@ -2,10 +2,26 @@
 User-agent: *
 Allow: /
 
-# Важни страници
+# Важни публични страници за индексиране
+Allow: /home
+Allow: /about
+Allow: /register
+Allow: /login
+Allow: /companies
+Allow: /privacy
+Allow: /cookies
+
+# Sitemap
 Sitemap: https://xdealhub.com/sitemap.xml
 
-# Забрани достъп до чувствителни директории
+# Забрани достъп до чувствителни директории и защитени потребителски страници
 Disallow: /admin
 Disallow: /api
 Disallow: /debug
+Disallow: /requests
+Disallow: /user/
+Disallow: /my-requests
+Disallow: /my-responses
+Disallow: /saved-requests
+Disallow: /notifications
+Disallow: /payment/
