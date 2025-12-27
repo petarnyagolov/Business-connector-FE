@@ -101,3 +101,39 @@ mat-form-field {
     }
   }
 }
+
+// Referral code validation styles
+::ng-deep .mat-mdc-form-field {
+  .valid-hint {
+    color: #4caf50 !important;
+    font-weight: 500;
+  }
+  
+  .invalid-hint {
+    color: #f44336 !important;
+    font-weight: 500;
+  }
+  
+  mat-hint {
+    font-size: 12px;
+  }
+}
+
+// Form row for inline fields
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  
+  .half-width {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

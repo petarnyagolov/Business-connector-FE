@@ -144,10 +144,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   processRequestFileUrls(request: any): any {
     if (!request.files && request.fileUrls && Array.isArray(request.fileUrls)) {
       request.files = request.fileUrls.map((fileUrl: string) => {
-        const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
-        const url = fileUrl.startsWith('http') ? 
-                    fileUrl : 
-                    `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
+        const url = this.getFileUrl(fileUrl);
         
         const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
         
@@ -168,11 +165,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     return responses.map(response => {
       if (!response.files && response.fileUrls && Array.isArray(response.fileUrls)) {
         response.files = response.fileUrls.map((fileUrl: string) => {
-          const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
-          const url = fileUrl.startsWith('http') ? 
-                      fileUrl : 
-                      `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
-          
+          const url = this.getFileUrl(fileUrl);
           const fileName = fileUrl.split('\\').pop()?.split('/').pop() || 'file';
           
           const fileExt = fileName.split('.').pop()?.toLowerCase() || '';
@@ -240,12 +233,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   getPictureUrl(pic: string): string {
-    if (!pic) return '';
-    if (pic.startsWith('http')) {
-      return pic;
-    }
-    const cleanPic = pic.replace(/^[\/\\]+/, '');
-    return `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
+    return this.getFileUrl(pic);
   }
 
   private processResponseSubmission(formData: any): void {
@@ -853,11 +841,24 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   getFileUrl(fileUrl: string): string {
-    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+    if (!fileUrl) return '';
+    if (fileUrl.startsWith('http')) {
       return fileUrl;
     }
-    const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
-    return `${environment.apiUrl}/files/${cleanFileUrl.replace(/\\/g, '/')}`;
+    
+    // Normalize slashes and remove leading slashes
+    let cleanPath = fileUrl.replace(/\\/g, '/').replace(/^\/+/, '');
+    
+    // Remove 'files/' prefix if present to avoid duplication
+    if (cleanPath.startsWith('files/')) {
+      cleanPath = cleanPath.substring(6);
+    }
+    
+    // Always construct with single /files/ prefix
+    const url = `${environment.apiUrl}/files/${cleanPath}`;
+    
+    console.log('getFileUrl:', { in: fileUrl, out: url });
+    return url;
   }
 
   getFileName(fileUrl: string): string {

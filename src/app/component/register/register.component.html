@@ -5,64 +5,90 @@
           <h2>User Registration</h2>
           <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
             <!-- User registration fields -->
-            <mat-form-field appearance="fill" class="w-100 mb-3">
-              <mat-label>Име</mat-label>
-              <input matInput formControlName="firstName" required>
-              <mat-error *ngIf="registrationForm.get('firstName')?.hasError('required')">
-                Името е задължително.
-              </mat-error>
-              <mat-error *ngIf="registrationForm.get('firstName')?.hasError('minlength')">
-                Името трябва да е поне 2 символа.
-              </mat-error>
-              <mat-error *ngIf="registrationForm.get('firstName')?.hasError('maxlength')">
-                Името трябва да е най-много 50 символа.
-              </mat-error>
-              <mat-error *ngIf="registrationForm.get('firstName')?.hasError('pattern')">
-                Името трябва да съдържа 2-50 букви и може да включва интервали, точки, апострофи или тирета.
-              </mat-error>
-            </mat-form-field>
+            <div class="form-row">
+              <mat-form-field appearance="fill" class="half-width">
+                <mat-label>Име</mat-label>
+                <input matInput formControlName="firstName" required>
+                <mat-error *ngIf="registrationForm.get('firstName')?.hasError('required')">
+                  Името е задължително.
+                </mat-error>
+                <mat-error *ngIf="registrationForm.get('firstName')?.hasError('pattern')">
+                  Невалидно име.
+                </mat-error>
+              </mat-form-field>
 
-            <mat-form-field appearance="fill" class="w-100 mb-3">
+              <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Фамилия</mat-label>
                 <input matInput formControlName="lastName" required>
                 <mat-error *ngIf="registrationForm.get('lastName')?.hasError('required')">
                   Фамилията е задължителна.
                 </mat-error>
-                <mat-error *ngIf="registrationForm.get('lastName')?.hasError('minlength')">
-                  Фамилията трябва да е поне 2 символа.
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('lastName')?.hasError('maxlength')">
-                  Фамилията трябва да е най-много 50 символа.
-                </mat-error>
                 <mat-error *ngIf="registrationForm.get('lastName')?.hasError('pattern')">
-                  Фамилията трябва да съдържа 2-50 букви и може да включва интервали, точки, апострофи или тирета.
+                  Невалидна фамилия.
                 </mat-error>
               </mat-form-field>
+            </div>
 
-              <mat-form-field appearance="fill" class="w-100 mb-3">
+            <div class="form-row">
+              <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Email</mat-label>
                 <input matInput formControlName="email" required email>
                 <mat-error *ngIf="registrationForm.get('email')?.hasError('required')">
                   Email е задължителен.
                 </mat-error>
                 <mat-error *ngIf="registrationForm.get('email')?.hasError('email')">
-                  Въведете валиден email адрес.
+                  Невалиден email.
                 </mat-error>
               </mat-form-field>
 
-              <mat-form-field appearance="fill" class="w-100 mb-3">
+              <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Парола</mat-label>
                 <input matInput formControlName="password" type="password" required minlength="6">
                 <mat-error *ngIf="registrationForm.get('password')?.hasError('required')">
                   Паролата е задължителна.
                 </mat-error>
                 <mat-error *ngIf="registrationForm.get('password')?.hasError('minlength')">
-                  Паролата трябва да е поне 6 символа.
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('password')?.hasError('maxlength')">
-                  Паролата трябва да е най-много 50 символа.
+                  Минимум 6 символа.
                 </mat-error>
               </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="fill" class="half-width">
+                <mat-label>Потвърди парола</mat-label>
+                <input matInput formControlName="confirmPassword" type="password" required>
+                
+                <mat-hint class="valid-hint" *ngIf="registrationForm.get('confirmPassword')?.valid && registrationForm.get('confirmPassword')?.value">
+                  ✓ Паролите съвпадат
+                </mat-hint>
+
+                <mat-error *ngIf="registrationForm.get('confirmPassword')?.hasError('required')">
+                  Потвърдете паролата.
+                </mat-error>
+                <mat-error *ngIf="registrationForm.get('confirmPassword')?.hasError('passwordMismatch')">
+                  Паролите не съвпадат.
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" class="half-width">
+                <mat-label>Код от препоръка (незадължително)</mat-label>
+                <input matInput formControlName="referredByCode" maxlength="20" placeholder="Въведете код">
+                
+                @if (referralCodeValidating) {
+                  <mat-hint>Проверява се...</mat-hint>
+                }
+                @if (!referralCodeValidating && referralCodeValid === true) {
+                  <mat-hint class="valid-hint">✓ Валиден код</mat-hint>
+                }
+                @if (!referralCodeValidating && referralCodeValid === false) {
+                  <mat-hint class="invalid-hint">✗ Невалиден код</mat-hint>
+                }
+                
+                <mat-error *ngIf="registrationForm.get('referredByCode')?.hasError('maxlength')">
+                  Максимум 20 символа.
+                </mat-error>
+              </mat-form-field>
+            </div>
   
             <mat-divider class="my-4"></mat-divider>
   

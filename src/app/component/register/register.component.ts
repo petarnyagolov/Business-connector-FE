@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core'; // Import AfterViewInit
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import { AuthService } from '../../service/auth.service';
@@ -16,6 +17,8 @@ import { IndustryService } from '../../service/industry.service';
 import { Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CompanyValidationService } from '../../service/company-validation.service';
+import { environment } from '../../../environments/environment';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 
 @Component({
@@ -50,7 +53,11 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   registrationSuccess = false; // Added
   isLoading = false; // Loading spinner for register
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private companyService: CompanyService, private industryService: IndustryService, private router: Router, private snackBar: MatSnackBar, private companyValidationService: CompanyValidationService) {
+  referralCodeValidating = false;
+  referralCodeValid: boolean | null = null;
+  referralCodeMessage = '';
+
+  constructor(private fb: FormBuilder, private authService: AuthService, private companyService: CompanyService, private industryService: IndustryService, private router: Router, private snackBar: MatSnackBar, private companyValidationService: CompanyValidationService, private http: HttpClient) {
     this.registrationForm = this.fb.group({
       firstName: ['', [
         Validators.required,
@@ -66,12 +73,76 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       ]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
-      lang: ['bg', Validators.required]
-    });
+      confirmPassword: ['', [Validators.required]],
+      lang: ['bg', Validators.required],
+      referredByCode: ['', [Validators.maxLength(20)]]
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  // Custom validator for password matching
+  passwordMatchValidator(form: AbstractControl): ValidationErrors | null {
+    const password = form.get('password')?.value;
+    const confirmPasswordControl = form.get('confirmPassword');
+    
+    if (!confirmPasswordControl) return null;
+
+    const confirmPassword = confirmPasswordControl.value;
+
+    // If confirm password is empty, let 'required' validator handle it
+    if (!confirmPassword) {
+      return null;
+    }
+
+    if (password !== confirmPassword) {
+      confirmPasswordControl.setErrors({ passwordMismatch: true });
+    } else {
+      // Only clear if the error is currently passwordMismatch
+      if (confirmPasswordControl.hasError('passwordMismatch')) {
+        confirmPasswordControl.setErrors(null);
+      }
+    }
+    return null;
   }
 
   ngOnInit() {
     this.getCountryNames();
+    
+    // Watch for referral code changes and validate
+    this.registrationForm.get('referredByCode')?.valueChanges.pipe(
+      debounceTime(500),
+      distinctUntilChanged()
+    ).subscribe(code => {
+      this.validateReferralCode(code);
+    });
+  }
+
+  validateReferralCode(code: string): void {
+    if (!code || code.trim() === '') {
+      this.referralCodeValid = null;
+      this.referralCodeMessage = '';
+      this.referralCodeValidating = false;
+      return;
+    }
+
+    this.referralCodeValidating = true;
+    this.referralCodeMessage = '';
+
+    this.http.get<{ valid: boolean }>(`${environment.apiUrl}/api/referral/validate`, {
+      params: { code: code.trim().toUpperCase() }
+    }).subscribe({
+      next: (response) => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = response.valid;
+        this.referralCodeMessage = response.valid 
+          ? '✓ Валиден код от препоръка' 
+          : '✗ Невалиден код от препоръка';
+      },
+      error: () => {
+        this.referralCodeValidating = false;
+        this.referralCodeValid = false;
+        this.referralCodeMessage = '✗ Грешка при валидация на кода';
+      }
+    });
   }
 
   onLogoChanged(logo: File | null): void {
@@ -110,10 +181,14 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       this.isLoading = true;
       const registrationData = this.registrationForm.value;
       const companyData = this.companyFormComponentRef.companyForm.getRawValue();
+      
+      // Include referredByCode if provided and valid (or empty)
       const requestPayload = {
-        ...registrationData, 
+        ...registrationData,
+        referredByCode: registrationData.referredByCode?.trim() || undefined,
         companyInfo: companyData 
       };
+      
       const logoToUpload = this.selectedCompanyLogo ? this.selectedCompanyLogo : undefined;
       this.authService.register(requestPayload, logoToUpload).pipe(
         tap({
