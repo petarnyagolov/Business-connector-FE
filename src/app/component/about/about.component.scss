@@ -1,0 +1,139 @@
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+
+  // Hero Section
+  .hero-section {
+    text-align: center;
+    margin-bottom: 60px;
+    padding: 40px 0;
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1976d2; // Primary color
+      margin-bottom: 20px;
+      line-height: 1.2;
+
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+    }
+
+    .mission-statement {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: #555;
+      max-width: 800px;
+      margin: 0 auto;
+
+      strong {
+        color: #009996; // Accent color
+      }
+    }
+  }
+
+  // Values Section
+  .values-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+
+    .value-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid #eee;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .icon-wrapper {
+        width: 70px;
+        height: 70px;
+        background: #e3f2fd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+
+        i {
+          font-size: 36px;
+          color: #1976d2;
+        }
+      }
+
+      h3 {
+        font-size: 1.4rem;
+        margin-bottom: 15px;
+        color: #2c3e50;
+      }
+
+      p {
+        color: #666;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  // Contact Section
+  .contact-section {
+    display: flex;
+    justify-content: center;
+
+    .contact-card {
+      background: linear-gradient(135deg, #1976d2 0%, #009996 100%);
+      color: white;
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(25, 118, 210, 0.2);
+
+      h2 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+      }
+
+      p {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        opacity: 0.9;
+      }
+
+      .contact-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        color: #1976d2;
+        padding: 12px 28px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: background 0.2s ease, transform 0.2s ease;
+
+        &:hover {
+          background: #f5f5f5;
+          transform: scale(1.05);
+        }
+
+        i {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}
