@@ -9,23 +9,31 @@
               <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Име</mat-label>
                 <input matInput formControlName="firstName" required>
-                <mat-error *ngIf="registrationForm.get('firstName')?.hasError('required')">
-                  Името е задължително.
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('firstName')?.hasError('pattern')">
-                  Невалидно име.
-                </mat-error>
+                @if (registrationForm.get('firstName')?.hasError('required')) {
+                  <mat-error>
+                    Името е задължително.
+                  </mat-error>
+                }
+                @if (registrationForm.get('firstName')?.hasError('pattern')) {
+                  <mat-error>
+                    Невалидно име.
+                  </mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Фамилия</mat-label>
                 <input matInput formControlName="lastName" required>
-                <mat-error *ngIf="registrationForm.get('lastName')?.hasError('required')">
-                  Фамилията е задължителна.
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('lastName')?.hasError('pattern')">
-                  Невалидна фамилия.
-                </mat-error>
+                @if (registrationForm.get('lastName')?.hasError('required')) {
+                  <mat-error>
+                    Фамилията е задължителна.
+                  </mat-error>
+                }
+                @if (registrationForm.get('lastName')?.hasError('pattern')) {
+                  <mat-error>
+                    Невалидна фамилия.
+                  </mat-error>
+                }
               </mat-form-field>
             </div>
 
@@ -33,23 +41,51 @@
               <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Email</mat-label>
                 <input matInput formControlName="email" required email>
-                <mat-error *ngIf="registrationForm.get('email')?.hasError('required')">
-                  Email е задължителен.
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('email')?.hasError('email')">
-                  Невалиден email.
-                </mat-error>
+                @if (registrationForm.get('email')?.hasError('required')) {
+                  <mat-error>
+                    Email е задължителен.
+                  </mat-error>
+                }
+                @if (registrationForm.get('email')?.hasError('email')) {
+                  <mat-error>
+                    Невалиден email.
+                  </mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Парола</mat-label>
-                <input matInput formControlName="password" type="password" required minlength="6">
-                <mat-error *ngIf="registrationForm.get('password')?.hasError('required')">
-                  Паролата е задължителна.
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('password')?.hasError('minlength')">
-                  Минимум 6 символа.
-                </mat-error>
+                <input matInput formControlName="password" type="password" required minlength="8">
+                @if (registrationForm.get('password')?.hasError('required')) {
+                  <mat-error>
+                    Паролата е задължителна.
+                  </mat-error>
+                }
+                @if (registrationForm.get('password')?.hasError('minlength')) {
+                  <mat-error>
+                    Минимум 8 символа.
+                  </mat-error>
+                }
+                @if (registrationForm.get('password')?.hasError('hasLowerCase')) {
+                  <mat-error>
+                    Трябва да съдържа поне една малка буква.
+                  </mat-error>
+                }
+                @if (registrationForm.get('password')?.hasError('hasUpperCase')) {
+                  <mat-error>
+                    Трябва да съдържа поне една главна буква.
+                  </mat-error>
+                }
+                @if (registrationForm.get('password')?.hasError('hasNumeric')) {
+                  <mat-error>
+                    Трябва да съдържа поне една цифра.
+                  </mat-error>
+                }
+                @if (registrationForm.get('password')?.hasError('hasSpecial')) {
+                  <mat-error>
+                    Трябва да съдържа поне един специален символ.
+                  </mat-error>
+                }
               </mat-form-field>
             </div>
 
@@ -58,16 +94,22 @@
                 <mat-label>Потвърди парола</mat-label>
                 <input matInput formControlName="confirmPassword" type="password" required>
                 
-                <mat-hint class="valid-hint" *ngIf="registrationForm.get('confirmPassword')?.valid && registrationForm.get('confirmPassword')?.value">
-                  ✓ Паролите съвпадат
-                </mat-hint>
+                @if (registrationForm.get('confirmPassword')?.valid && registrationForm.get('confirmPassword')?.value) {
+                  <mat-hint class="valid-hint">
+                    ✓ Паролите съвпадат
+                  </mat-hint>
+                }
 
-                <mat-error *ngIf="registrationForm.get('confirmPassword')?.hasError('required')">
-                  Потвърдете паролата.
-                </mat-error>
-                <mat-error *ngIf="registrationForm.get('confirmPassword')?.hasError('passwordMismatch')">
-                  Паролите не съвпадат.
-                </mat-error>
+                @if (registrationForm.get('confirmPassword')?.hasError('required')) {
+                  <mat-error>
+                    Потвърдете паролата.
+                  </mat-error>
+                }
+                @if (registrationForm.get('confirmPassword')?.hasError('passwordMismatch')) {
+                  <mat-error>
+                    Паролите не съвпадат.
+                  </mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="fill" class="half-width">
@@ -84,9 +126,11 @@
                   <mat-hint class="invalid-hint">✗ Невалиден код</mat-hint>
                 }
                 
-                <mat-error *ngIf="registrationForm.get('referredByCode')?.hasError('maxlength')">
-                  Максимум 20 символа.
-                </mat-error>
+                @if (registrationForm.get('referredByCode')?.hasError('maxlength')) {
+                  <mat-error>
+                    Максимум 20 символа.
+                  </mat-error>
+                }
               </mat-form-field>
             </div>
   

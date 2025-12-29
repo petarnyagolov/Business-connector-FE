@@ -72,11 +72,37 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         Validators.pattern("^[A-Za-zА-Яа-яЁёІіЇїЄєҐґ .'-]{2,50}$") 
       ]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
+      password: ['', [
+        Validators.required, 
+        Validators.minLength(8), 
+        Validators.maxLength(100),
+        this.passwordStrengthValidator
+      ]],
       confirmPassword: ['', [Validators.required]],
       lang: ['bg', Validators.required],
       referredByCode: ['', [Validators.maxLength(20)]]
     }, { validators: this.passwordMatchValidator });
+  }
+
+  passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
+    const value: string = control.value || '';
+    
+    if (!value) return null;
+
+    // Use Unicode property escapes to support Cyrillic and other scripts (matches backend logic)
+    const hasLowerCase = /\p{Ll}/u.test(value);
+    const hasUpperCase = /\p{Lu}/u.test(value);
+    const hasNumeric = /\d/.test(value);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(value);
+    
+    const errors: ValidationErrors = {};
+    
+    if (!hasLowerCase) errors['hasLowerCase'] = true;
+    if (!hasUpperCase) errors['hasUpperCase'] = true;
+    if (!hasNumeric) errors['hasNumeric'] = true;
+    if (!hasSpecial) errors['hasSpecial'] = true;
+
+    return Object.keys(errors).length > 0 ? errors : null;
   }
 
   // Custom validator for password matching
