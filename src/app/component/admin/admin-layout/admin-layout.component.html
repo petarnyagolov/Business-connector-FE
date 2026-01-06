@@ -1,0 +1,40 @@
+<div class="admin-layout">
+  <mat-toolbar color="primary" class="admin-toolbar">
+    <button mat-icon-button (click)="goHome()">
+      <mat-icon>home</mat-icon>
+    </button>
+    <span class="toolbar-title">Admin Panel</span>
+    <span class="spacer"></span>
+  </mat-toolbar>
+
+  <mat-sidenav-container class="admin-container">
+    <mat-sidenav mode="side" opened class="admin-sidenav">
+      <mat-nav-list>
+        <h3 mat-subheader>Кредити</h3>
+        
+        <a mat-list-item routerLink="/admin/credit-packages" routerLinkActive="active">
+          <mat-icon matListItemIcon>shopping_cart</mat-icon>
+          <span matListItemTitle>Кредитни пакети</span>
+        </a>
+
+        <a mat-list-item routerLink="/admin/manual-credits" routerLinkActive="active">
+          <mat-icon matListItemIcon>card_giftcard</mat-icon>
+          <span matListItemTitle>Бонус кредити</span>
+        </a>
+
+        <mat-divider></mat-divider>
+
+        <h3 mat-subheader>Други</h3>
+        
+        <a mat-list-item (click)="goHome()">
+          <mat-icon matListItemIcon>exit_to_app</mat-icon>
+          <span matListItemTitle>Изход от Admin</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="admin-content">
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

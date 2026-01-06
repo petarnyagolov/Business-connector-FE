@@ -1,0 +1,166 @@
+<div class="manual-credits-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <h2>
+          <mat-icon>card_giftcard</mat-icon>
+          Добави бонус кредити към потребител
+        </h2>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- User Search Section -->
+      <div class="search-section">
+        @if (!selectedUser) {
+          <mat-form-field appearance="fill" class="search-field">
+            <mat-label>Търси потребител по email</mat-label>
+            <input matInput [formControl]="searchControl" placeholder="Започни да пишеш email...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        }
+
+        @if (searchResults.length > 0 && !selectedUser) {
+          <mat-list class="search-results">
+            @for (user of searchResults; track user.id) {
+              <mat-list-item (click)="selectUser(user)" class="user-item">
+                <div class="user-info">
+                  <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                  <span class="user-credits">Кредити: {{ user.freeCredits }}</span>
+                </div>
+              </mat-list-item>
+            }
+          </mat-list>
+        }
+
+        @if (selectedUser) {
+          <div class="selected-user">
+            <mat-icon>person</mat-icon>
+            <div class="user-details">
+              <strong>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</strong>
+              <span>{{ selectedUser.email }}</span>
+              <span>ID: {{ selectedUser.id }} | Текущи кредити: {{ selectedUser.freeCredits }}</span>
+            </div>
+            <button mat-icon-button (click)="clearSelection()" matTooltip="Премахни избора">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Credits Form -->
+      <form [formGroup]="bonusForm" (ngSubmit)="onSubmit()" class="bonus-form">
+        <input type="hidden" formControlName="userId">
+
+        <mat-form-field appearance="fill">
+          <mat-label>Брой кредити</mat-label>
+          <input matInput type="number" formControlName="credits" required>
+          @if (bonusForm.get('credits')?.hasError('required')) {
+            <mat-error>Броят кредити е задължителен</mat-error>
+          }
+          @if (bonusForm.get('credits')?.hasError('min')) {
+            <mat-error>Минимум 1 кредит</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Причина</mat-label>
+          <textarea matInput formControlName="reason" rows="3" required 
+                    placeholder="Напр.: Компенсация за инцидент, Промоционални кредити, и т.н."></textarea>
+          @if (bonusForm.get('reason')?.hasError('required')) {
+            <mat-error>Причината е задължителна</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" 
+                  [disabled]="!bonusForm.valid || submitting || !selectedUser">
+            <mat-icon>add</mat-icon>
+            {{ submitting ? 'Добавяне...' : 'Добави кредити' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- User Credits History -->
+  @if (selectedUser && userHistory) {
+    <mat-card class="history-card">
+      <mat-card-header>
+        <mat-card-title>
+          <h3>
+            <mat-icon>history</mat-icon>
+            История на кредитите
+          </h3>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="history-summary">
+          <div class="summary-item">
+            <span class="label">Потребител:</span>
+            <span class="value">{{ userHistory.email }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Налични кредити:</span>
+            <span class="value highlight">{{ userHistory.freeCredits }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Общо транзакции:</span>
+            <span class="value">{{ userHistory.transactions.length }}</span>
+          </div>
+        </div>
+
+        @if (loadingHistory) {
+          <div class="loading-history">
+            <p>Зареждане на история...</p>
+          </div>
+        } @else if (userHistory.transactions.length === 0) {
+          <div class="no-transactions">
+            <p>Няма налични транзакции</p>
+          </div>
+        } @else {
+          <table mat-table [dataSource]="userHistory.transactions" class="history-table">
+            <!-- Type Column -->
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Тип</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span [class]="'transaction-type ' + transaction.type.toLowerCase()">
+                  {{ transaction.type }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Credits Delta Column -->
+            <ng-container matColumnDef="creditsDelta">
+              <th mat-header-cell *matHeaderCellDef>Кредити</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span [class]="transaction.creditsDelta > 0 ? 'credits-positive' : 'credits-negative'">
+                  {{ transaction.creditsDelta > 0 ? '+' : '' }}{{ transaction.creditsDelta }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Description Column -->
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Описание</th>
+              <td mat-cell *matCellDef="let transaction">{{ transaction.description || '-' }}</td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Дата</th>
+              <td mat-cell *matCellDef="let transaction">
+                {{ transaction.createdAt | date:'dd.MM.yyyy HH:mm' }}
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

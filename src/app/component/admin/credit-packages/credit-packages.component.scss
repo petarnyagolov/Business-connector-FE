@@ -1,0 +1,62 @@
+.credit-packages-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  mat-card {
+    mat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+
+      mat-card-title {
+        flex: 1;
+
+        h2 {
+          margin: 0;
+          color: #1976d2;
+        }
+      }
+
+      .header-actions {
+        button {
+          mat-icon {
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+
+    mat-card-content {
+      .loading-spinner {
+        text-align: center;
+        padding: 40px;
+      }
+
+      .packages-table {
+        width: 100%;
+        margin-top: 20px;
+
+        th {
+          font-weight: 600;
+          color: #555;
+        }
+
+        td {
+          padding: 12px 8px;
+        }
+
+        mat-icon {
+          vertical-align: middle;
+        }
+      }
+
+      .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+    }
+  }
+}

@@ -243,6 +243,37 @@ export class AuthService {
     }
   }
 
+  getUserRoles(): string[] {
+    try {
+      const token = this.getAccessToken();
+      if (!token) {
+        console.log('🔍 getUserRoles: No token found');
+        return [];
+      }
+      
+      const decoded = this.decodeToken(token);
+      if (!decoded) {
+        console.log('🔍 getUserRoles: Token decode failed');
+        return [];
+      }
+      
+      console.log('🔍 getUserRoles - Full decoded token:', decoded);
+      console.log('🔍 getUserRoles - Roles from token:', decoded?.roles);
+      
+      return decoded?.roles || [];
+    } catch (error) {
+      console.error('Error in getUserRoles:', error);
+      return [];
+    }
+  }
+
+  isAdmin(): boolean {
+    const roles = this.getUserRoles();
+    console.log('🔍 isAdmin - Checking roles:', roles);
+    console.log('🔍 isAdmin - Has ADMIN?', roles.includes('ADMIN'));
+    return roles.includes('ADMIN');
+  }
+
   verifyEmailWithToken(token: string): Observable<any> {
     return this.http.get(`${environment.apiUrl}/verify/email?t=${token}`, { 
       observe: 'response'

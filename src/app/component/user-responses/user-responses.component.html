@@ -155,12 +155,12 @@
           
           <div style="margin-top: 8px;">
             <div *ngIf="item.fixedPrice" style="color: #333; font-size: 0.98em;">
-              <b>Фиксирана цена:</b> {{ item.fixedPrice }} лв.
+              <b>Фиксирана цена:</b> {{ item.fixedPrice }} €
             </div>
             <div *ngIf="item.priceFrom || item.priceTo" style="color: #333; font-size: 0.98em;">
               <b>Ценови диапазон:</b> 
-              <ng-container *ngIf="item.priceFrom">от {{ item.priceFrom }} лв.</ng-container>
-              <ng-container *ngIf="item.priceTo"> до {{ item.priceTo }} лв.</ng-container>
+              <ng-container *ngIf="item.priceFrom">от {{ item.priceFrom }} €</ng-container>
+              <ng-container *ngIf="item.priceTo"> до {{ item.priceTo }} €</ng-container>
             </div>
             <div *ngIf="item.availableFrom" style="color: #333; font-size: 0.98em;">
               <b>Налично от:</b> {{ item.availableFrom | formatDateArray }}

@@ -166,15 +166,15 @@
             <div *ngIf="response.fixedPrice" style="display: flex; align-items: center;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">euro_symbol</mat-icon>
               <span class="label">Фиксирана цена:&nbsp;</span> 
-              <span class="value" style="font-weight: 500; color: #4caf50;">{{ response.fixedPrice }} лв.</span>
+              <span class="value" style="font-weight: 500; color: #4caf50;">{{ response.fixedPrice }} €</span>
             </div>
             
             <div *ngIf="response.priceFrom || response.priceTo" style="display: flex; align-items: center;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">euro_symbol</mat-icon>
               <span class="label">Цена:&nbsp;</span>
               <span class="value" style="font-weight: 500; color: #4caf50;">
-                <ng-container *ngIf="response.priceFrom">от {{ response.priceFrom }} лв.</ng-container>
-                <ng-container *ngIf="response.priceTo">&nbsp;до {{ response.priceTo }} лв.</ng-container>
+                <ng-container *ngIf="response.priceFrom">от {{ response.priceFrom }} €</ng-container>
+                <ng-container *ngIf="response.priceTo">&nbsp;до {{ response.priceTo }} €</ng-container>
               </span>
             </div>
             
@@ -276,12 +276,12 @@
         <p style="margin: 0; font-weight: 500; color: #333;">Предложение от: {{ getCompanyName(selectedResponse.responserCompanyId) }}</p>
         <p style="margin: 8px 0 0 0; color: #666; font-size: 0.95em;">{{ selectedResponse.responseText }}</p>
         <div *ngIf="selectedResponse.fixedPrice" style="margin-top: 8px; color: #4caf50; font-weight: 500;">
-          Фиксирана цена: {{ selectedResponse.fixedPrice }} лв.
+          Фиксирана цена: {{ selectedResponse.fixedPrice }} €
         </div>
         <div *ngIf="selectedResponse.priceFrom || selectedResponse.priceTo" style="margin-top: 8px; color: #4caf50; font-weight: 500;">
           Цена: 
-          <ng-container *ngIf="selectedResponse.priceFrom">от {{ selectedResponse.priceFrom }} лв.</ng-container>
-          <ng-container *ngIf="selectedResponse.priceTo"> до {{ selectedResponse.priceTo }} лв.</ng-container>
+          <ng-container *ngIf="selectedResponse.priceFrom">от {{ selectedResponse.priceFrom }} €</ng-container>
+          <ng-container *ngIf="selectedResponse.priceTo"> до {{ selectedResponse.priceTo }} €</ng-container>
         </div>
       </div>
 
@@ -333,17 +333,17 @@
 
         <mat-form-field *ngIf="editResponseData.fixedPrice" appearance="fill" style="width: 100%;">
           <mat-label>Фиксирана цена</mat-label>
-          <input matInput [value]="editResponseData.fixedPrice + ' лв.'" readonly style="background-color: #f5f5f5;">
+          <input matInput [value]="editResponseData.fixedPrice + ' €'" readonly style="background-color: #f5f5f5;">
         </mat-form-field>
 
         <div *ngIf="editResponseData.priceFrom || editResponseData.priceTo" style="display: flex; gap: 16px;">
           <mat-form-field *ngIf="editResponseData.priceFrom" appearance="fill" style="flex: 1;">
             <mat-label>Цена от</mat-label>
-            <input matInput [value]="editResponseData.priceFrom + ' лв.'" readonly style="background-color: #f5f5f5;">
+            <input matInput [value]="editResponseData.priceFrom + ' €'" readonly style="background-color: #f5f5f5;">
           </mat-form-field>
           <mat-form-field *ngIf="editResponseData.priceTo" appearance="fill" style="flex: 1;">
             <mat-label>Цена до</mat-label>
-            <input matInput [value]="editResponseData.priceTo + ' лв.'" readonly style="background-color: #f5f5f5;">
+            <input matInput [value]="editResponseData.priceTo + ' €'" readonly style="background-color: #f5f5f5;">
           </mat-form-field>
         </div>
 
