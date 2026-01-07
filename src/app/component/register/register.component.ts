@@ -19,22 +19,80 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CompanyValidationService } from '../../service/company-validation.service';
 import { environment } from '../../../environments/environment';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { NgxIntlTelInputModule } from 'ngx-intl-tel-input';
+import { SearchCountryField, CountryISO } from 'ngx-intl-tel-input';
 
 
 @Component({
   standalone: true,
   selector: 'app-registration-form',
-  imports: [ReactiveFormsModule, CommonModule, MatInputModule, MatFormFieldModule, MatButtonModule, MatIconModule, MatDividerModule, MatOptionModule, MatSelectModule, CompanyFormComponent, MatSnackBarModule],
+  imports: [ReactiveFormsModule, CommonModule, MatInputModule, MatFormFieldModule, MatButtonModule, MatIconModule, MatDividerModule, MatOptionModule, MatSelectModule, CompanyFormComponent, MatSnackBarModule, NgxIntlTelInputModule],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent implements OnInit, AfterViewInit { 
+export class RegisterComponent implements OnInit, AfterViewInit {
+  // Phone input configuration
+  SearchCountryField = SearchCountryField;
+  CountryISO = CountryISO;
+  preferredCountries: CountryISO[] = [CountryISO.Bulgaria, CountryISO.Romania, CountryISO.Greece]; 
   registrationForm: FormGroup;
   companyFormData: any = null;
   selectedCompanyLogo: File | null = null; 
   @ViewChild('companyFormComponent') companyFormComponentRef!: CompanyFormComponent;
 
   ngAfterViewInit(): void {
+    // Auto-scroll to highlighted country in dropdown with continuous polling
+    setTimeout(() => {
+      let scrollInterval: any = null;
+      
+      // Start polling when search input is focused
+      document.addEventListener('focusin', (e) => {
+        const target = e.target as HTMLElement;
+        if (target && target.classList.contains('iti__search-input')) {
+          // Clear any existing interval
+          if (scrollInterval) clearInterval(scrollInterval);
+          
+          // Poll every 50ms while search is active
+          scrollInterval = setInterval(() => {
+            const highlighted = document.querySelector('.iti__country.iti__highlight') as HTMLElement;
+            const container = document.querySelector('.iti__country-list') as HTMLElement;
+            
+            if (highlighted && container) {
+              const highlightedTop = highlighted.offsetTop;
+              const containerScroll = container.scrollTop;
+              const searchBarHeight = 60;
+              
+              // Only scroll if highlighted is not visible at top
+              if (Math.abs(containerScroll - (highlightedTop - searchBarHeight)) > 5) {
+                container.scrollTop = highlightedTop - searchBarHeight;
+              }
+            }
+          }, 50);
+        }
+      }, true);
+      
+      // Stop polling when search loses focus
+      document.addEventListener('focusout', (e) => {
+        const target = e.target as HTMLElement;
+        if (target && target.classList.contains('iti__search-input')) {
+          if (scrollInterval) {
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+          }
+        }
+      }, true);
+      
+      // Also stop when dropdown closes
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest('.iti')) {
+          if (scrollInterval) {
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+          }
+        }
+      });
+    }, 500);
   }
 
   employeesSizes = [
@@ -72,6 +130,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         Validators.pattern("^[A-Za-zА-Яа-яЁёІіЇїЄєҐґ .'-]{2,50}$") 
       ]],
       email: ['', [Validators.required, Validators.email]],
+      phoneNumber: ['', [Validators.required]],
       password: ['', [
         Validators.required, 
         Validators.minLength(8), 
@@ -208,9 +267,14 @@ export class RegisterComponent implements OnInit, AfterViewInit {
       const registrationData = this.registrationForm.value;
       const companyData = this.companyFormComponentRef.companyForm.getRawValue();
       
+      // Extract phone number in international format
+      const phoneData = registrationData.phoneNumber;
+      const phoneNumber = phoneData?.e164Number || phoneData?.internationalNumber || null;
+      
       // Include referredByCode if provided and valid (or empty)
       const requestPayload = {
         ...registrationData,
+        phoneNumber: phoneNumber,
         referredByCode: registrationData.referredByCode?.trim() || undefined,
         companyInfo: companyData 
       };

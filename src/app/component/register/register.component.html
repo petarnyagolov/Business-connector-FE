@@ -53,6 +53,32 @@
                 }
               </mat-form-field>
 
+              <div class="phone-field-wrapper half-width">
+                <ngx-intl-tel-input 
+                  [preferredCountries]="preferredCountries"
+                  [enableAutoCountrySelect]="true"
+                  [enablePlaceholder]="true"
+                  [searchCountryFlag]="true"
+                  [searchCountryField]="[SearchCountryField.All]"
+                  [searchCountryPlaceholder]="'Търси държава...'"
+                  [selectFirstCountry]="false"
+                  [selectedCountryISO]="CountryISO.Bulgaria"
+                  [maxLength]="15"
+                  [phoneValidation]="true"
+                  [separateDialCode]="true"
+                  formControlName="phoneNumber">
+                </ngx-intl-tel-input>
+                
+                @if (registrationForm.get('phoneNumber')?.hasError('required') && registrationForm.get('phoneNumber')?.touched) {
+                  <span class="phone-error">Телефонният номер е задължителен.</span>
+                }
+                @if (registrationForm.get('phoneNumber')?.hasError('validatePhoneNumber') && registrationForm.get('phoneNumber')?.touched) {
+                  <span class="phone-error">Невалиден телефонен номер.</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
               <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Парола</mat-label>
                 <input matInput formControlName="password" type="password" required minlength="8">
