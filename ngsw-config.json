@@ -1,9 +1,9 @@
 {
   "$schema": "./node_modules/@angular/service-worker/config/schema.json",
   "appData": {
-    "version": "1.1.0",
-    "timestamp": "2026-01-08T14:00:00Z",
-    "description": "Fixed 504 Gateway Timeout - Added CDN and Google Fonts caching"
+    "version": "1.2.0",
+    "timestamp": "2026-01-08T15:30:00Z",
+    "description": "Fixed CSP violations - Updated connect-src whitelist"
   },
   "index": "/index.html",
   "assetGroups": [
