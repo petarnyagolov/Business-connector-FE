@@ -9,7 +9,6 @@ export class PwaUpdateService {
       return;
     }
 
-    // Проверка за update при старт
     this.swUpdate.checkForUpdate();
 
     this.swUpdate.versionUpdates.subscribe((event: VersionEvent) => {
@@ -17,7 +16,7 @@ export class PwaUpdateService {
         const ref = this.snackBar.open(
           'Има нова версия на приложението.',
           'Обнови',
-          { duration: 0 } // Безкраен timeout - потребителят ТРЯБВА да кликне
+          { duration: 0 } 
         );
 
         ref.onAction().subscribe(() => {
@@ -26,7 +25,6 @@ export class PwaUpdateService {
       }
     });
 
-    // Периодична проверка на всеки 5 минути (за критични update-и)
     setInterval(() => {
       this.swUpdate?.checkForUpdate();
     }, 5 * 60 * 1000);
