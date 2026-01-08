@@ -80,11 +80,11 @@ getLogoByPath(path: string): Observable<Blob> {
   }
 
   updateCompany(company: Company): Observable<Company> {
-    return this.http.put<Company>(`${this.apiUrl}/${company.id}`, company);
+    return this.http.put<Company>(`${this.apiUserUrl}/${company.id}`, company);
   }
 
   deleteCompany(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+    return this.http.delete(`${this.apiUserUrl}/${id}`);
   }
 
   searchCompanies(query: string, page: number, size: number): Observable<any> {

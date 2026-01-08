@@ -24,6 +24,15 @@
 
         <mat-divider></mat-divider>
 
+        <h3 mat-subheader>Управление</h3>
+        
+        <a mat-list-item routerLink="/admin/companies" routerLinkActive="active">
+          <mat-icon matListItemIcon>business</mat-icon>
+          <span matListItemTitle>Всички компании</span>
+        </a>
+
+        <mat-divider></mat-divider>
+
         <h3 mat-subheader>Други</h3>
         
         <a mat-list-item (click)="goHome()">

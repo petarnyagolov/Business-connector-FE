@@ -41,6 +41,9 @@ export interface UserDto {
   email: string;
   freeCredits: number;
   referralCode: string;
+  phoneNumber?: string;
+  enabled: boolean;
+  lang: string;
 }
 
 export interface FindUserRequest {

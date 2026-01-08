@@ -24,6 +24,11 @@ export const adminRoutes: Routes = [
         path: 'manual-credits',
         component: ManualCreditsComponent,
         title: 'Бонус кредити - Admin'
+      },
+      {
+        path: 'companies',
+        loadComponent: () => import('../../company-list/company-list.component').then(m => m.CompanyListComponent),
+        title: 'Всички компании - Admin'
       }
     ]
   }

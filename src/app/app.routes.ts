@@ -27,8 +27,6 @@ export const routes: Routes = [
   { path: 'payment/success', component: PaymentSuccessComponent },
   { path: 'payment/cancel', component: PaymentCancelComponent },
   { path: '', pathMatch: 'full', redirectTo: '/requests' },
-  { path: 'list', component: CompanyListComponent },
-  { path: 'companies', component: CompanyListComponent },
   { path: 'companies/:id', component: CompanyDetailComponent },
   {
     path: 'user/companies',
