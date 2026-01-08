@@ -38,7 +38,74 @@
       "strategy": "freshness",
       "maxSize": 20,
       "maxAge": "7d",
-      "timeout": "2s"
+      "timeout": "5s"
+    }
+  },
+  {
+    "name": "api-data",
+    "urls": [
+      "https://api.xdealhub.com/request-company/**",
+      "https://api.xdealhub.com/companies/**",
+      "https://api.xdealhub.com/user/companies/**",
+      "https://api.xdealhub.com/saved-requests/**"
+    ],
+    "cacheConfig": {
+      "strategy": "freshness",
+      "maxSize": 100,
+      "maxAge": "1h",
+      "timeout": "10s"
+    }
+  },
+  {
+    "name": "user-content",
+    "urls": [
+      "https://api.xdealhub.com/files/**",
+      "https://api.xdealhub.com/chat/**"
+    ],
+    "cacheConfig": {
+      "strategy": "performance",
+      "maxSize": 50,
+      "maxAge": "3d",
+      "timeout": "15s"
+    }
+  },
+  {
+    "name": "external-analytics",
+    "urls": [
+      "https://www.googletagmanager.com/**",
+      "https://www.google-analytics.com/**",
+      "https://region1.google-analytics.com/**"
+    ],
+    "cacheConfig": {
+      "strategy": "performance",
+      "maxSize": 15,
+      "maxAge": "1d",
+      "timeout": "5s"
+    }
+  },
+  {
+    "name": "google-fonts",
+    "urls": [
+      "https://fonts.googleapis.com/**",
+      "https://fonts.gstatic.com/**"
+    ],
+    "cacheConfig": {
+      "strategy": "performance",
+      "maxSize": 30,
+      "maxAge": "30d",
+      "timeout": "10s"
+    }
+  },
+  {
+    "name": "external-libraries",
+    "urls": [
+      "https://cdnjs.cloudflare.com/**"
+    ],
+    "cacheConfig": {
+      "strategy": "performance",
+      "maxSize": 10,
+      "maxAge": "30d",
+      "timeout": "10s"
     }
   }
  ]
