@@ -13,16 +13,20 @@ export class PwaUpdateService {
 
     this.swUpdate.versionUpdates.subscribe((event: VersionEvent) => {
       if (event.type === 'VERSION_READY') {
-        // Critical: Force update with native confirm dialog to fix CSP issues immediately
-        if (confirm('Налична е нова версия (v1.2.4). Натиснете ОК за да обновите и да оправите проблемите със зареждането.')) {
-          window.location.reload();
-        }
+        const ref = this.snackBar.open(
+          'Има нова версия на приложението.',
+          'Обнови',
+          { duration: 0 }
+        );
+
+        ref.onAction().subscribe(() => {
+          document.location.reload();
+        });
       }
     });
 
-    // Check more frequently (every 1 minute) to recover faster
     setInterval(() => {
       this.swUpdate?.checkForUpdate();
-    }, 60 * 1000);
+    }, 5 * 60 * 1000);
   }
 }
