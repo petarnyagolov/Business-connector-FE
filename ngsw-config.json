@@ -78,11 +78,11 @@
     "name": "external-analytics",
     "urls": [
       "https://www.googletagmanager.com/**",
-      "https://www.google-analytics.com/**",
-      "https://region1.google-analytics.com/**"
+      "https://*.google-analytics.com/**",
+      "https://*.analytics.google.com/**"
     ],
     "cacheConfig": {
-      "strategy": "performance",
+      "strategy": "freshness",
       "maxSize": 15,
       "maxAge": "1d",
       "timeout": "5s"
@@ -95,7 +95,7 @@
       "https://fonts.gstatic.com/**"
     ],
     "cacheConfig": {
-      "strategy": "performance",
+      "strategy": "freshness",
       "maxSize": 30,
       "maxAge": "30d",
       "timeout": "10s"
@@ -107,7 +107,7 @@
       "https://cdnjs.cloudflare.com/**"
     ],
     "cacheConfig": {
-      "strategy": "performance",
+      "strategy": "freshness",
       "maxSize": 10,
       "maxAge": "30d",
       "timeout": "10s"
