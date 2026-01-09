@@ -33,8 +33,7 @@
         <mat-icon>account_circle</mat-icon>
       </button>
       <mat-menu #accountMenu="matMenu" class="account-menu">
-        <div mat-menu-item disabled
-          style="white-space: normal; opacity: 1; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; margin-bottom: 8px;">
+        <div style="padding: 16px; border-bottom: 1px solid #e0e0e0; margin-bottom: 8px; outline: none;" (click)="$event.stopPropagation()">
           <div style="display: flex; flex-direction: column; align-items: flex-start;">
             <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
               <mat-icon style="margin-right: 8px; vertical-align: middle;">person</mat-icon>
@@ -48,6 +47,15 @@
                 style="margin-right: 8px; vertical-align: middle; font-size: 16px;">account_balance_wallet</mat-icon>
               <span>Кредити: {{ freeCredits }}</span>
             </div>
+            @if (referralCode) {
+            <div style="font-size: 14px; color: #1565c0; font-weight: 500; margin-top: 4px; cursor: pointer; display: flex; align-items: center;"
+                 (click)="copyReferralCode(); $event.stopPropagation()"
+                 matTooltip="Натисни за да копираш">
+              <mat-icon
+                style="margin-right: 8px; font-size: 16px; height: 16px; width: 16px;">loyalty</mat-icon>
+              <span>Код: {{ referralCode }}</span>
+            </div>
+            }
           </div>
         </div>
 
@@ -114,6 +122,13 @@
             <mat-icon>account_balance_wallet</mat-icon>
             Кредити: {{ freeCredits }}
           </div>
+          @if (referralCode) {
+          <div class="mobile-user-credits" style="color: #1565c0; cursor: pointer;"
+               (click)="copyReferralCode()">
+            <mat-icon>loyalty</mat-icon>
+            Код: {{ referralCode }} (Натисни за копиране)
+          </div>
+          }
         </div>
       </div>
     </div>

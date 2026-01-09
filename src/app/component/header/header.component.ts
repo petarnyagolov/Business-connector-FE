@@ -14,8 +14,10 @@ import { MatSelectModule, MatSelectChange } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CreditsService } from '../../service/credits.service';
@@ -67,6 +69,8 @@ interface UserCompany {
     MatInputModule,
     MatRadioModule,
     MatDialogModule,
+    MatSnackBarModule,
+    MatTooltipModule,
     NotificationBellComponent
   ]
 })
@@ -78,6 +82,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   savedRequestsCount: number = 0;
   userName: string | null = null;
   userEmail: string | null = null;
+  referralCode: string | null = null;
   freeCredits: number = 0;
   private destroy$ = new Subject<void>();
 
@@ -112,7 +117,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private creditsService: CreditsService,
     private http: HttpClient,
     private companyService: CompanyService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) { }
 
   ngOnInit() {
@@ -121,6 +127,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (status) {
         this.userName = this.authService.getUserName();
         this.userEmail = this.authService.getUserEmail();
+        this.referralCode = this.authService.getReferralCode();
         
         this.creditsService.credits$
           .pipe(takeUntil(this.destroy$))
@@ -143,6 +150,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.savedRequestsCount = 0;
         this.userName = null;
         this.userEmail = null;
+        this.referralCode = null;
         this.freeCredits = 0;
         this.creditPackages = [];
       }
@@ -169,7 +177,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.closeMobileMenu();
     this.router.navigate(['/invoices']);
   }
-
+  copyReferralCode() {
+    if (this.referralCode) {
+      navigator.clipboard.writeText(this.referralCode).then(() => {
+        this.snackBar.open('Рефералният код е копиран!', 'OK', {
+          duration: 3000,
+          panelClass: ['success-snackbar'],
+          verticalPosition: 'top'
+        });
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+  }
   onBuyCredits() {
     this.closeMobileMenu();
     console.log('🔍 Opening buy credits modal');

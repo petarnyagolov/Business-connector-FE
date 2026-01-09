@@ -350,6 +350,19 @@ export class AuthService {
     });
   }
 
+  getReferralCode(): string | null {
+    try {
+      const token = this.getAccessToken();
+      if (!token) return null;
+      
+      const decoded = this.decodeToken(token);
+      return decoded?.referralCode || null;
+    } catch (error) {
+      console.error('Error in getReferralCode:', error);
+      return null;
+    }
+  }
+
   getUserName(): string | null {
     try {
       const token = this.getAccessToken();
