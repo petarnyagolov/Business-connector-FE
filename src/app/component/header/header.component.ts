@@ -23,6 +23,7 @@ import { CompanyService } from '../../service/company.service';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { EpayPaymentDialogComponent } from '../epay-payment-dialog/epay-payment-dialog.component';
 import { environment } from '../../../environments/environment';
+import { ProformaInvoiceDialogComponent } from '../proforma-invoice-dialog/proforma-invoice-dialog.component';
 
 interface CreditPackage {
   id: number;
@@ -214,9 +215,58 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     this.isProcessingPurchase = true;
+// Request body for proforma invoice
+    const invoiceDetails = {
+      invoiceName: this.invoiceName,
+      invoiceBulstat: this.invoiceBulstat,
+      invoiceVatNumber: this.invoiceVatNumber,
+      invoiceAddress: this.invoiceAddress,
+      invoiceEmail: this.invoiceEmail || this.userEmail
+    };
 
+    console.log('📄 Requesting proforma preview for package:', this.selectedPackage.id);
+
+    // 1. Get Proforma Invoice PDF Preview
+    this.http.post(
+      `${environment.apiUrl}/payments/epay/proforma/${this.selectedPackage.id}`,
+      invoiceDetails,
+      { responseType: 'blob' } // Important: Expect a binary file
+    ).subscribe({
+      next: (pdfBlob: Blob) => {
+        console.log('📄 Proforma PDF received, size:', pdfBlob.size);
+
+        // 2. Open Preview Dialog
+        const dialogRef = this.dialog.open(ProformaInvoiceDialogComponent, {
+          data: { pdfBlob },
+          width: '900px',
+          disableClose: true
+        });
+
+        dialogRef.afterClosed().subscribe(confirmed => {
+          if (confirmed) {
+            // 3. User confirmed, proceed to payment initialization
+            this.initPayment();
+          } else {
+            // User cancelled
+            this.isProcessingPurchase = false;
+          }
+        });
+      },
+      error: (err) => {
+        console.error('❌ Error generating proforma invoice:', err);
+        if (err.status === 403) {
+           alert('Трябва да имате потвърден имейл, за да генерирате фактура.');
+        } else {
+           alert('Грешка при генериране на проформа фактура. Моля опитайте отново.');
+        }
+        this.isProcessingPurchase = false;
+      }
+    });
+  }
+
+  private initPayment() {
     this.http.post<EpayInitResponse>(
-      `${environment.apiUrl}/payments/epay/init/${this.selectedPackage.id}`,
+      `${environment.apiUrl}/payments/epay/init/${this.selectedPackage!.id}`,
       {
         invoiceName: this.invoiceName,
         invoiceBulstat: this.invoiceBulstat,
@@ -228,11 +278,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
       next: (res) => {
         console.log('🔐 ePay payment initialized:', res);
         
-        // Save transaction ID for status checking after redirect
         if (res.transactionId) {
           sessionStorage.setItem('epay_transaction_id', res.transactionId);
         }
         
+        this.proceedToEpay(res);
+      },
+      error: (err) => {
+        console.error('❌ Error initializing ePay payment:', err);
+        alert('Грешка при инициализиране на плащането. Моля опитайте отново.');
+        this.isProcessingPurchase = false;
+      }
+    });
+  }
+
+  private proceedToEpay(res: EpayInitResponse): void {
         console.log(`📋 PAGE parameter: ${res.PAGE}`);
         
         // Create a hidden form and submit it to redirect to ePay
@@ -287,13 +347,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
           }
           this.isProcessingPurchase = false;
         }, 1000);
-      },
-      error: (err) => {
-        console.error('❌ Error initializing ePay payment:', err);
-        alert('Грешка при инициализиране на плащането. Моля опитайте отново.');
-        this.isProcessingPurchase = false;
-      }
-    });
   }
 
   private loadCreditPackages(): void {
