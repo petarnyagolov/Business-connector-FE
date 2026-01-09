@@ -1,9 +1,9 @@
 {
   "$schema": "./node_modules/@angular/service-worker/config/schema.json",
   "appData": {
-    "version": "1.2.3",
-    "timestamp": "2026-01-09T10:00:00Z",
-    "description": "Added cdnjs and blob to connect-src whitelist"
+    "version": "1.2.4",
+    "timestamp": "2026-01-09T10:15:00Z",
+    "description": "Force update for CSP connect-src fixes"
   },
   "index": "/index.html",
   "assetGroups": [
