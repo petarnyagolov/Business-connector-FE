@@ -1,0 +1,5 @@
+Contact: mailto:security@xdealhub.com
+Preferred-Languages: bg, en
+Canonical: https://xdealhub.com/.well-known/security.txt
+Expires: 2026-12-31T23:59:59.000Z
+Acknowledgments: https://xdealhub.com/security/acknowledgments
