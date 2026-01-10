@@ -13,6 +13,7 @@ import { EmailVerificationComponent } from './component/email-verification/email
 import { HomeComponent } from './component/home/home.component';
 import { PrivacyPolicyComponent } from './component/privacy-policy/privacy-policy.component';
 import { CookiePolicyComponent } from './component/cookie-policy/cookie-policy.component';
+import { TermsOfServiceComponent } from './component/terms-of-service/terms-of-service.component';
 import { PaymentSuccessComponent } from './component/payment-success/payment-success.component';
 import { PaymentCancelComponent } from './component/payment-cancel/payment-cancel.component';
 
@@ -24,6 +25,7 @@ export const routes: Routes = [
   { path: 'about', component: AboutComponent },
   { path: 'privacy', component: PrivacyPolicyComponent },
   { path: 'cookies', component: CookiePolicyComponent },
+  { path: 'terms', component: TermsOfServiceComponent },
   { path: 'payment/success', component: PaymentSuccessComponent },
   { path: 'payment/cancel', component: PaymentCancelComponent },
   { path: '', pathMatch: 'full', redirectTo: '/requests' },

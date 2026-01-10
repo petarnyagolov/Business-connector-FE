@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'about',
   templateUrl: './about.component.html',
+  styleUrls: ['./about.component.scss'],
   standalone: true,
-  // styleUrls: ['./about.component.css'],
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, MatIconModule]
 })
 export class AboutComponent {
-  // Add your component logic here
 }

@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-cookie-policy',
+  selector: 'app-terms-of-service',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './cookie-policy.component.html',
-  styleUrl: './cookie-policy.component.scss'
+  templateUrl: './terms-of-service.component.html',
+  styleUrls: ['./terms-of-service.component.scss']
 })
-export class CookiePolicyComponent { }
+export class TermsOfServiceComponent {}

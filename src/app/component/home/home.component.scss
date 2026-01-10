@@ -119,8 +119,11 @@
   justify-content: center;
 }
 
-.hero-notification-icon .material-symbol {
+.hero-notification-icon .notification-icon {
   font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
 }
 
 .hero-notification-text .title {
@@ -194,8 +197,11 @@
   font-size: 0.98rem;
 }
 
-.material-symbol {
+.feature-icon mat-icon {
   font-size: 26px;
+  width: 26px;
+  height: 26px;
+  line-height: 26px;
 }
 
 @media (max-width: 768px) {

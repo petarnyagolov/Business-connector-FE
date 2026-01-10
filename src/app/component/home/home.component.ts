@@ -1,15 +1,17 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule, RouterModule],
   template: `
     <section class="hero">
       <div class="hero-inner">
         <div class="hero-text">
-          <h1>Намерете точния партньор за вашия бизнес</h1>
+          <h1>Свързваме бизнеса,<br>създаваме възможности</h1>
           <p>
             XDealHub свързва фирми за покупка, продажба и услуги от различни индустрии
             и производства – бързо, прозрачно и сигурно.
@@ -22,7 +24,7 @@ import { CommonModule } from '@angular/common';
         <div class="hero-visual">
           <div class="hero-notification hero-notification--primary">
             <div class="hero-notification-icon">
-              <span class="material-symbol">notifications</span>
+              <mat-icon class="notification-icon">notifications</mat-icon>
             </div>
             <div class="hero-notification-text">
               <div class="title">Ново запитване</div>
@@ -32,7 +34,7 @@ import { CommonModule } from '@angular/common';
 
           <div class="hero-notification hero-notification--secondary">
             <div class="hero-notification-icon">
-              <span class="material-symbol">chat</span>
+              <mat-icon class="notification-icon">chat</mat-icon>
             </div>
             <div class="hero-notification-text">
               <div class="title">Съобщение</div>
@@ -48,21 +50,21 @@ import { CommonModule } from '@angular/common';
     <section class="features">
       <div class="feature">
         <div class="feature-icon">
-          <span class="material-symbol">insights</span>
+          <mat-icon>insights</mat-icon>
         </div>
         <h3>Интелигентни съвпадения</h3>
         <p>Получавате предложения само от релевантни партньори и доставчици.</p>
       </div>
       <div class="feature">
         <div class="feature-icon">
-          <span class="material-symbol">handshake</span>
+          <mat-icon>handshake</mat-icon>
         </div>
         <h3>Прозрачни сделки</h3>
         <p>Управлявайте оферти, договаряне и финализиране на едно място.</p>
       </div>
       <div class="feature">
         <div class="feature-icon">
-          <span class="material-symbol">lock</span>
+          <mat-icon>lock</mat-icon>
         </div>
         <h3>Сигурна платформа</h3>
         <p>Защитени данни и надеждни партньори за вашия бизнес.</p>
