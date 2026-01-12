@@ -10,6 +10,7 @@ Allow: /login
 Allow: /companies
 Allow: /privacy
 Allow: /cookies
+Allow: /terms
 
 # Sitemap
 Sitemap: https://xdealhub.com/sitemap.xml

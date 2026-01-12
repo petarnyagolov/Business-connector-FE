@@ -18,11 +18,18 @@
     <priority>0.9</priority>
   </url>
   
-  <!-- Companies list - main feature -->
+  <!-- Requests - main feature of the platform -->
   <url>
-    <loc>https://xdealhub.com/companies</loc>
+    <loc>https://xdealhub.com/requests</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+  </url>
+  
+  <!-- Companies list - admin only, lower priority -->
+  <url>
+    <loc>https://xdealhub.com/companies</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
   </url>
   
   <!-- Authentication pages -->
@@ -54,6 +61,12 @@
   
   <url>
     <loc>https://xdealhub.com/cookies</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://xdealhub.com/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>

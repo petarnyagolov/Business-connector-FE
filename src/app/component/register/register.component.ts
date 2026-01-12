@@ -21,6 +21,7 @@ import { environment } from '../../../environments/environment';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NgxIntlTelInputModule } from 'ngx-intl-tel-input';
 import { SearchCountryField, CountryISO } from 'ngx-intl-tel-input';
+import { PasswordValidators } from '../../validators/password.validators';
 
 
 @Component({
@@ -135,58 +136,12 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         Validators.required, 
         Validators.minLength(8), 
         Validators.maxLength(100),
-        this.passwordStrengthValidator
+        PasswordValidators.passwordStrength
       ]],
       confirmPassword: ['', [Validators.required]],
       lang: ['bg', Validators.required],
       referredByCode: ['', [Validators.maxLength(20)]]
-    }, { validators: this.passwordMatchValidator });
-  }
-
-  passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
-    const value: string = control.value || '';
-    
-    if (!value) return null;
-
-    // Use Unicode property escapes to support Cyrillic and other scripts (matches backend logic)
-    const hasLowerCase = /\p{Ll}/u.test(value);
-    const hasUpperCase = /\p{Lu}/u.test(value);
-    const hasNumeric = /\d/.test(value);
-    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(value);
-    
-    const errors: ValidationErrors = {};
-    
-    if (!hasLowerCase) errors['hasLowerCase'] = true;
-    if (!hasUpperCase) errors['hasUpperCase'] = true;
-    if (!hasNumeric) errors['hasNumeric'] = true;
-    if (!hasSpecial) errors['hasSpecial'] = true;
-
-    return Object.keys(errors).length > 0 ? errors : null;
-  }
-
-  // Custom validator for password matching
-  passwordMatchValidator(form: AbstractControl): ValidationErrors | null {
-    const password = form.get('password')?.value;
-    const confirmPasswordControl = form.get('confirmPassword');
-    
-    if (!confirmPasswordControl) return null;
-
-    const confirmPassword = confirmPasswordControl.value;
-
-    // If confirm password is empty, let 'required' validator handle it
-    if (!confirmPassword) {
-      return null;
-    }
-
-    if (password !== confirmPassword) {
-      confirmPasswordControl.setErrors({ passwordMismatch: true });
-    } else {
-      // Only clear if the error is currently passwordMismatch
-      if (confirmPasswordControl.hasError('passwordMismatch')) {
-        confirmPasswordControl.setErrors(null);
-      }
-    }
-    return null;
+    }, { validators: PasswordValidators.passwordMatch });
   }
 
   ngOnInit() {

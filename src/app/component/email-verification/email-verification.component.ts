@@ -41,26 +41,22 @@ export class EmailVerificationComponent implements OnInit {
   resendMessage: string | null = null;
   isResending = false;
   
-  // Нови properties за ръчна верификация
   manualToken: string = '';
   isVerifyingManual = false;
   manualVerificationMessage: string | null = null;
   manualVerificationSuccess = false;
   
-  // Properties за табовете и UI
   selectedTabIndex = 0;
-  showDebugInfo = true; // За development - може да се изключи за production
+  showDebugInfo = true; 
   
-  // Нови properties за автоматично обновяване на токена
   isRefreshingToken = false;
   tokenRefreshMessage: string | null = null;
   
-  // Properties за връщане към предишната страница
   returnUrl: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
-    public authService: AuthService, // Променено от private на public
+    public authService: AuthService, 
     private emailVerificationService: EmailVerificationService,
     private router: Router
   ) {}
@@ -76,16 +72,14 @@ export class EmailVerificationComponent implements OnInit {
       this.resendEmail = this.authService.getUserEmail() || '';
     }
     
-    // Ако има токен в URL, показваме автоматичния таб
     if (this.token) {
-      this.selectedTabIndex = 0; // Автоматична верификация
+      this.selectedTabIndex = 0; 
       this.emailVerificationService.verifyEmailWithToken(this.token).subscribe({
         next: (response: HttpResponse<any>) => {
           this.isLoading = false;
           if (response.status === 202 || response.status === 200) {
             this.isVerified = true;
             
-            // Автоматично обновяваме токена след верификация
             this.handleSuccessfulVerification('Вашият имейл беше успешно верифициран!');
           } else {
             this.isVerified = false;
@@ -106,8 +100,7 @@ export class EmailVerificationComponent implements OnInit {
         }
       });
     } else {
-      // Ако няма токен в URL, показваме ръчния таб по подразбиране
-      this.selectedTabIndex = 1; // Ръчна верификация
+      this.selectedTabIndex = 1; 
       this.isLoading = false;
     }
   }
@@ -129,7 +122,6 @@ export class EmailVerificationComponent implements OnInit {
           this.isVerified = true;
           this.manualVerificationSuccess = true;
           
-          // Автоматично обновяваме токена след ръчна верификация
           this.handleSuccessfulVerification('Успешна верификация! Вашият имейл е потвърден.');
         } else {
           this.manualVerificationSuccess = false;
@@ -187,44 +179,36 @@ export class EmailVerificationComponent implements OnInit {
   }
 
   goBack(): void {
-    // Опитваме се да се върнем към предишната страница
     window.history.back();
   }
 
-  // Централизиран метод за обработка на успешна верификация
   private handleSuccessfulVerification(initialMessage: string): void {
-    // Ако потребителят е влязъл, автоматично обновяваме токена
     if (this.authService.isAuthenticated()) {
       this.isRefreshingToken = true;
       this.tokenRefreshMessage = 'Обновявам токена...';
       
       console.log('Starting automatic token refresh after verification...');
-      this.authService.forceRefreshToken().subscribe({
+      this.authService.refreshToken().subscribe({
         next: () => {
           this.isRefreshingToken = false;
           this.tokenRefreshMessage = '✅ Токенът беше обновен автоматично. Всичко е наред!';
           console.log('Token refreshed successfully after verification');
           
-          // Показваме съобщението за успех
           if (this.selectedTabIndex === 1) {
-            // За ръчна верификация
             this.manualVerificationMessage = initialMessage + ' ' + this.tokenRefreshMessage;
           }
         },
-        error: (err) => {
+        error: (err: any) => {
           this.isRefreshingToken = false;
           this.tokenRefreshMessage = '⚠️ Грешка при обновяване на токена. Моля опитайте отново.';
           console.error('Failed to refresh token after verification:', err);
           
-          // Показваме съобщението за грешка
           if (this.selectedTabIndex === 1) {
-            // За ръчна верификация
             this.manualVerificationMessage = initialMessage + ' ' + this.tokenRefreshMessage;
           }
         }
       });
     } else {
-      // Ако не е влязъл, просто показваме съобщението
       this.tokenRefreshMessage = '✅ ' + initialMessage;
       if (this.selectedTabIndex === 1) {
         this.manualVerificationMessage = this.tokenRefreshMessage;

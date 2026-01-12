@@ -288,12 +288,27 @@ export class AuthService {
           console.log('Received new refresh token after verification');
           this.setRefreshToken(response.body.refreshToken);
         }
-        
-        if (response.status === 200 || response.status === 202) {
-          console.log('Email verification successful');
-        }
       })
     );
+  }
+
+  /**
+   * Request password reset - sends email with reset token
+   */
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, null, {
+      params: { email }
+    });
+  }
+
+  /**
+   * Reset password with token from email
+   */
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, {
+      token,
+      newPassword
+    });
   }
 
   resendVerificationLink(email: string): Observable<any> {

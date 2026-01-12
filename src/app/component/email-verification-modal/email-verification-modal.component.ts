@@ -353,12 +353,12 @@ export class EmailVerificationModalComponent implements OnInit {
       this.isRefreshingToken = true;
       this.manualVerificationMessage = 'Обновявам токена...';
       
-      this.authService.forceRefreshToken().subscribe({
+      this.authService.refreshToken().subscribe({
         next: () => {
           this.isRefreshingToken = false;
           this.manualVerificationMessage = '✅ Имейлът е верифициран успешно! Токенът беше обновен автоматично.';
         },
-        error: (err) => {
+        error: (err: any) => {
           this.isRefreshingToken = false;
           this.manualVerificationMessage = '✅ Имейлът е верифициран, но възникна грешка при обновяване на токена.';
           console.error('Token refresh error:', err);

@@ -16,11 +16,15 @@ import { CookiePolicyComponent } from './component/cookie-policy/cookie-policy.c
 import { TermsOfServiceComponent } from './component/terms-of-service/terms-of-service.component';
 import { PaymentSuccessComponent } from './component/payment-success/payment-success.component';
 import { PaymentCancelComponent } from './component/payment-cancel/payment-cancel.component';
+import { ForgotPasswordComponent } from './component/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './component/reset-password/reset-password.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'verify-email', component: EmailVerificationComponent }, // route за email verification
   { path: 'about', component: AboutComponent },
   { path: 'privacy', component: PrivacyPolicyComponent },
