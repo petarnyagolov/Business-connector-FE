@@ -178,6 +178,13 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
           };
         });
       }
+      
+      if (response.logoUrl && !response.logoProcessed) {
+        response.logoProcessedUrl = this.getFileUrl(response.logoUrl);
+        response.logoProcessed = true;
+        console.log('Processed response logo:', response.logoProcessedUrl);
+      }
+      
       return response;
     });
   }
@@ -194,13 +201,30 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       }
     }
     
+    // Зареждане на файлове и logo-та от responses
     this.responses.forEach(response => {
+      // Зареждане на files снимки
       if (response.files && Array.isArray(response.files)) {
         response.files.forEach((file: any) => {
           if (file.isImage && file.url && !this.pictureBlobs[file.url]) {
             this.fetchPicture(file.url);
           }
         });
+      }
+      
+      // Зареждане на logo от logoProcessedUrl
+      if (response.logoProcessedUrl && !this.pictureBlobs[response.logoProcessedUrl]) {
+        console.log('Loading response logo:', response.logoProcessedUrl);
+        this.fetchPicture(response.logoProcessedUrl);
+      }
+      
+      // Алтернативно - ако logoUrl все още не е обработен
+      if (response.logoUrl && !response.logoProcessed) {
+        const logoUrl = this.getFileUrl(response.logoUrl);
+        if (!this.pictureBlobs[logoUrl]) {
+          console.log('Loading response logo from logoUrl:', logoUrl);
+          this.fetchPicture(logoUrl);
+        }
       }
     });
   }
@@ -842,22 +866,28 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
 
   getFileUrl(fileUrl: string): string {
     if (!fileUrl) return '';
-    if (fileUrl.startsWith('http')) {
+    
+    // Ако вече е пълен URL, използваме директно
+    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
       return fileUrl;
     }
     
-    // Normalize slashes and remove leading slashes
-    let cleanPath = fileUrl.replace(/\\/g, '/').replace(/^\/+/, '');
+    // Нормализираме слешовете
+    let cleanPath = fileUrl.replace(/\\/g, '/');
     
-    // Remove 'files/' prefix if present to avoid duplication
+    // Премахваме leading slashes
+    cleanPath = cleanPath.replace(/^\/+/, '');
+    
+    // Ако пътят започва с 'files/', премахваме го за да избегнем дублиране
+    // защото после ще го добавим отново
     if (cleanPath.startsWith('files/')) {
       cleanPath = cleanPath.substring(6);
     }
     
-    // Always construct with single /files/ prefix
+    // Конструираме финалния URL с /files/ префикс
     const url = `${environment.apiUrl}/files/${cleanPath}`;
     
-    console.log('getFileUrl:', { in: fileUrl, out: url });
+    console.log('🔗 getFileUrl:', { input: fileUrl, output: url });
     return url;
   }
 

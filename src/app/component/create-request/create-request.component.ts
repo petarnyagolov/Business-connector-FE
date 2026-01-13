@@ -279,6 +279,15 @@ export class CreateRequestComponent implements OnDestroy {
       };
       
       console.log('📋 Request data prepared:', requestCompany);
+      console.log('🔍 DETAILED requiredFields:', {
+        raw: formValue.requiredFields,
+        inObject: requestCompany.requiredFields,
+        type: typeof requestCompany.requiredFields,
+        isArray: Array.isArray(requestCompany.requiredFields),
+        length: requestCompany.requiredFields?.length,
+        values: requestCompany.requiredFields
+      });
+      
       formData.append('requestCompany', new Blob([JSON.stringify(requestCompany)], { type: 'application/json' }));
     } else {
       console.error('❌ No company selected or company not found!');
