@@ -469,4 +469,22 @@ export class AuthService {
     const isAuth = this.isAuthenticated();
     this.authStatusSubject.next(isAuth);
   }
+
+  getUserInfo(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/me`);
+  }
+
+  changePassword(oldPassword: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-password`, {
+      oldPassword,
+      newPassword,
+      confirmPassword
+    });
+  }
+
+  changeEmail(newEmail: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-email`, {
+      newEmail
+    });
+  }
 }

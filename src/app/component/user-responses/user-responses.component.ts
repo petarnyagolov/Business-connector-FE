@@ -148,8 +148,13 @@ export class UserResponsesComponent implements OnInit {
     if (pic.startsWith('http')) {
       return pic;
     }
-    // Връщаме абсолютен URL към бекенда
-    return `${environment.apiUrl}/files/` + pic.replace(/\\/g, '/');
+    // Премахваме files/ или /files/ префикс за да избегнем дублиране
+    let cleanPath = pic.replace(/\\/g, '/');
+    cleanPath = cleanPath.replace(/^\/+/, '');
+    if (cleanPath.startsWith('files/')) {
+      cleanPath = cleanPath.substring(6);
+    }
+    return `${environment.apiUrl}/files/${cleanPath}`;
   }
 
   onImageClick(pic: string): void {
@@ -202,7 +207,19 @@ export class UserResponsesComponent implements OnInit {
     }
     if (!this.editResponseItem) return;
     
-    this.responseService.updateResponseText(this.editResponseData.id, this.editResponseData.newResponseText).subscribe({
+    // Форматираме датата: "14.1.2026 12:36:"
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const timestamp = `${day}.${month}.${year} ${hours}:${minutes}:`;
+    
+    // Добавяме празен ред, после timestamp и нов ред преди новия текст
+    const formattedText = `\n${timestamp}\n${this.editResponseData.newResponseText}`;
+    
+    this.responseService.updateResponseText(this.editResponseData.id, formattedText).subscribe({
       next: (updatedResponse) => {
         this.editResponseItem.responseText = updatedResponse.responseText;
         this.closeEditResponseDialog();
@@ -293,7 +310,13 @@ export class UserResponsesComponent implements OnInit {
     if (fileUrl.startsWith('http')) {
       return fileUrl;
     }
-    return `${environment.apiUrl}/files/` + fileUrl.replace(/\\/g, '/');
+    // Премахваме files/ или /files/ префикс за да избегнем дублиране
+    let cleanPath = fileUrl.replace(/\\/g, '/');
+    cleanPath = cleanPath.replace(/^\/+/, '');
+    if (cleanPath.startsWith('files/')) {
+      cleanPath = cleanPath.substring(6);
+    }
+    return `${environment.apiUrl}/files/${cleanPath}`;
   }
 
   openImageModal(imageUrl: string, item: any): void {

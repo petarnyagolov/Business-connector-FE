@@ -1,0 +1,91 @@
+<div class="settings-container">
+  <h1>Настройки на профила</h1>
+
+  <mat-card *ngIf="loading" class="loading-card">
+    <mat-card-content>
+      <div class="loading-spinner">Зареждане...</div>
+    </mat-card-content>
+  </mat-card>
+
+  <div *ngIf="!loading && userInfo" class="settings-content">
+    <!-- Personal Information -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>person</mat-icon>
+        <mat-card-title>Лична информация</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-row">
+          <span class="label">Име:</span>
+          <span class="value">{{ userInfo.firstName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Фамилия:</span>
+          <span class="value">{{ userInfo.lastName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Имейл:</span>
+          <span class="value">{{ userInfo.email }}</span>
+        </div>
+        <div class="info-row" *ngIf="userInfo.phoneNumber">
+          <span class="label">Телефон:</span>
+          <span class="value">{{ userInfo.phoneNumber }}</span>
+        </div>
+        <div class="info-row" *ngIf="userInfo.lang">
+          <span class="label">Език:</span>
+          <span class="value">{{ userInfo.lang }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Credits and Referral -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>account_balance_wallet</mat-icon>
+        <mat-card-title>Кредити и Референции</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-row">
+          <span class="label">Налични кредити:</span>
+          <span class="value credits">{{ userInfo.freeCredits || 0 }}</span>
+        </div>
+        <mat-divider style="margin: 16px 0;"></mat-divider>
+        <div class="info-row">
+          <span class="label">Код за препоръка:</span>
+          <div class="referral-code-container">
+            <span class="value referral-code">{{ userInfo.referralCode || '—' }}</span>
+            <button mat-icon-button (click)="copyReferralCode()" *ngIf="userInfo.referralCode" 
+                    matTooltip="Копирай кода">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+        </div>
+        <div class="info-row" *ngIf="userInfo.referredBy">
+          <span class="label">Препоръчан от:</span>
+          <span class="value">{{ userInfo.referredBy }}</span>
+        </div>
+        <p class="help-text">Споделете вашия код за препоръка с други потребители за бонуси</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Security Settings -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>security</mat-icon>
+        <mat-card-title>Сигурност</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="security-actions">
+          <button mat-raised-button color="primary" (click)="openChangePasswordDialog()">
+            <mat-icon>lock</mat-icon>
+            Смяна на парола
+          </button>
+          <button mat-raised-button color="accent" (click)="openChangeEmailDialog()">
+            <mat-icon>email</mat-icon>
+            Смяна на имейл
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

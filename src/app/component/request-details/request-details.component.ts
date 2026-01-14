@@ -878,10 +878,11 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     // Премахваме leading slashes
     cleanPath = cleanPath.replace(/^\/+/, '');
     
-    // Ако пътят започва с 'files/', премахваме го за да избегнем дублиране
-    // защото после ще го добавим отново
+    // Премахваме 'files/' или '/files/' префикс за да избегнем дублиране
     if (cleanPath.startsWith('files/')) {
       cleanPath = cleanPath.substring(6);
+    } else if (cleanPath.startsWith('/files/')) {
+      cleanPath = cleanPath.substring(7);
     }
     
     // Конструираме финалния URL с /files/ префикс

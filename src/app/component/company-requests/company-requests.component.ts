@@ -245,8 +245,12 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
       return pic;
     }
     // Премахваме всички слашове в началото на pic
-    const cleanPic = pic.replace(/^[\/\\]+/, '');
-    return `${environment.apiUrl}/files/${cleanPic.replace(/\\/g, '/')}`;
+    let cleanPic = pic.replace(/^[\/\\]+/, '').replace(/\\/g, '/');
+    // Премахваме files/ префикс ако съществува
+    if (cleanPic.startsWith('files/')) {
+      cleanPic = cleanPic.substring(6);
+    }
+    return `${environment.apiUrl}/files/${cleanPic}`;
   }
 
   onImageClick(pic: string, request: any): void {

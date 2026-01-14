@@ -392,7 +392,13 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     if (pic.startsWith('http')) {
       return pic;
     }
-    return `${environment.apiUrl}/files/` + pic.replace(/\\/g, '/');
+    // Премахваме files/ или /files/ префикс за да избегнем дублиране
+    let cleanPath = pic.replace(/\\/g, '/');
+    cleanPath = cleanPath.replace(/^\/+/, '');
+    if (cleanPath.startsWith('files/')) {
+      cleanPath = cleanPath.substring(6);
+    }
+    return `${environment.apiUrl}/files/${cleanPath}`;
   }
 
   onImageClick(pic: string): void {

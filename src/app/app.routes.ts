@@ -18,6 +18,7 @@ import { PaymentSuccessComponent } from './component/payment-success/payment-suc
 import { PaymentCancelComponent } from './component/payment-cancel/payment-cancel.component';
 import { ForgotPasswordComponent } from './component/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './component/reset-password/reset-password.component';
+import { UserSettingsComponent } from './component/user-settings/user-settings.component';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -69,6 +70,11 @@ export const routes: Routes = [
   {
     path: 'notifications',
     loadComponent: () => import('./component/notifications/notifications.component').then(m => m.NotificationsComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'settings',
+    component: UserSettingsComponent,
     canActivate: [AuthGuard]
   },
   {
