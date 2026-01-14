@@ -16,10 +16,14 @@
     </mat-card-header>
     <mat-card-content>
       <div class="request-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
-        <div *ngIf="item.requestCompany?.description" style="display: flex; align-items: flex-start;">
-          <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">description</mat-icon>
-          <span class="label">Описание:&nbsp;</span>
-          <span class="value" style="white-space: pre-line;">{{ item.requestCompany.description }}</span>
+        <div *ngIf="item.requestCompany?.description" style="display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center;">
+            <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">description</mat-icon>
+            <span class="label">Описание:</span>
+          </div>
+          <div style="padding-left: 30px; margin-top: 4px;">
+            <span class="value" style="white-space: pre-line;">{{ item.requestCompany.description }}</span>
+          </div>
         </div>
         <div *ngIf="item.requestCompany?.requestType" style="display: flex; align-items: center;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b;">category</mat-icon>
