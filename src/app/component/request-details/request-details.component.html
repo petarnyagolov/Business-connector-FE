@@ -127,6 +127,8 @@
         mat-raised-button 
         color="primary" 
         (click)="openResponseModal()"
+        [disabled]="!canSubmitResponse()"
+        [title]="isRequestOwner() ? 'Не можете да подавате оферта за ваша собствена публикация' : (!hasAvailableCompaniesForResponse() ? 'Всички ваши компании вече имат предложения' : 'Подай предложение')"
         style="margin: 8px;"
       >
         <mat-icon style="margin-right: 4px;">reply</mat-icon>

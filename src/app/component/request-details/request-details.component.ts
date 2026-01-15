@@ -584,12 +584,25 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       .map(response => response.responserCompanyId)
       .filter(id => id); 
 
-    return this.userCompanies.filter(company => !companiesWithResponses.includes(company.id));
+    // Филтрираме компаниите които вече имат предложения
+    const companiesWithoutResponses = this.userCompanies.filter(company => !companiesWithResponses.includes(company.id));
+    
+    // Изключваме компанията която е създала заявката
+    return companiesWithoutResponses.filter(company => company.id !== this.request?.requesterCompanyId);
   }
 
   hasAvailableCompaniesForResponse(): boolean {
     const availableCompanies = this.getAvailableCompaniesForResponse();
     return availableCompanies.length > 0;
+  }
+
+  isRequestOwner(): boolean {
+    if (!this.request || !this.userCompanies) return false;
+    return this.userCompanies.some(company => company.id === this.request?.requesterCompanyId);
+  }
+
+  canSubmitResponse(): boolean {
+    return !this.isRequestOwner() && this.hasAvailableCompaniesForResponse();
   }
 
   getUnitLabel(unit: string): string {
