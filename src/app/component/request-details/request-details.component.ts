@@ -201,9 +201,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       }
     }
     
-    // Зареждане на файлове и logo-та от responses
     this.responses.forEach(response => {
-      // Зареждане на files снимки
       if (response.files && Array.isArray(response.files)) {
         response.files.forEach((file: any) => {
           if (file.isImage && file.url && !this.pictureBlobs[file.url]) {
@@ -212,13 +210,11 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
         });
       }
       
-      // Зареждане на logo от logoProcessedUrl
       if (response.logoProcessedUrl && !this.pictureBlobs[response.logoProcessedUrl]) {
         console.log('Loading response logo:', response.logoProcessedUrl);
         this.fetchPicture(response.logoProcessedUrl);
       }
       
-      // Алтернативно - ако logoUrl все още не е обработен
       if (response.logoUrl && !response.logoProcessed) {
         const logoUrl = this.getFileUrl(response.logoUrl);
         if (!this.pictureBlobs[logoUrl]) {
@@ -353,7 +349,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Форматираме датата: "14.1.2026 12:36:"
     const now = new Date();
     const day = now.getDate();
     const month = now.getMonth() + 1;
@@ -362,7 +357,6 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const timestamp = `${day}.${month}.${year} ${hours}:${minutes}:`;
     
-    // Добавяме празен ред, после timestamp и нов ред преди новия текст
     const formattedText = `\n${timestamp}\n${this.editResponseData.additionalText}`;
     
     console.log('Submitting edit with formatted text:', formattedText);
@@ -596,10 +590,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       .map(response => response.responserCompanyId)
       .filter(id => id); 
 
-    // Филтрираме компаниите които вече имат предложения
     const companiesWithoutResponses = this.userCompanies.filter(company => !companiesWithResponses.includes(company.id));
     
-    // Изключваме компанията която е създала заявката
     return companiesWithoutResponses.filter(company => company.id !== this.request?.requesterCompanyId);
   }
 
@@ -892,25 +884,20 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   getFileUrl(fileUrl: string): string {
     if (!fileUrl) return '';
     
-    // Ако вече е пълен URL, използваме директно
     if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
       return fileUrl;
     }
     
-    // Нормализираме слешовете
     let cleanPath = fileUrl.replace(/\\/g, '/');
     
-    // Премахваме leading slashes
     cleanPath = cleanPath.replace(/^\/+/, '');
     
-    // Премахваме 'files/' или '/files/' префикс за да избегнем дублиране
     if (cleanPath.startsWith('files/')) {
       cleanPath = cleanPath.substring(6);
     } else if (cleanPath.startsWith('/files/')) {
       cleanPath = cleanPath.substring(7);
     }
     
-    // Конструираме финалния URL с /files/ префикс
     const url = `${environment.apiUrl}/files/${cleanPath}`;
     
     console.log('🔗 getFileUrl:', { input: fileUrl, output: url });
