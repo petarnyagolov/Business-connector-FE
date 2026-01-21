@@ -353,9 +353,21 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('Submitting edit with additional text:', this.editResponseData.additionalText);
+    // Форматираме датата: "14.1.2026 12:36:"
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const timestamp = `${day}.${month}.${year} ${hours}:${minutes}:`;
     
-    this.responseService.updateResponseText(this.editResponseData.id, this.editResponseData.additionalText).subscribe({
+    // Добавяме празен ред, после timestamp и нов ред преди новия текст
+    const formattedText = `\n${timestamp}\n${this.editResponseData.additionalText}`;
+    
+    console.log('Submitting edit with formatted text:', formattedText);
+    
+    this.responseService.updateResponseText(this.editResponseData.id, formattedText).subscribe({
       next: (updatedResponse: any) => {
         console.log('Response updated successfully:', updatedResponse);
         
