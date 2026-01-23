@@ -84,7 +84,10 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   private handleOtherErrors(error: HttpErrorResponse): void {
     let errorMessage = 'Възникна неочаквана грешка. Моля, опитайте отново.';
     
-    // Проверяваме дали имаме детайли за грешката от бекенда
+    if (error.url && error.url.includes('/utils/company/')) {
+      return; 
+    }
+    
     if (error.error && typeof error.error === 'object') {
       const apiError: ApiError = error.error;
       errorMessage = apiError.message || errorMessage;
@@ -92,7 +95,6 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
       errorMessage = error.message;
     }
 
-    // Показваме съобщението според статуса
     switch (error.status) {
       case 400:
         this.notificationService.error('Невалидни данни. ' + errorMessage, 'Грешка в данните');

@@ -25,7 +25,6 @@
         <div class="detail-row"><span class="detail-label">Описание:</span> <span>{{ company.description }}</span></div>
         <div class="detail-row"><span class="detail-label">Индустрия:</span> <span>{{ company.industry }}</span></div>
         <div class="detail-row"><span class="detail-label">Държава:</span> <span>{{ company.country }}</span></div>
-        <div class="detail-row"><span class="detail-label">Град:</span> <span>{{ company.city }}</span></div>
         <div class="detail-row"><span class="detail-label">Адрес:</span> <span>{{ company.address }}</span></div>
         <div class="detail-row"><span class="detail-label">Брой служители:</span> <span>{{ getEmployeesSize(company) }}</span></div>
         <div class="detail-row"><span class="detail-label">Позиция на създателя:</span> <span>{{ company.creatorPosition }}</span></div>
@@ -33,6 +32,10 @@
     </mat-card-content>
     <mat-card-actions>
       <button mat-button (click)="openEditCompanyModal(company)">Редактирай</button>
+      <button mat-button color="accent" (click)="openInvoiceDataModal(company)">
+        <mat-icon style="vertical-align: middle; font-size: 18px; margin-right: 4px;">receipt</mat-icon>
+        Фактурни данни
+      </button>
     </mat-card-actions>
   </mat-card>
 </div>
@@ -69,5 +72,78 @@
   (companyUpdated)="onCompanyUpdated($event)"
   (cancelled)="closeEditCompanyModal()">
 </app-edit-company>
+
+<!-- Invoice Data Modal -->
+<div *ngIf="showInvoiceDataModal" class="modal-overlay" (click)="closeInvoiceDataModal()" 
+     style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;">
+  <div class="modal-content" (click)="$event.stopPropagation()" 
+       style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 32px rgba(0,0,0,0.2);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e0e0e0;">
+      <h3 style="margin: 0; color: #1976d2;">
+        <mat-icon style="vertical-align: middle; margin-right: 8px;">receipt</mat-icon>
+        Фактурни данни за {{ currentInvoiceCompany?.name }}
+      </h3>
+      <button mat-icon-button (click)="closeInvoiceDataModal()" title="Затвори">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div style="padding: 20px;">
+      <form [formGroup]="invoiceDataForm" (ngSubmit)="saveInvoiceData()">
+        <mat-form-field appearance="fill" style="width: 100%; margin-bottom: 16px;">
+          <mat-label>Име на фирмата за фактура</mat-label>
+          <input matInput formControlName="invoiceName" [disabled]="isLoadingInvoiceData">
+          <mat-error *ngIf="invoiceDataForm.get('invoiceName')?.hasError('required')">
+            Името е задължително
+          </mat-error>
+          <mat-error *ngIf="invoiceDataForm.get('invoiceName')?.hasError('maxlength')">
+            Максимум 255 символа
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%; margin-bottom: 16px;">
+          <mat-label>ДДС/ЕИК номер</mat-label>
+          <input matInput formControlName="vatNumber" [disabled]="isLoadingInvoiceData">
+          <mat-error *ngIf="invoiceDataForm.get('vatNumber')?.hasError('required')">
+            ДДС номерът е задължителен
+          </mat-error>
+          <mat-error *ngIf="invoiceDataForm.get('vatNumber')?.hasError('maxlength')">
+            Максимум 50 символа
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%; margin-bottom: 16px;">
+          <mat-label>Адрес за фактура</mat-label>
+          <textarea matInput formControlName="invoiceAddress" rows="3" [disabled]="isLoadingInvoiceData"></textarea>
+          <mat-error *ngIf="invoiceDataForm.get('invoiceAddress')?.hasError('required')">
+            Адресът е задължителен
+          </mat-error>
+          <mat-error *ngIf="invoiceDataForm.get('invoiceAddress')?.hasError('maxlength')">
+            Максимум 255 символа
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" style="width: 100%; margin-bottom: 16px;">
+          <mat-label>МОЛ (незадължително)</mat-label>
+          <input matInput formControlName="mol" [disabled]="isLoadingInvoiceData">
+          <mat-error *ngIf="invoiceDataForm.get('mol')?.hasError('maxlength')">
+            Максимум 255 символа
+          </mat-error>
+        </mat-form-field>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button mat-button type="button" (click)="closeInvoiceDataModal()" [disabled]="isLoadingInvoiceData">
+            Отказ
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="invoiceDataForm.invalid || isLoadingInvoiceData">
+            <mat-icon *ngIf="isLoadingInvoiceData" style="font-size: 18px; animation: spin 1s linear infinite;">refresh</mat-icon>
+            {{ isLoadingInvoiceData ? 'Зареждане...' : 'Запази' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <router-outlet></router-outlet>

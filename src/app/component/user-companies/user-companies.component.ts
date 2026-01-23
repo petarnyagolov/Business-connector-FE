@@ -13,10 +13,16 @@ import { environment } from '../../../environments/environment';
 import { forkJoin, of, Subject } from 'rxjs';
 import { CreateCompanyComponent } from '../create-company/create-company.component';
 import { EditCompanyComponent } from '../edit-company/edit-company.component';
+import { CompanyInvoiceDataService } from '../../service/company-invoice-data.service';
+import { CompanyInvoiceData } from '../../model/company-invoice-data';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-user-companies',
-  imports: [RouterOutlet, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatFabButton, MatCardContent, MatIcon, CreateCompanyComponent, EditCompanyComponent],
+  imports: [RouterOutlet, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatFabButton, MatCardContent, MatIcon, CreateCompanyComponent, EditCompanyComponent, MatFormFieldModule, MatInputModule, ReactiveFormsModule],
   templateUrl: './user-companies.component.html',
   styleUrl: './user-companies.component.scss',
   standalone: true
@@ -31,11 +37,21 @@ export class UserCompaniesComponent implements OnDestroy {
   showCreateCompanyModal = false;
   showEditCompanyModal = false;
   selectedCompany: Company | null = null;
+  
+  showInvoiceDataModal = false;
+  invoiceDataForm: FormGroup;
+  currentInvoiceCompany: Company | null = null;
+  isLoadingInvoiceData = false;
 
 
   
-constructor(private router: Router, private companyService: CompanyService, private cdr: ChangeDetectorRef) {
-
+constructor(private router: Router, private companyService: CompanyService, private cdr: ChangeDetectorRef, private invoiceDataService: CompanyInvoiceDataService, private snackBar: MatSnackBar, private fb: FormBuilder) {
+  this.invoiceDataForm = this.fb.group({
+    invoiceName: ['', [Validators.required, Validators.maxLength(255)]],
+    vatNumber: ['', [Validators.required, Validators.maxLength(50)]],
+    invoiceAddress: ['', [Validators.required, Validators.maxLength(255)]],
+    mol: ['', [Validators.maxLength(255)]]
+  });
 }
 
 
@@ -205,6 +221,77 @@ getLogoUrl(company: Company): string {
     console.log('🔹 Closing create company modal');
     this.showCreateCompanyModal = false;
     document.body.style.overflow = 'auto';
+  }
+
+  openInvoiceDataModal(company: Company): void {
+    if (!company.id) {
+      this.snackBar.open('❌ Грешка: липсва ID на компанията', 'Затвори', { duration: 3000 });
+      return;
+    }
+    
+    this.currentInvoiceCompany = company;
+    this.isLoadingInvoiceData = true;
+    this.showInvoiceDataModal = true;
+    document.body.style.overflow = 'hidden';
+    
+    // Зареждаме съществуващи данни или попълваме от компанията
+    this.invoiceDataService.getInvoiceData(company.id).subscribe({
+      next: (data) => {
+        this.invoiceDataForm.patchValue({
+          invoiceName: data.invoiceName || company.name,
+          vatNumber: data.vatNumber || company.vatNumber,
+          invoiceAddress: data.invoiceAddress || company.address,
+          mol: data.mol || ''
+        });
+        this.isLoadingInvoiceData = false;
+      },
+      error: (err) => {
+        // Ако няма данни (404), попълваме от компанията
+        if (err.status === 404) {
+          this.invoiceDataForm.patchValue({
+            invoiceName: company.name,
+            vatNumber: company.vatNumber,
+            invoiceAddress: company.address,
+            mol: ''
+          });
+        } else {
+          this.snackBar.open('❌ Грешка при зареждане на данните', 'Затвори', { duration: 3000 });
+        }
+        this.isLoadingInvoiceData = false;
+      }
+    });
+  }
+
+  closeInvoiceDataModal(): void {
+    this.showInvoiceDataModal = false;
+    this.currentInvoiceCompany = null;
+    this.invoiceDataForm.reset();
+    document.body.style.overflow = 'auto';
+  }
+
+  saveInvoiceData(): void {
+    if (!this.currentInvoiceCompany?.id || this.invoiceDataForm.invalid) {
+      this.snackBar.open('❌ Моля, попълнете всички задължителни полета', 'Затвори', { duration: 3000 });
+      return;
+    }
+    
+    this.isLoadingInvoiceData = true;
+    const formValue = this.invoiceDataForm.value;
+    
+    this.invoiceDataService.createOrUpdateInvoiceData(this.currentInvoiceCompany.id, formValue).subscribe({
+      next: () => {
+        this.snackBar.open('✅ Фактурните данни са запазени успешно!', 'Затвори', { 
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        this.closeInvoiceDataModal();
+      },
+      error: (err) => {
+        console.error('Error saving invoice data:', err);
+        this.snackBar.open('❌ Грешка при запазване на данните', 'Затвори', { duration: 4000 });
+        this.isLoadingInvoiceData = false;
+      }
+    });
   }
 
   onCompanyCreated(): void {

@@ -224,19 +224,55 @@ describe('CompanyService', () => {
   });
 
   describe('getCompanyInfoFromOutside', () => {
-    it('should fetch company info from external source', () => {
+    it('should fetch company info from external source and validate', () => {
       const vatNumber = '123456789';
       const country = 'Bulgaria';
-      const mockResponse = { name: 'External Company', vat: vatNumber };
+      const mockResponse = {
+        countryCode: 'BG',
+        vatNumber: '208494389',
+        requestDate: '2026-01-22T13:18:19.197Z',
+        valid: true,
+        name: 'ЕКС ДИЙЛ ХЪБ - ООД',
+        address: 'ул. Карлово №8 ет.1 ап.4 обл.ПЛЕВЕН, гр.ПЛЕВЕН 5800',
+        requestIdentifier: '',
+        traderName: '---'
+      };
 
       service.getCompanyInfoFromOutside(vatNumber, country).subscribe(response => {
         expect(response).toEqual(mockResponse);
+        expect(response.valid).toBe(true);
+        expect(response.name).toBe('ЕКС ДИЙЛ ХЪБ - ООД');
       });
 
       const req = httpMock.expectOne(
         `${environment.apiUrl}/utils/company/${vatNumber}?country=${country}`
       );
       expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should throw error when VAT is invalid', () => {
+      const vatNumber = '123456789';
+      const country = 'Bulgaria';
+      const mockResponse = {
+        countryCode: 'BG',
+        vatNumber: '123456789',
+        valid: false,
+        name: '',
+        address: '',
+        requestIdentifier: ''
+      };
+
+      service.getCompanyInfoFromOutside(vatNumber, country).subscribe({
+        next: () => fail('Should have thrown error for invalid VAT'),
+        error: (error) => {
+          expect(error.message).toContain('невалиден');
+        }
+      });
+
+      const req = httpMock.expectOne(
+        `${environment.apiUrl}/utils/company/${vatNumber}?country=${country}`
+      );
       req.flush(mockResponse);
     });
 

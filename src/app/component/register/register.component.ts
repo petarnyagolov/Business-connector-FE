@@ -40,6 +40,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   companyFormData: any = null;
   selectedCompanyLogo: File | null = null; 
   @ViewChild('companyFormComponent') companyFormComponentRef!: CompanyFormComponent;
+  
+  hidePassword = true;
+  hideConfirmPassword = true;
 
   ngAfterViewInit(): void {
     // Auto-scroll to highlighted country in dropdown with continuous polling
@@ -196,11 +199,29 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   onCompanyValidate(data: { vatNumber: string, country: string }) {
     this.companyValidationService.validateCompany(data.vatNumber, data.country, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        console.log('✅ VAT validation response in register:', response);
         this.isValidVatNumber = true;
         this.showCompanyDetails = true;
         this.getIndustries(data.country);
+        
+        // Попълваме данните от VIES
         if (this.companyFormComponentRef) {
+          const viesData: { name?: string; address?: string } = {};
+          
+          if (response?.name && response.name.trim() !== '' && response.name !== '---') {
+            viesData.name = response.name;
+          }
+          
+          if (response?.address && response.address.trim() !== '' && response.address !== '---') {
+            viesData.address = response.address;
+          }
+          
+          if (Object.keys(viesData).length > 0) {
+            console.log('📝 Calling setCompanyDataFromVies with:', viesData);
+            this.companyFormComponentRef.setCompanyDataFromVies(viesData);
+          }
+          
           this.companyFormComponentRef.setCompanyDetailsVisible(true);
           this.companyFormComponentRef.setVatValid(true);
         }
@@ -288,51 +309,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
   }
 
-  getDataFromOutside(): void {
-    const vatNumber = this.companyFormComponentRef?.companyForm.get('vatNumber')?.value;
-    const country = this.companyFormComponentRef?.companyForm.get('country')?.value;
-
-    if (!vatNumber || !country) {
-      this.snackBar.open('✗ Моля, изберете държава и въведете ДДС/ЕИК номер първо.', 'Затвори', {
-        duration: 4000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['warning-snackbar']
-      });
-      return;
-    }
-
-    this.companyService.getCompanyInfoFromOutside(vatNumber, country).subscribe({
-      next: response => {
-        this.isValidVatNumber = true;
-        this.errorMessage = '';
-        this.showCompanyDetails = true;
-        if (this.companyFormComponentRef) {
-          this.companyFormComponentRef.setCompanyDetailsVisible(true);
-          this.companyFormComponentRef.setVatValid(true);
-        }
-        this.getIndustries(country); 
-      },
-      error: error => {
-        this.isValidVatNumber = false;
-        this.showCompanyDetails = false;
-        if (error.status === 404) {
-          this.errorMessage = 'Фирмата не е намерена в регистъра.';
-        } else if (error.status === 400) {
-          this.errorMessage = 'Фирмата вече съществува в базата данни.';
-        } else {
-          this.errorMessage = 'Възникна неочаквана грешка. Опитайте отново.';
-        }
-        this.snackBar.open('✗ ' + this.errorMessage, 'Затвори', {
-          duration: 5000,
-          horizontalPosition: 'center',
-          verticalPosition: 'top',
-          panelClass: ['error-snackbar']
-        });
-      }
-    });
-  }
-
   getCountryNames(): void {
     this.companyService.getCountryNames().subscribe((data: any[]) => {
       this.countries = data.map(country => country);
@@ -374,16 +350,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   industrySelected(event: any) {
     const selectedValue = event.value;
-  }
-
-  vatNumberChanged(event: any) {
-    const vatNumber = event.target.value;
-    this.isValidVatNumber = false;
-    this.showCompanyDetails = false;
-    this.errorMessage = '';
-    if (vatNumber && vatNumber.trim() !== '') {
-      this.getDataFromOutside();
-    }
   }
 
   private _filter(value: string): string[] {

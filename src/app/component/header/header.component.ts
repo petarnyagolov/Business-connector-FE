@@ -22,6 +22,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CreditsService } from '../../service/credits.service';
 import { CompanyService } from '../../service/company.service';
+import { CompanyInvoiceDataService } from '../../service/company-invoice-data.service';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { EpayPaymentDialogComponent } from '../epay-payment-dialog/epay-payment-dialog.component';
 import { environment } from '../../../environments/environment';
@@ -117,6 +118,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private creditsService: CreditsService,
     private http: HttpClient,
     private companyService: CompanyService,
+    private companyInvoiceDataService: CompanyInvoiceDataService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
@@ -264,8 +266,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe(confirmed => {
           if (confirmed) {
-            // 3. User confirmed, proceed to payment initialization
-            this.initPayment();
+            // 3. User confirmed, proceed to save invoice data and payment initialization
+            this.saveInvoiceDataAndInitPayment();
           } else {
             // User cancelled
             this.isProcessingPurchase = false;
@@ -282,6 +284,35 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isProcessingPurchase = false;
       }
     });
+  }
+
+  private saveInvoiceDataAndInitPayment(): void {
+    // Запазваме фактуриращите данни само ако е избрана компания
+    if (this.selectedCompanyId) {
+      const companyIdStr = String(this.selectedCompanyId);
+      const invoiceDataDto = {
+        companyId: companyIdStr,
+        invoiceName: this.invoiceName,
+        vatNumber: this.invoiceVatNumber,
+        invoiceAddress: this.invoiceAddress
+      };
+
+      console.log('💾 Saving invoice data for company:', companyIdStr);
+      
+      this.companyInvoiceDataService.createOrUpdateInvoiceData(companyIdStr, invoiceDataDto).subscribe({
+        next: (savedData) => {
+          console.log('✅ Invoice data saved successfully:', savedData);
+          this.initPayment();
+        },
+        error: (err) => {
+          console.warn('⚠️ Failed to save invoice data, proceeding with payment anyway:', err);
+          this.initPayment();
+        }
+      });
+    } else {
+      console.log('ℹ️ No company selected, skipping invoice data save');
+      this.initPayment();
+    }
   }
 
   private initPayment() {
@@ -430,11 +461,40 @@ export class HeaderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.invoiceName = company.name;
-    this.invoiceBulstat = company.eikBulstat;
-    this.invoiceVatNumber = company.vatNumber || '';
-    this.invoiceAddress = company.invoiceAddress || '';
-    this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+    // Опитваме се да заредим фактуриращи данни от новия API endpoint
+    console.log('📋 Loading invoice data for company:', idStr);
+    this.companyInvoiceDataService.getInvoiceData(idStr).subscribe({
+      next: (invoiceData) => {
+        // Ако има запазени фактуриращи данни, използваме ги
+        console.log('✅ Invoice data loaded:', invoiceData);
+        this.invoiceName = invoiceData.invoiceName;
+        this.invoiceBulstat = company.eikBulstat; // Винаги от компанията
+        this.invoiceVatNumber = invoiceData.vatNumber;
+        this.invoiceAddress = invoiceData.invoiceAddress;
+        this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        // Ако няма запазени данни (404), използваме данните от компанията
+        if (err.status === 404) {
+          console.log('ℹ️ No invoice data found, using company data as fallback');
+          this.invoiceName = company.name;
+          this.invoiceBulstat = company.eikBulstat;
+          this.invoiceVatNumber = company.vatNumber || '';
+          this.invoiceAddress = company.invoiceAddress || '';
+          this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+        } else {
+          console.error('❌ Error loading invoice data:', err);
+          // Fallback към данните от компанията при грешка
+          this.invoiceName = company.name;
+          this.invoiceBulstat = company.eikBulstat;
+          this.invoiceVatNumber = company.vatNumber || '';
+          this.invoiceAddress = company.invoiceAddress || '';
+          this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+        }
+        this.cdr.detectChanges();
+      }
+    });
   }
 }
 

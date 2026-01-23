@@ -17,18 +17,33 @@ export class CompanyValidationService {
    * Validates company VAT number and shows appropriate notifications
    * @param vatNumber - Company VAT/EIK number
    * @param country - Country code
-   * @param callbacks - Object containing success and error callbacks
+   * @param callbacks - Object containing success and error callbacks with optional response data
    */
   validateCompany(
     vatNumber: string, 
     country: string,
     callbacks: {
-      onSuccess: () => void,
+      onSuccess: (response?: any) => void,
       onError: () => void
     }
   ): void {
     this.companyService.getCompanyInfoFromOutside(vatNumber, country).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('✅ VAT validation response:', response);
+        
+        // Проверка дали ДДС номерът е валиден
+        if (!response.valid) {
+          this.snackBar.open('✗ ДДС номерът е невалиден според VIES системата', 'Затвори', {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+          callbacks.onError();
+          return;
+        }
+        
+        // Успешна валидация
         this.snackBar.open('✓ Фирмата е валидирана успешно!', 'Затвори', {
           duration: 4000,
           horizontalPosition: 'center',
@@ -49,7 +64,7 @@ export class CompanyValidationService {
           }
         }, 300);
 
-        callbacks.onSuccess();
+        callbacks.onSuccess(response);
       },
       error: (error) => {
         let errorMsg = 'Възникна неочаквана грешка. Опитайте отново.';
@@ -57,6 +72,8 @@ export class CompanyValidationService {
           errorMsg = 'Фирмата не е намерена в регистъра.';
         } else if (error.status === 400) {
           errorMsg = 'Фирмата вече съществува в базата данни.';
+        } else if (error.message && error.message.includes('невалиден')) {
+          errorMsg = error.message;
         }
         
         this.snackBar.open('✗ ' + errorMsg, 'Затвори', {

@@ -67,8 +67,8 @@ export class CompanyFormComponent implements OnInit, OnChanges {
       vatNumber: [{ value: '', disabled: this.disabledFields.includes('vatNumber') }, [Validators.required, Validators.maxLength(50)]],
       name: [{ value: '', disabled: this.disabledFields.includes('name') }, [Validators.required, Validators.maxLength(255)]],
       industry: [{ value: '', disabled: this.disabledFields.includes('industry') }, [Validators.required, Validators.maxLength(50)]],
-      city: ['', [Validators.required, Validators.maxLength(50)]],
-      address: ['', [Validators.required, Validators.maxLength(50)]],
+      address: ['', [Validators.required, Validators.maxLength(255)]],
+      mol: ['', [Validators.maxLength(255)]],
       description: ['', [Validators.required, Validators.maxLength(350)]],
       employeesSize: ['', [Validators.required, Validators.maxLength(10)]],
       creatorPosition: [{ value: '', disabled: this.disabledFields.includes('creatorPosition') }, [Validators.required, Validators.maxLength(50)]],
@@ -179,7 +179,34 @@ export class CompanyFormComponent implements OnInit, OnChanges {
   setCompanyDetailsVisible(visible: boolean) {
     this.showCompanyDetails = visible;
   }
+  
   setVatValid(valid: boolean) {
     this.isValidVatNumber = valid;
+  }
+  
+  /**
+   * Sets company data from external validation (VIES)
+   * Temporarily enables disabled fields to allow value setting
+   */
+  setCompanyDataFromVies(data: { name?: string; address?: string }) {
+    console.log('🔧 setCompanyDataFromVies called with:', data);
+    
+    if (data.name) {
+      const nameControl = this.companyForm.get('name');
+      if (nameControl) {
+        nameControl.setValue(data.name, { emitEvent: false });
+        nameControl.disable({ emitEvent: false });
+        console.log('✅ Name set to:', data.name, 'and disabled');
+      }
+    }
+    
+    if (data.address) {
+      const addressControl = this.companyForm.get('address');
+      if (addressControl) {
+        addressControl.setValue(data.address, { emitEvent: false });
+        addressControl.disable({ emitEvent: false });
+        console.log('✅ Address set to:', data.address, 'and disabled');
+      }
+    }
   }
 }

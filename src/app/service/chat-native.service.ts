@@ -52,6 +52,9 @@ export class ChatServiceNative {
   
   private chatsSubject = new BehaviorSubject<ChatMessageDto[]>([]);
   public chats$ = this.chatsSubject.asObservable();
+  
+  private openChatSidebarSubject = new BehaviorSubject<boolean>(false);
+  public openChatSidebar$ = this.openChatSidebarSubject.asObservable();
 
   public fileError$ = new BehaviorSubject<string | null>(null);
   
@@ -91,6 +94,7 @@ export class ChatServiceNative {
   private handleChatUpdates(updates: ChatUpdateDto[]): void {
     const chats = this.chatsSubject.value;
     let chatsChanged = false;
+    let shouldOpenSidebar = false;
     
     updates.forEach(update => {
       const existingChat = chats.find(c => c.requestId === update.chatId);
@@ -103,6 +107,7 @@ export class ChatServiceNative {
           const currentChatId = this.wsService.getActiveChatId();
           if (!currentChatId || currentChatId !== update.chatId) {
             existingChat.unreadCount = update.unreadCount || (existingChat.unreadCount || 0) + 1;
+            shouldOpenSidebar = true;
           }
         } else if (update.updateType === 'MESSAGE_READ') {
           existingChat.unreadCount = 0;
@@ -110,6 +115,7 @@ export class ChatServiceNative {
         
         chatsChanged = true;
       } else if (update.updateType === 'CHAT_CREATED') {
+        shouldOpenSidebar = true;
         this.loadUserChats();
         return;
       }
@@ -121,6 +127,10 @@ export class ChatServiceNative {
       );
       this.chatsSubject.next([...sortedChats]);
       this.updateTotalUnreadCount();
+    }
+    
+    if (shouldOpenSidebar) {
+      this.openChatSidebarSubject.next(true);
     }
   }
   

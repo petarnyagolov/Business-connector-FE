@@ -39,7 +39,7 @@ div *ngIf {
   margin-top: 5px;
 }
 
-button {
+button[type="submit"] {
   width: 100%;
   padding: 10px;
   // background-color: #5cb85c;
@@ -51,7 +51,14 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
+button[type="submit"]:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+button[mat-icon-button] {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  width: auto !important;
 }

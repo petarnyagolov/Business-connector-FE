@@ -8,7 +8,7 @@
       <mat-error *ngIf="companyForm.get('country')?.hasError('required')">Държавата е задължителна</mat-error>
     </mat-form-field>
     <mat-form-field appearance="fill">
-      <mat-label>ЕИК/VAT</mat-label>
+      <mat-label>ЕИК/VAT 123456789</mat-label>
       <input matInput formControlName="vatNumber" />
       <mat-error *ngIf="companyForm.get('vatNumber')?.hasError('required')">ЕИК/VAT е задължителен</mat-error>
       <mat-error *ngIf="companyForm.get('vatNumber')?.hasError('maxlength')">ЕИК/VAT трябва да е до 50 символа</mat-error>
@@ -32,15 +32,17 @@
       </mat-form-field>
     </div>
     <div class="form-row">
-      <mat-form-field appearance="fill">
-        <mat-label>Град</mat-label>
-        <input matInput formControlName="city" />
-        <mat-error *ngIf="companyForm.get('city')?.hasError('required')">Градът е задължителен</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Адрес</mat-label>
-        <input matInput formControlName="address" />
+        <textarea matInput formControlName="address" rows="2" cdkTextareaAutosize cdkAutosizeMinRows="2" cdkAutosizeMaxRows="4"></textarea>
         <mat-error *ngIf="companyForm.get('address')?.hasError('required')">Адресът е задължителен</mat-error>
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>МОЛ (Управител/Представляващ) - незадължително</mat-label>
+        <input matInput formControlName="mol" />
+        <mat-error *ngIf="companyForm.get('mol')?.hasError('maxlength')">МОЛ трябва да е до 255 символа</mat-error>
       </mat-form-field>
     </div>
     <div class="form-row">

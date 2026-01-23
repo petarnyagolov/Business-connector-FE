@@ -80,9 +80,28 @@ export class CreateCompanyComponent {
 
   onCompanyValidate(data: { vatNumber: string, country: string }) {
     this.companyValidationService.validateCompany(data.vatNumber, data.country, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        console.log('✅ VAT validation response:', response);
         this.isValidVatNumber = true;
         this.showCompanyDetails = true;
+        
+        if (this.companyFormComponentRef) {
+          const viesData: { name?: string; address?: string } = {};
+          
+          if (response.name && response.name.trim() !== '' && response.name !== '---') {
+            viesData.name = response.name;
+          }
+          
+          if (response.address && response.address.trim() !== '' && response.address !== '---') {
+            viesData.address = response.address;
+          }
+          
+          if (Object.keys(viesData).length > 0) {
+            console.log('📝 Calling setCompanyDataFromVies with:', viesData);
+            this.companyFormComponentRef.setCompanyDataFromVies(viesData);
+          }
+        }
+        
         if (this.companyFormComponentRef) {
           this.companyFormComponentRef.setCompanyDetailsVisible(true);
           this.companyFormComponentRef.setVatValid(true);

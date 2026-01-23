@@ -79,6 +79,15 @@ export class AppComponent implements OnInit, OnDestroy {
       .subscribe(count => {
         this.unreadCount = count;
       });
+    
+    this.chatService.openChatSidebar$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(shouldOpen => {
+        if (shouldOpen && !this.chatSidebarOpen) {
+          this.chatSidebarOpen = true;
+          this.chatService.refreshChats();
+        }
+      });
   }
 
   ngOnDestroy(): void {

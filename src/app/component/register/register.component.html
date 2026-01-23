@@ -81,7 +81,10 @@
             <div class="form-row">
               <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Парола</mat-label>
-                <input matInput formControlName="password" type="password" required minlength="8">
+                <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" required minlength="8">
+                <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                  <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
                 @if (registrationForm.get('password')?.hasError('required')) {
                   <mat-error>
                     Паролата е задължителна.
@@ -118,7 +121,10 @@
             <div class="form-row">
               <mat-form-field appearance="fill" class="half-width">
                 <mat-label>Потвърди парола</mat-label>
-                <input matInput formControlName="confirmPassword" type="password" required>
+                <input matInput formControlName="confirmPassword" [type]="hideConfirmPassword ? 'password' : 'text'" required>
+                <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
+                  <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
                 
                 @if (registrationForm.get('confirmPassword')?.valid && registrationForm.get('confirmPassword')?.value) {
                   <mat-hint class="valid-hint">

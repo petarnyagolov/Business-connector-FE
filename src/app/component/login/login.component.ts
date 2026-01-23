@@ -5,16 +5,19 @@ import { AuthService } from '../../service/auth.service';
 import { NotificationService } from '../../service/notification.service';
 import { tap } from 'rxjs';
 import { Router, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   standalone: true,
   styleUrls: ['./login.component.scss'],
-  imports: [ReactiveFormsModule, CommonModule, RouterModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterModule, MatIconModule, MatButtonModule],
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  hidePassword = true;
   
     constructor(
       private fb: FormBuilder, 

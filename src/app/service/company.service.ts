@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, Observable, shareReplay, tap, throwError, of, map } from 'rxjs';
 import { Company } from '../model/company';
+import { VatValidationResponse } from '../model/vat-validation-response';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -55,13 +56,26 @@ getLogoByPath(path: string): Observable<Blob> {
     return this.countryNames$;
   }
 
-  getCompanyInfoFromOutside(vatNumber: string, country: string): Observable<any> {
+  getCompanyInfoFromOutside(vatNumber: string, country: string): Observable<VatValidationResponse> {
     const params = { country };
-    return this.http.get<any>(`${this.apiGetCompanyInfo}/${vatNumber}`, { params }).pipe(
-      tap(response => console.log('Received data:', response)),
+    return this.http.get<VatValidationResponse>(`${this.apiGetCompanyInfo}/${vatNumber}`, { params }).pipe(
+      tap(response => {
+        console.log('Received VAT validation data:', response);
+        
+        // Проверка дали ДДС номерът е валиден
+        if (!response.valid) {
+          console.error('Invalid VAT number:', vatNumber);
+          throw new Error('ДДС номерът е невалиден според VIES системата');
+        }
+        
+        // Проверка дали има име на компанията
+        if (!response.name || response.name.trim() === '' || response.name === '---') {
+          console.warn('No company name returned from VIES');
+        }
+      }),
       catchError(error => {
-      console.error('Error fetching company data:', error);
-      return throwError(() => error); // Pass the error to the component
+        console.error('Error fetching company data:', error);
+        return throwError(() => error);
       })
     );
   }
