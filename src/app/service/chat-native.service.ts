@@ -141,7 +141,12 @@ export class ChatServiceNative {
   }
   
   getAllUserChats(): Observable<ChatMessageDto[]> {
-    return this.http.get<ChatMessageDto[]>(`${this.apiUrl}/chat/user/chats`)
+    const headers = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    return this.http.get<ChatMessageDto[]>(`${this.apiUrl}/chat/user/chats`, { headers })
       .pipe(tap(chats => {
         console.log('📋 Loaded chat list:', chats.length);
         this.chatsSubject.next(chats);
@@ -150,18 +155,33 @@ export class ChatServiceNative {
   }
 
   getChatMessages(requestId: string): Observable<ChatMessage[]> {
-    return this.http.get<ChatMessage[]>(`${this.apiUrl}/chat/${requestId}/messages`)
+    const headers = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    return this.http.get<ChatMessage[]>(`${this.apiUrl}/chat/${requestId}/messages`, { headers })
       .pipe(tap(messages => {
         console.log('💬 Loaded', messages.length, 'messages for chat:', requestId);
       }));
   }
 
   getUnreadCount(requestId: string): Observable<{unreadCount: number}> {
-    return this.http.get<{unreadCount: number}>(`${this.apiUrl}/chat/${requestId}/unread-count`);
+    const headers = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    return this.http.get<{unreadCount: number}>(`${this.apiUrl}/chat/${requestId}/unread-count`, { headers });
   }
 
   checkAccess(requestId: string): Observable<{hasAccess: boolean}> {
-    return this.http.get<{hasAccess: boolean}>(`${this.apiUrl}/chat/${requestId}/access`);
+    const headers = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    return this.http.get<{hasAccess: boolean}>(`${this.apiUrl}/chat/${requestId}/access`, { headers });
   }
   
   deleteChat(requestId: string): Observable<any> {
