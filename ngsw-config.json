@@ -64,8 +64,7 @@
   {
     "name": "user-content",
     "urls": [
-      "https://api.xdealhub.com/files/**",
-      "https://api.xdealhub.com/chat/**"
+      "https://api.xdealhub.com/files/**"
     ],
     "cacheConfig": {
       "strategy": "performance",
