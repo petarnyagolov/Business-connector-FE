@@ -1,0 +1,231 @@
+{
+  "configVersion": 1,
+  "timestamp": 1769421759452,
+  "appData": {
+    "version": "1.2.6",
+    "timestamp": "2026-01-26T09:20:00Z",
+    "description": "Exclude all API calls from service worker cache"
+  },
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/chunk-4TPKJOB3.js",
+        "/chunk-5DQ3Z2K6.js",
+        "/chunk-5N435BOE.js",
+        "/chunk-6N7MPHH3.js",
+        "/chunk-7FS4NVIW.js",
+        "/chunk-A7EI2ON5.js",
+        "/chunk-BPYMPC47.js",
+        "/chunk-DAXBESR2.js",
+        "/chunk-ENOZGFTG.js",
+        "/chunk-ERR53IQD.js",
+        "/chunk-EUPLAHKK.js",
+        "/chunk-G7VM2WLZ.js",
+        "/chunk-GWKT2GVI.js",
+        "/chunk-GY7YOE4D.js",
+        "/chunk-H7MS5MAH.js",
+        "/chunk-HBO5324D.js",
+        "/chunk-JE3BACFM.js",
+        "/chunk-JGVJIRHR.js",
+        "/chunk-JWPZB5XL.js",
+        "/chunk-JXUTHRJE.js",
+        "/chunk-KVL5I3T7.js",
+        "/chunk-MYXC6YKO.js",
+        "/chunk-NMIKVRE5.js",
+        "/chunk-O2TBXAK5.js",
+        "/chunk-Q4MTMDK3.js",
+        "/chunk-UEG6K3XX.js",
+        "/chunk-W5S4MC5E.js",
+        "/chunk-WARVQNLY.js",
+        "/chunk-WGS7CVPQ.js",
+        "/chunk-XMIZP7VF.js",
+        "/chunk-XQI62BNZ.js",
+        "/favicon.ico",
+        "/index.html",
+        "/main-3NQPWMYR.js",
+        "/manifest.webmanifest",
+        "/polyfills-HPZ7KTN2.js",
+        "/styles-5IL47IZN.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/Announcement.jpg",
+        "/icons/icon-128x128.png",
+        "/icons/icon-144x144.png",
+        "/icons/icon-152x152.png",
+        "/icons/icon-192x192.png",
+        "/icons/icon-384x384.png",
+        "/icons/icon-512x512.png",
+        "/icons/icon-72x72.png",
+        "/icons/icon-96x96.png",
+        "/logo.png",
+        "/small-business-svgrepo-com.svg"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "static-api",
+      "patterns": [
+        "https:\\/\\/api\\.xdealhub\\.com\\/utils\\/countries",
+        "https:\\/\\/api\\.xdealhub\\.com\\/utils\\/industries"
+      ],
+      "strategy": "freshness",
+      "maxSize": 20,
+      "maxAge": 604800000,
+      "timeoutMs": 5000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "user-content",
+      "patterns": [
+        "https:\\/\\/api\\.xdealhub\\.com\\/files\\/.*"
+      ],
+      "strategy": "performance",
+      "maxSize": 50,
+      "maxAge": 259200000,
+      "timeoutMs": 15000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "external-analytics",
+      "patterns": [
+        "https:\\/\\/www\\.googletagmanager\\.com\\/.*",
+        "https:\\/\\/[^/]*\\.google-analytics\\.com\\/.*",
+        "https:\\/\\/[^/]*\\.analytics\\.google\\.com\\/.*"
+      ],
+      "strategy": "freshness",
+      "maxSize": 15,
+      "maxAge": 86400000,
+      "timeoutMs": 5000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "google-fonts",
+      "patterns": [
+        "https:\\/\\/fonts\\.googleapis\\.com\\/.*",
+        "https:\\/\\/fonts\\.gstatic\\.com\\/.*"
+      ],
+      "strategy": "freshness",
+      "maxSize": 30,
+      "maxAge": 2592000000,
+      "timeoutMs": 10000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "external-libraries",
+      "patterns": [
+        "https:\\/\\/cdnjs\\.cloudflare\\.com\\/.*"
+      ],
+      "strategy": "freshness",
+      "maxSize": 10,
+      "maxAge": 2592000000,
+      "timeoutMs": 10000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    }
+  ],
+  "hashTable": {
+    "/Announcement.jpg": "3f8843248210c4e0dddd7f2cebba03d179d241e3",
+    "/chunk-4TPKJOB3.js": "dee38160a255fd0266f107027b32163b71e97aa4",
+    "/chunk-5DQ3Z2K6.js": "a35577fa124ab0a43ab1b2e03cfae583345902e2",
+    "/chunk-5N435BOE.js": "559555a3d57e9b2239688effedd00c6e36f64447",
+    "/chunk-6N7MPHH3.js": "785d0a5db5cc209f78a68c9349a01f3917b811d0",
+    "/chunk-7FS4NVIW.js": "8e2fb0b92024b13a41489430f17e49dbaf400d05",
+    "/chunk-A7EI2ON5.js": "b0fcac57650cfcd3af5458571544a795029fc719",
+    "/chunk-BPYMPC47.js": "74094ac91c02b69fded3035f569abe888d0c651a",
+    "/chunk-DAXBESR2.js": "3e1b2a74cc4db0784806e06960d0fb52060007d6",
+    "/chunk-ENOZGFTG.js": "dc62b2d529f2a4f4387623494a21ddf77c8c1a9f",
+    "/chunk-ERR53IQD.js": "2fe150a5909ac1f254dc9ed94139e828f7597a44",
+    "/chunk-EUPLAHKK.js": "1c3c5ea6ca149bf4b51c970fc2a16dcf4259d628",
+    "/chunk-G7VM2WLZ.js": "22eeba43275d35828d1c98abc0dae141a2689c08",
+    "/chunk-GWKT2GVI.js": "34e3c19bd9b3a64b0aa06bc1326aba6599542e0c",
+    "/chunk-GY7YOE4D.js": "b4328b27ccd9153c0b9419d951900ef703197817",
+    "/chunk-H7MS5MAH.js": "a867916ad4b26f26d3de3be97e46819af31f1cd1",
+    "/chunk-HBO5324D.js": "aa1e2d4aa65dcd63a05292f30ca35c506f0c549c",
+    "/chunk-JE3BACFM.js": "4e576158fca2fc2a5d49e42c30a0e5f4f7a7c6f8",
+    "/chunk-JGVJIRHR.js": "5dad83bb417616e06845cedd9e042a12c3618ee8",
+    "/chunk-JWPZB5XL.js": "ef0e52305f06b1608725376ee8b3785b475b92a0",
+    "/chunk-JXUTHRJE.js": "70f2f79864ee93b986278414346c0d8f8de51b0c",
+    "/chunk-KVL5I3T7.js": "f9dda127c4fd8d1318cce87b27a90fc672d2b7ed",
+    "/chunk-MYXC6YKO.js": "a075f8e2c4572b2c0bafd99ecc44ae5256d0d094",
+    "/chunk-NMIKVRE5.js": "084a2f57474d629a32f59cd957c3b34f7ee95601",
+    "/chunk-O2TBXAK5.js": "690a9d0c93c1d97018bb250df478b9cbcbe82255",
+    "/chunk-Q4MTMDK3.js": "1272d26c2adc639f45123987234a7429e8d9090e",
+    "/chunk-UEG6K3XX.js": "5efa7a5116fb23dc9eb8c148899ccaf44337dc60",
+    "/chunk-W5S4MC5E.js": "12168f2c78610db4b09b0896a5367a50cc3a0724",
+    "/chunk-WARVQNLY.js": "7a2432000504078279bca799c4d2ba42690b83db",
+    "/chunk-WGS7CVPQ.js": "1ddd2a68a3804fd76715ccad24e2184ffbfb786c",
+    "/chunk-XMIZP7VF.js": "17a4234144114f7e02b32013dcd4c1819c46094d",
+    "/chunk-XQI62BNZ.js": "08adb37e3726a1b4779018715e7cb1a29a8322c0",
+    "/favicon.ico": "819cb6ed82961b41825c5bdaff97c1acf202050f",
+    "/icons/icon-128x128.png": "b25d6e7efd5fbc21d12dae113cf870ff0b97315e",
+    "/icons/icon-144x144.png": "810017394ce98caff78bfa87db1f3693c27778f8",
+    "/icons/icon-152x152.png": "1db37f64cd144dfd54eb48cc48bc87c75ddfd497",
+    "/icons/icon-192x192.png": "f0c5eac746a328f012576ec5a84d61aaa09e74a2",
+    "/icons/icon-384x384.png": "41cf25b323a790ca591fd65be07d6c08306b53c5",
+    "/icons/icon-512x512.png": "e9988ea51e14d83e3549522043f8cecda7376585",
+    "/icons/icon-72x72.png": "e7fd55e0c38e7b675a1c5a5024fa85eaaf7b7fdb",
+    "/icons/icon-96x96.png": "74b7000770f93c5559091f5da04cd162ffb1383d",
+    "/index.html": "8ab8d1d77249fe9e8ab3d7c4a562024ff450cabe",
+    "/logo.png": "dcf4298c18ab461c486c07e28eeca0ae48f99eb2",
+    "/main-3NQPWMYR.js": "cb0d92cb9c1e4348a70792fce5220cd0e698b442",
+    "/manifest.webmanifest": "ee94f3c9328e15e353f0ca19c47672312ee4a8aa",
+    "/polyfills-HPZ7KTN2.js": "a328286aa2e927a96bf670f744a3fb4f9eec3a51",
+    "/small-business-svgrepo-com.svg": "6534897458d56bad748aa526134942c472f13e0b",
+    "/styles-5IL47IZN.css": "06b66fd49ef71255910206ca104f671f530b4fb8"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/api\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "freshness"
+}

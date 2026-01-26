@@ -1,0 +1,28 @@
+# XDealHub - Business Platform
+User-agent: *
+Allow: /
+
+# Важни публични страници за индексиране
+Allow: /home
+Allow: /about
+Allow: /register
+Allow: /login
+Allow: /companies
+Allow: /privacy
+Allow: /cookies
+Allow: /terms
+
+# Sitemap
+Sitemap: https://xdealhub.com/sitemap.xml
+
+# Забрани достъп до чувствителни директории и защитени потребителски страници
+Disallow: /admin
+Disallow: /api
+Disallow: /debug
+Disallow: /requests
+Disallow: /user/
+Disallow: /my-requests
+Disallow: /my-responses
+Disallow: /saved-requests
+Disallow: /notifications
+Disallow: /payment/
