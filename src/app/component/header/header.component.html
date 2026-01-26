@@ -330,30 +330,37 @@
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Име/Фирма за фактура</mat-label>
-              <input matInput [(ngModel)]="invoiceName" name="invoiceName" required readonly>
+              <input matInput [(ngModel)]="invoiceName" name="invoiceName" required (ngModelChange)="onInvoiceDataChange()">
             </mat-form-field>
 
             <div class="invoice-row">
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>ЕИК/Булстат</mat-label>
-                <input matInput [(ngModel)]="invoiceBulstat" name="invoiceBulstat" readonly>
+                <input matInput [(ngModel)]="invoiceBulstat" name="invoiceBulstat" (ngModelChange)="onInvoiceDataChange()">
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="half-width">
                 <mat-label>ДДС номер</mat-label>
-                <input matInput [(ngModel)]="invoiceVatNumber" name="invoiceVatNumber">
+                <input matInput [(ngModel)]="invoiceVatNumber" name="invoiceVatNumber" (ngModelChange)="onInvoiceDataChange()">
               </mat-form-field>
             </div>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Адрес за фактура</mat-label>
-              <input matInput [(ngModel)]="invoiceAddress" name="invoiceAddress">
+              <input matInput [(ngModel)]="invoiceAddress" name="invoiceAddress" (ngModelChange)="onInvoiceDataChange()">
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Имейл за фактура</mat-label>
-              <input matInput [(ngModel)]="invoiceEmail" name="invoiceEmail" type="email">
+              <input matInput [(ngModel)]="invoiceEmail" name="invoiceEmail" type="email" (ngModelChange)="onInvoiceDataChange()">
             </mat-form-field>
+            
+            @if (proformaDownloaded) {
+            <div class="proforma-status">
+              <mat-icon color="accent">check_circle</mat-icon>
+              <span>Проформа фактура изтеглена. Натиснете "Купи" за продължаване към плащане.</span>
+            </div>
+            }
           </div>
         </div>
       </div>
@@ -362,8 +369,12 @@
         <button mat-button (click)="closeBuyCreditsModal()">Затвори</button>
         <button mat-raised-button color="primary" [disabled]="!selectedPackage || isProcessingPurchase || !invoiceName"
           (click)="processPurchase()">
-          Купи за {{ selectedPackage?.priceWithVat || 0 }} {{ selectedPackage?.currency || '€' }}
-          
+          @if (proformaDownloaded) {
+            <mat-icon>payment</mat-icon>
+          } @else {
+            <mat-icon>download</mat-icon>
+          }
+          {{ proformaDownloaded ? 'Към плащане' : 'Изтегли проформа' }}
         </button>
       </div>
     </div>

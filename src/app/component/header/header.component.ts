@@ -108,6 +108,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   paymentMethod: 'profile' | 'card' = 'card'; // Default to direct card payment
 
   isProcessingPurchase = false;
+  proformaDownloaded = false; // Track if proforma was already downloaded
 
   constructor(
     private authService: AuthService,
@@ -218,6 +219,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onPackageChange(event: MatSelectChange) {
     console.log('Package changed:', event.value);
     this.selectedPackage = event.value;
+    this.proformaDownloaded = false; // Reset when package changes
     this.cdr.detectChanges();
   }
 
@@ -228,10 +230,27 @@ export class HeaderComponent implements OnInit, OnDestroy {
   closeBuyCreditsModal() {
     this.showBuyCreditsModal = false;
     this.selectedPackage = null;
+    this.proformaDownloaded = false; // Reset when modal closes
+  }
+
+  onInvoiceDataChange() {
+    // Reset proforma downloaded flag when invoice data changes
+    if (this.proformaDownloaded) {
+      console.log('📝 Invoice data changed, resetting proforma download status');
+      this.proformaDownloaded = false;
+    }
   }
 
   processPurchase() {
     if (!this.selectedPackage || this.isProcessingPurchase) {
+      return;
+    }
+
+    // If proforma already downloaded, proceed directly to payment
+    if (this.proformaDownloaded) {
+      console.log('✅ Proforma already downloaded, proceeding to payment');
+      this.isProcessingPurchase = true;
+      this.saveInvoiceDataAndInitPayment();
       return;
     }
 
@@ -264,10 +283,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         link.click();
         URL.revokeObjectURL(url);
 
-        console.log('✅ Proforma downloaded, proceeding to payment');
+        console.log('✅ Proforma downloaded, click "Buy" again to proceed to payment');
 
-        // Directly proceed to save invoice data and payment initialization
-        this.saveInvoiceDataAndInitPayment();
+        // Mark proforma as downloaded and reset processing flag
+        this.proformaDownloaded = true;
+        this.isProcessingPurchase = false;
       },
       error: (err) => {
         console.error('❌ Error generating proforma invoice:', err);
