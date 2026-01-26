@@ -25,7 +25,11 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
       <div mat-dialog-content class="content">
         <div *ngIf="pdfUrl; else noPdf" class="pdf-wrapper">
-          <iframe [src]="pdfUrl" width="100%" height="500px" frameborder="0"></iframe>
+          <object [data]="pdfUrl" type="application/pdf" width="100%" height="500px">
+            <p>Вашият браузър не поддържа преглед на PDF. 
+              <a [href]="pdfUrl" download="proforma.pdf">Изтеглете файла</a>
+            </p>
+          </object>
         </div>
         <ng-template #noPdf>
           <div class="error-message">
@@ -36,6 +40,13 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
         <div class="info-note">
            <mat-icon class="info-icon">info</mat-icon>
            <span>Това е преглед. Реалната фактура ще бъде издадена след успешно плащане.</span>
+        </div>
+
+        <div class="download-note">
+          <button mat-stroked-button (click)="downloadPdf()">
+            <mat-icon>download</mat-icon>
+            Изтегли проформа
+          </button>
         </div>
       </div>
 
@@ -86,10 +97,20 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
       width: 20px;
       height: 20px;
     }
+    .download-note {
+      text-align: center;
+      padding: 8px;
+    }
+    .error-message {
+      padding: 20px;
+      text-align: center;
+      color: #d32f2f;
+    }
   `]
 })
 export class ProformaInvoiceDialogComponent {
   pdfUrl: SafeResourceUrl | null = null;
+  pdfBlob: Blob | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<ProformaInvoiceDialogComponent>,
@@ -97,11 +118,23 @@ export class ProformaInvoiceDialogComponent {
     private sanitizer: DomSanitizer
   ) {
     if (data.pdfBlob) {
+      this.pdfBlob = data.pdfBlob;
       // Ensure the blob is treated as a PDF
       const file = new Blob([data.pdfBlob], { type: 'application/pdf' });
       const objectUrl = URL.createObjectURL(file);
       this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     }
+  }
+
+  downloadPdf(): void {
+    if (!this.pdfBlob) return;
+    
+    const url = URL.createObjectURL(this.pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `proforma-invoice-${Date.now()}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   onConfirm(): void {
