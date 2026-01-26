@@ -1,9 +1,9 @@
 {
   "$schema": "./node_modules/@angular/service-worker/config/schema.json",
   "appData": {
-    "version": "1.2.5",
-    "timestamp": "2026-01-09T10:15:00Z",
-    "description": "Force update for CSP connect-src fixes"
+    "version": "1.2.6",
+    "timestamp": "2026-01-26T09:20:00Z",
+    "description": "Exclude all API calls from service worker cache"
   },
   "index": "/index.html",
   "assetGroups": [
@@ -103,18 +103,8 @@
   "/**",
   "!/**/.*",
   "!/**/*__*",
-  "!/**/*__*/**"
- ],
- "blacklistedCachePatterns": [
-  "**/payments/**",
-  "**/epay/**",
-  "**/companies/**",
-  "**/request-company/**",
-  "**/saved-requests/**",
-  "**/user/**",
-  "**/auth/**",
-  "**/notifications/**",
-  "**/admin/**"
+  "!/**/*__*/**",
+  "!/api/**"
  ]
 }
 

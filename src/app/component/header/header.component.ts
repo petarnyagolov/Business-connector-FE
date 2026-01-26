@@ -26,7 +26,6 @@ import { CompanyInvoiceDataService } from '../../service/company-invoice-data.se
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { EpayPaymentDialogComponent } from '../epay-payment-dialog/epay-payment-dialog.component';
 import { environment } from '../../../environments/environment';
-import { ProformaInvoiceDialogComponent } from '../proforma-invoice-dialog/proforma-invoice-dialog.component';
 
 interface CreditPackage {
   id: number;
@@ -246,9 +245,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
       invoiceEmail: this.invoiceEmail || this.userEmail
     };
 
-    console.log('📄 Requesting proforma preview for package:', this.selectedPackage.id);
+    console.log('📄 Downloading proforma invoice for package:', this.selectedPackage.id);
 
-    // 1. Get Proforma Invoice PDF Preview
+    // Download Proforma Invoice PDF directly (no preview)
     this.http.post(
       `${environment.apiUrl}/payments/epay/proforma/${this.selectedPackage.id}`,
       invoiceDetails,
@@ -257,22 +256,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
       next: (pdfBlob: Blob) => {
         console.log('📄 Proforma PDF received, size:', pdfBlob.size);
 
-        // 2. Open Preview Dialog
-        const dialogRef = this.dialog.open(ProformaInvoiceDialogComponent, {
-          data: { pdfBlob },
-          width: '900px',
-          disableClose: true
-        });
+        // Auto-download the PDF
+        const url = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `proforma-invoice-${Date.now()}.pdf`;
+        link.click();
+        URL.revokeObjectURL(url);
 
-        dialogRef.afterClosed().subscribe(confirmed => {
-          if (confirmed) {
-            // 3. User confirmed, proceed to save invoice data and payment initialization
-            this.saveInvoiceDataAndInitPayment();
-          } else {
-            // User cancelled
-            this.isProcessingPurchase = false;
-          }
-        });
+        console.log('✅ Proforma downloaded, proceeding to payment');
+
+        // Directly proceed to save invoice data and payment initialization
+        this.saveInvoiceDataAndInitPayment();
       },
       error: (err) => {
         console.error('❌ Error generating proforma invoice:', err);
