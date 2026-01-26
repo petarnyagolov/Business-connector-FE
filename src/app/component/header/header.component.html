@@ -350,10 +350,26 @@
               <input matInput [(ngModel)]="invoiceAddress" name="invoiceAddress" (ngModelChange)="onInvoiceDataChange()">
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Имейл за фактура</mat-label>
-              <input matInput [(ngModel)]="invoiceEmail" name="invoiceEmail" type="email" (ngModelChange)="onInvoiceDataChange()">
-            </mat-form-field>
+            <div class="invoice-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Имейл за фактура</mat-label>
+                <input matInput [(ngModel)]="invoiceEmail" name="invoiceEmail" type="email" (ngModelChange)="onInvoiceDataChange()">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>МОЛ</mat-label>
+                <input matInput [(ngModel)]="invoiceMol" name="invoiceMol" (ngModelChange)="onInvoiceDataChange()">
+              </mat-form-field>
+            </div>
+            
+            @if (invoiceDataChanged && selectedCompanyId) {
+            <div class="invoice-save-section">
+              <button mat-raised-button color="accent" (click)="saveInvoiceData()" [disabled]="isSavingInvoiceData || !invoiceName">
+                <mat-icon>save</mat-icon>
+                {{ isSavingInvoiceData ? 'Запазване...' : 'Запази данните за фактура' }}
+              </button>
+            </div>
+            }
             
             @if (proformaDownloaded) {
             <div class="proforma-status">

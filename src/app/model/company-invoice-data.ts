@@ -8,7 +8,10 @@ export interface CompanyInvoiceData {
   invoiceName: string;
   vatNumber: string; 
   invoiceAddress: string;
-  mol?: string; 
+  mol?: string;
+  fullVatNumber?: string;
+  countryCode?: string;
+  vatNumberWithoutPrefix?: string;
   createdAt?: Date;
   updatedAt?: Date;
   createdBy?: string;

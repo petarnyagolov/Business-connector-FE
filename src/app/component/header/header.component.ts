@@ -46,6 +46,8 @@ interface UserCompany {
   vatNumber?: string;
   invoiceAddress?: string;
   invoiceEmail?: string;
+  mol?: string;
+  fullVatNumber?: string;
 }
 
 @Component({
@@ -103,12 +105,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
   invoiceVatNumber: string = '';
   invoiceAddress: string = '';
   invoiceEmail: string = '';
+  invoiceMol: string = ''; // MOL field for invoice
 
   // Payment method selection
   paymentMethod: 'profile' | 'card' = 'card'; // Default to direct card payment
 
   isProcessingPurchase = false;
   proformaDownloaded = false; // Track if proforma was already downloaded
+  invoiceDataChanged = false; // Track if invoice data has been modified
+  isSavingInvoiceData = false; // Track saving state
 
   constructor(
     private authService: AuthService,
@@ -239,6 +244,48 @@ export class HeaderComponent implements OnInit, OnDestroy {
       console.log('📝 Invoice data changed, resetting proforma download status');
       this.proformaDownloaded = false;
     }
+    // Mark invoice data as changed
+    this.invoiceDataChanged = true;
+  }
+
+  saveInvoiceData() {
+    if (!this.selectedCompanyId || this.isSavingInvoiceData) {
+      return;
+    }
+
+    this.isSavingInvoiceData = true;
+    const companyIdStr = String(this.selectedCompanyId);
+    const invoiceDataDto = {
+      companyId: companyIdStr,
+      invoiceName: this.invoiceName,
+      vatNumber: this.invoiceVatNumber,
+      invoiceAddress: this.invoiceAddress,
+      mol: this.invoiceMol
+    };
+
+    console.log('💾 Saving invoice data for company:', companyIdStr);
+
+    this.companyInvoiceDataService.createOrUpdateInvoiceData(companyIdStr, invoiceDataDto).subscribe({
+      next: (savedData) => {
+        console.log('✅ Invoice data saved successfully:', savedData);
+        this.invoiceDataChanged = false;
+        this.isSavingInvoiceData = false;
+        this.snackBar.open('Данните за фактура са запазени успешно', 'OK', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+      },
+      error: (err) => {
+        console.error('❌ Error saving invoice data:', err);
+        this.isSavingInvoiceData = false;
+        this.snackBar.open('Грешка при запазване на данните', 'OK', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+      }
+    });
   }
 
   processPurchase() {
@@ -261,7 +308,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
       invoiceBulstat: this.invoiceBulstat,
       invoiceVatNumber: this.invoiceVatNumber,
       invoiceAddress: this.invoiceAddress,
-      invoiceEmail: this.invoiceEmail || this.userEmail
+      invoiceEmail: this.invoiceEmail || this.userEmail,
+      mol: this.invoiceMol
     };
 
     console.log('📄 Downloading proforma invoice for package:', this.selectedPackage.id);
@@ -309,7 +357,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         companyId: companyIdStr,
         invoiceName: this.invoiceName,
         vatNumber: this.invoiceVatNumber,
-        invoiceAddress: this.invoiceAddress
+        invoiceAddress: this.invoiceAddress,
+        mol: this.invoiceMol
       };
 
       console.log('💾 Saving invoice data for company:', companyIdStr);
@@ -484,9 +533,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         console.log('✅ Invoice data loaded:', invoiceData);
         this.invoiceName = invoiceData.invoiceName;
         this.invoiceBulstat = company.eikBulstat; // Винаги от компанията
-        this.invoiceVatNumber = invoiceData.vatNumber;
+        this.invoiceVatNumber = invoiceData.fullVatNumber || '';
         this.invoiceAddress = invoiceData.invoiceAddress;
         this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+        this.invoiceMol = invoiceData.mol || '';
+        this.invoiceDataChanged = false; // Reset change flag after loading
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -498,6 +549,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this.invoiceVatNumber = company.vatNumber || '';
           this.invoiceAddress = company.invoiceAddress || '';
           this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+          this.invoiceMol = company.mol || '';
+          this.invoiceDataChanged = false; // Reset change flag
         } else {
           console.error('❌ Error loading invoice data:', err);
           // Fallback към данните от компанията при грешка
@@ -506,6 +559,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this.invoiceVatNumber = company.vatNumber || '';
           this.invoiceAddress = company.invoiceAddress || '';
           this.invoiceEmail = company.invoiceEmail || this.userEmail || '';
+          this.invoiceMol = company.mol || '';
+          this.invoiceDataChanged = false; // Reset change flag
         }
         this.cdr.detectChanges();
       }

@@ -650,6 +650,20 @@
   }
 }
 
+.invoice-save-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
 .invoice-row {
   display: flex;
   gap: 16px;
