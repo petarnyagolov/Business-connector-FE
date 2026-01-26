@@ -47,21 +47,6 @@
     }
   },
   {
-    "name": "api-data",
-    "urls": [
-      "https://api.xdealhub.com/request-company/**",
-      "https://api.xdealhub.com/companies/**",
-      "https://api.xdealhub.com/user/companies/**",
-      "https://api.xdealhub.com/saved-requests/**"
-    ],
-    "cacheConfig": {
-      "strategy": "freshness",
-      "maxSize": 100,
-      "maxAge": "1h",
-      "timeout": "10s"
-    }
-  },
-  {
     "name": "user-content",
     "urls": [
       "https://api.xdealhub.com/files/**"
@@ -112,6 +97,24 @@
       "timeout": "10s"
     }
   }
+ ],
+ "navigationRequestStrategy": "freshness",
+ "navigationUrls": [
+  "/**",
+  "!/**/.*",
+  "!/**/*__*",
+  "!/**/*__*/**"
+ ],
+ "blacklistedCachePatterns": [
+  "**/payments/**",
+  "**/epay/**",
+  "**/companies/**",
+  "**/request-company/**",
+  "**/saved-requests/**",
+  "**/user/**",
+  "**/auth/**",
+  "**/notifications/**",
+  "**/admin/**"
  ]
 }
 
