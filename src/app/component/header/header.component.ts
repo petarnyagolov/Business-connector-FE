@@ -108,12 +108,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   invoiceMol: string = ''; // MOL field for invoice
 
   // Payment method selection
-  paymentMethod: 'profile' | 'card' = 'card'; // Default to direct card payment
+  paymentMethod: 'bank' | 'card' = 'card'; // Default to direct card payment
 
   isProcessingPurchase = false;
   proformaDownloaded = false; // Track if proforma was already downloaded
   invoiceDataChanged = false; // Track if invoice data has been modified
   isSavingInvoiceData = false; // Track saving state
+  currentTransactionId: string | null = null; // Transaction ID from proforma generation
 
   constructor(
     private authService: AuthService,
@@ -225,6 +226,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     console.log('Package changed:', event.value);
     this.selectedPackage = event.value;
     this.proformaDownloaded = false; // Reset when package changes
+    this.currentTransactionId = null; // Reset transaction ID
     this.cdr.detectChanges();
   }
 
@@ -236,6 +238,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.showBuyCreditsModal = false;
     this.selectedPackage = null;
     this.proformaDownloaded = false; // Reset when modal closes
+    this.currentTransactionId = null; // Reset transaction ID
   }
 
   onInvoiceDataChange() {
@@ -309,25 +312,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
       invoiceVatNumber: this.invoiceVatNumber,
       invoiceAddress: this.invoiceAddress,
       invoiceEmail: this.invoiceEmail || this.userEmail,
-      mol: this.invoiceMol
+      mol: this.invoiceMol,
+      paymentMethod: this.paymentMethod
     };
 
     console.log('📄 Downloading proforma invoice for package:', this.selectedPackage.id);
 
-    // Download Proforma Invoice PDF directly (no preview)
-    this.http.post(
+    // Download Proforma Invoice PDF (receives JSON with transactionId and PDF)
+    this.http.post<{ transactionId: string, proformaPdf: string }>(
       `${environment.apiUrl}/payments/epay/proforma/${this.selectedPackage.id}`,
-      invoiceDetails,
-      { responseType: 'blob' } // Important: Expect a binary file
+      invoiceDetails
     ).subscribe({
-      next: (pdfBlob: Blob) => {
-        console.log('📄 Proforma PDF received, size:', pdfBlob.size);
+      next: (response) => {
+        console.log('📄 Proforma response received, transactionId:', response.transactionId);
+        
+        // Store transaction ID for later use
+        this.currentTransactionId = response.transactionId;
+
+        // Convert base64 PDF to blob and download
+        const byteCharacters = atob(response.proformaPdf);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
 
         // Auto-download the PDF
         const url = URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `proforma-invoice-${Date.now()}.pdf`;
+        link.download = `proforma-invoice-${response.transactionId}.pdf`;
         link.click();
         URL.revokeObjectURL(url);
 
@@ -380,16 +395,56 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private initPayment() {
-    this.http.post<EpayInitResponse>(
-      `${environment.apiUrl}/payments/epay/init/${this.selectedPackage!.id}`,
-      {
-        invoiceName: this.invoiceName,
-        invoiceBulstat: this.invoiceBulstat,
-        invoiceVatNumber: this.invoiceVatNumber,
-        invoiceAddress: this.invoiceAddress,
-        invoiceEmail: this.invoiceEmail || this.userEmail
-      }
-    ).subscribe({
+    const invoicePayload = {
+      invoiceName: this.invoiceName,
+      invoiceBulstat: this.invoiceBulstat,
+      invoiceVatNumber: this.invoiceVatNumber,
+      invoiceAddress: this.invoiceAddress,
+      invoiceEmail: this.invoiceEmail || this.userEmail,
+      mol: this.invoiceMol,
+      paymentMethod: this.paymentMethod,
+      transactionId: this.currentTransactionId // Include transaction ID from proforma
+    };
+
+    if (this.paymentMethod === 'bank') {
+      // Bank transfer - download PDF with bank details
+      this.http.post(
+        `${environment.apiUrl}/payments/init-bank-transfer/${this.selectedPackage!.id}`,
+        invoicePayload,
+        { responseType: 'blob' }
+      ).subscribe({
+        next: (pdfBlob: Blob) => {
+          console.log('📄 Bank transfer PDF received');
+
+          // Auto-download the PDF
+          const url = URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `bank-transfer-${this.currentTransactionId}.pdf`;
+          link.click();
+          URL.revokeObjectURL(url);
+
+          this.snackBar.open('Изтеглена банкова бележка. Моля извършете плащането.', 'OK', {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          });
+
+          this.isProcessingPurchase = false;
+          this.closeBuyCreditsModal();
+        },
+        error: (err) => {
+          console.error('❌ Error initializing bank transfer:', err);
+          alert('Грешка при генериране на банкова бележка. Моля опитайте отново.');
+          this.isProcessingPurchase = false;
+        }
+      });
+    } else {
+      // Card payment - ePay
+      this.http.post<EpayInitResponse>(
+        `${environment.apiUrl}/payments/epay/init-card/${this.selectedPackage!.id}`,
+        invoicePayload
+      ).subscribe({
       next: (res) => {
         console.log('🔐 ePay payment initialized:', res);
         
@@ -405,6 +460,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isProcessingPurchase = false;
       }
     });
+    }
   }
 
   private proceedToEpay(res: EpayInitResponse): void {

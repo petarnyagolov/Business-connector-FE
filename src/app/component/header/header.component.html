@@ -292,12 +292,12 @@
                 </div>
               </mat-radio-button>
               
-              <mat-radio-button value="profile" class="payment-option">
+              <mat-radio-button value="bank" class="payment-option">
                 <div class="payment-option-content">
-                  <mat-icon>account_balance_wallet</mat-icon>
+                  <mat-icon>account_balance</mat-icon>
                   <div class="payment-option-text">
-                    <strong>ePay профил</strong>
-                    <span>Плащане през вашия ePay.bg акаунт</span>
+                    <strong>Банков превод</strong>
+                    <span>Плащане чрез банков превод</span>
                   </div>
                 </div>
               </mat-radio-button>
@@ -306,8 +306,12 @@
             <div class="payment-info">
               <mat-icon>info</mat-icon>
               <p>
-                След потвърждение ще бъдете пренасочени към защитената платежна страница на ePay.bg,
-                където ще въведете данните за плащане.
+                @if (paymentMethod === 'card') {
+                  След потвърждение ще бъдете пренасочени към защитената платежна страница на ePay.bg,
+                  където ще въведете данните за плащане.
+                } @else {
+                  Ще получите PDF с банкови детайли за превод. След извършване на плащането, кредитите ще бъдат добавени автоматично.
+                }
               </p>
             </div>
           </div>
