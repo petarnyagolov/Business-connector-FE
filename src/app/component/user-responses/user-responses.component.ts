@@ -143,6 +143,16 @@ export class UserResponsesComponent implements OnInit {
       default: return mode || '';
     }
   }
+  
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'DEAL': return 'СДЕЛКА';
+      case 'ACTIVE': return 'АКТИВНА';
+      case 'CLOSED': return 'ПРИКЛЮЧЕНА';
+      default: return status || '';
+    }
+  }
+  
   getPictureUrl(pic: string): string {
     if (!pic) return '';
     if (pic.startsWith('http')) {
@@ -216,8 +226,8 @@ export class UserResponsesComponent implements OnInit {
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const timestamp = `${day}.${month}.${year} ${hours}:${minutes}:`;
     
-    // Добавяме празен ред, после timestamp и нов ред преди новия текст
-    const formattedText = `\n${timestamp}\n${this.editResponseData.newResponseText}`;
+    // Добавяме празен ред преди timestamp, после timestamp на нов ред и новия текст на нов ред
+    const formattedText = `\n\n${timestamp}\n${this.editResponseData.newResponseText}`;
     
     this.responseService.updateResponseText(this.editResponseData.id, formattedText).subscribe({
       next: (updatedResponse) => {

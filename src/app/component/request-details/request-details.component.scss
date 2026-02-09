@@ -1,0 +1,29 @@
+.status-badge-deal {
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+.status-badge-chosen {
+  animation: pulse-orange 2s ease-in-out infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.6);
+  }
+}
+
+@keyframes pulse-orange {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(255, 152, 0, 0.6);
+  }
+}

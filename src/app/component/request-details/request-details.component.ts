@@ -357,7 +357,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const timestamp = `${day}.${month}.${year} ${hours}:${minutes}:`;
     
-    const formattedText = `\n${timestamp}\n${this.editResponseData.additionalText}`;
+    const formattedText = `\n\n${timestamp}\n${this.editResponseData.additionalText}`;
     
     console.log('Submitting edit with formatted text:', formattedText);
     
@@ -615,6 +615,17 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       case 'box': return 'Кашон/и';
       case 'pallet': return 'Пале/та';
       default: return unit || '';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'DEAL': return 'СДЕЛКА';
+      case 'ACTIVE': return 'АКТИВНА';
+      case 'CLOSED': return 'ПРИКЛЮЧЕНА';
+      case 'CHOSEN': return 'ИЗБРАНО';
+      case 'NOT_AVAILABLE': return 'ОТТЕГЛЕНО';
+      default: return status || '';
     }
   }
 

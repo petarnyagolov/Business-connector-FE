@@ -18,6 +18,7 @@ export interface RequestCompanyDto {
   requestType: string;
   region: string;
   description: string;
+  status?: string;
   availableFrom?: number[] | null; // LocalDateTime as [yyyy, MM, dd, HH, mm]
   availableTo?: number[] | null;   // LocalDateTime as [yyyy, MM, dd, HH, mm]
   workMode: string;

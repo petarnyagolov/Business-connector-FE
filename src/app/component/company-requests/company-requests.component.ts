@@ -216,6 +216,15 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
     }
   }
 
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'DEAL': return 'СДЕЛКА';
+      case 'ACTIVE': return 'АКТИВНА';
+      case 'CLOSED': return 'ПРИКЛЮЧЕНА';
+      default: return status || '';
+    }
+  }
+
   getPictureUrls(request: any): string[] {
     // Проверяваме първо за files масива, който създадохме
     if (Array.isArray(request.files)) {

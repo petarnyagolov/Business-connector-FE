@@ -1,8 +1,17 @@
 <div *ngIf="request; else loading">
-  <mat-card class="example-card" appearance="outlined" style="max-width: 500px; margin: 0 auto; box-shadow: 0 2px 12px #0002; border-radius: 14px;">
-    <mat-card-header>
+  <mat-card class="example-card" appearance="outlined" 
+            style="max-width: 500px; margin: 0 auto; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;"
+            [style.opacity]="request.status === 'DEAL' ? '0.6' : '1'"
+            [style.background]="request.status === 'DEAL' ? '#f5f5f5' : '#ffffff'">
+    <!-- Request Status Badge -->
+    <div *ngIf="request.status === 'DEAL'" class="status-badge-deal" style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4); z-index: 10; display: flex; align-items: center; gap: 4px;">
+      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: white;">handshake</mat-icon>
+      <span>СДЕЛКА</span>
+    </div>
+    
+    <mat-card-header [style.opacity]="request.status === 'DEAL' ? '0.7' : '1'">
       <mat-icon mat-card-avatar color="primary" style="background: #e3f2fd; border-radius: 50%;">campaign</mat-icon>
-      <mat-card-title style="font-weight: 600; font-size: 1.2rem;">{{ request.title }}</mat-card-title>
+      <mat-card-title style="font-weight: 600; font-size: 1.2rem; padding-right: 100px;">{{ request.title }}</mat-card-title>
       <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">{{ request.requesterName | uppercase }}</mat-card-subtitle>
     </mat-card-header>
     <div *ngIf="request.requesterCompanyId" style="display: flex; align-items: center; margin-left: 16px; margin-bottom: 4px; color: #607d8b; font-size: 0.98rem;">
@@ -122,13 +131,13 @@
         </div> -->
       </div>
     </mat-card-content>
-    <mat-card-actions align="end">
+    <mat-card-actions align="end" [style.opacity]="request.status === 'DEAL' ? '0.5' : '1'">
       <button 
         mat-raised-button 
         color="primary" 
         (click)="openResponseModal()"
-        [disabled]="!canSubmitResponse()"
-        [title]="isRequestOwner() ? 'Не можете да подавате оферта за ваша собствена публикация' : (!hasAvailableCompaniesForResponse() ? 'Всички ваши компании вече имат предложения' : 'Подай предложение')"
+        [disabled]="!canSubmitResponse() || request.status === 'DEAL'"
+        [title]="request.status === 'DEAL' ? 'Не може да се добавят предложения - сделката е приключена' : (isRequestOwner() ? 'Не можете да подавате оферта за ваша собствена публикация' : (!hasAvailableCompaniesForResponse() ? 'Всички ваши компании вече имат предложения' : 'Подай предложение'))"
         style="margin: 8px;"
       >
         <mat-icon style="margin-right: 4px;">reply</mat-icon>
@@ -145,17 +154,23 @@
     <div class="responses-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
       <mat-card class="response-card" *ngFor="let response of responses; let i = index" appearance="outlined" 
                 style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;"
-                [style.opacity]="response.status === 'NOT_AVAILABLE' ? '0.6' : '1'"
-                [style.background]="response.status === 'NOT_AVAILABLE' ? '#f5f5f5' : '#ffffff'">
+                [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.6' : '1'"
+                [style.background]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '#f5f5f5' : '#ffffff'">
+        
+        <!-- Response Status Badge for CHOSEN -->
+        <div *ngIf="response.status === 'CHOSEN'" class="status-badge-chosen" style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #ff9800, #f57c00); color: white; padding: 5px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 600; box-shadow: 0 2px 8px rgba(255, 152, 0, 0.4); z-index: 10; display: flex; align-items: center; gap: 4px;">
+          <mat-icon style="font-size: 14px; width: 14px; height: 14px; color: white;">star</mat-icon>
+          <span>ИЗБРАНО</span>
+        </div>
         
         <div *ngIf="response.status === 'NOT_AVAILABLE'" 
              style="position: absolute; top: 10px; right: 10px; background: #9e9e9e; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; z-index: 10;">
           Оттеглено
         </div>
         
-        <mat-card-header [style.opacity]="response.status === 'NOT_AVAILABLE' ? '0.7' : '1'">
+        <mat-card-header [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.7' : '1'">
           <mat-icon mat-card-avatar color="accent" style="background: #e8f5e8; border-radius: 50%;">reply</mat-icon>
-          <mat-card-title style="font-weight: 600; font-size: 1.1rem;">Предложение #{{ response.id }}</mat-card-title>
+          <mat-card-title style="font-weight: 600; font-size: 1.1rem; padding-right: 90px;">Предложение #{{ response.id }}</mat-card-title>
           <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">
             {{ getCompanyName(response.responserCompanyName) || 'Неизвестна фирма' }}
           </mat-card-subtitle>
@@ -167,7 +182,7 @@
             <div style="display: flex; align-items: flex-start;">
               <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">message</mat-icon>
               <span class="label">Предложение:&nbsp;</span> 
-              <span class="value" style="word-break: break-word;">{{ response.responseText }}</span>
+              <span class="value" style="word-break: break-word; white-space: pre-line;">{{ response.responseText }}</span>
             </div>
             
             <div *ngIf="response.fixedPrice" style="display: flex; align-items: center;">
@@ -238,15 +253,19 @@
           </div>
         </mat-card-content>
         
-        <mat-card-actions style="display: flex; justify-content: center; gap: 8px;" [style.opacity]="response.status === 'NOT_AVAILABLE' ? '0.5' : '1'">
+        <mat-card-actions style="display: flex; justify-content: center; gap: 8px;" [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.5' : '1'">
           <button *ngIf="canMakeDeal(response) && response.status !== 'NOT_AVAILABLE'" 
                   mat-stroked-button color="accent" (click)="openDealDialog(response)" 
+                  [disabled]="request.status === 'DEAL'"
+                  [title]="request.status === 'DEAL' ? 'Не може да се направи нова сделка' : 'Направи сделка'"
                   style="font-size: 14px; padding: 10px 16px; min-width: 80px;">
             <mat-icon><svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960"  fill="#005cbb" ><path d="M480-600 340-740l140-140 140 140-140 140ZM40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm120-280q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440Z"/></svg></mat-icon>
             Сделка
           </button>
           <button *ngIf="canEditResponse(response) && response.status !== 'NOT_AVAILABLE'" 
                   mat-stroked-button color="primary" (click)="editResponse(response)" 
+                  [disabled]="request.status === 'DEAL'"
+                  [title]="request.status === 'DEAL' ? 'Не може да се редактира - сделката е приключена' : 'Редактирай предложението'"
                   style="font-size: 14px; padding: 10px 16px; min-width: 100px;">
             <mat-icon style="margin-right: 6px; font-size: 18px;">edit</mat-icon>
             Редактирай
@@ -281,7 +300,7 @@
       
       <div style="margin-bottom: 20px; padding: 16px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #1976d2;">
         <p style="margin: 0; font-weight: 500; color: #333;">Предложение от: {{ getCompanyName(selectedResponse.responserCompanyId) }}</p>
-        <p style="margin: 8px 0 0 0; color: #666; font-size: 0.95em;">{{ selectedResponse.responseText }}</p>
+        <p style="margin: 8px 0 0 0; color: #666; font-size: 0.95em; white-space: pre-line;">{{ selectedResponse.responseText }}</p>
         <div *ngIf="selectedResponse.fixedPrice" style="margin-top: 8px; color: #4caf50; font-weight: 500;">
           Фиксирана цена: {{ selectedResponse.fixedPrice }} €
         </div>

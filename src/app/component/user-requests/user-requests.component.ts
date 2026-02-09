@@ -366,6 +366,15 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     }
   }
 
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'DEAL': return 'СДЕЛКА';
+      case 'ACTIVE': return 'АКТИВНА';
+      case 'CLOSED': return 'ПРИКЛЮЧЕНА';
+      default: return status || '';
+    }
+  }
+
   loadAllPictures(): void {
     this.companyRequests.forEach(request => {
       const urls = (request as any).pictureUrls || [];
