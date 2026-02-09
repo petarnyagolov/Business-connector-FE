@@ -31,6 +31,10 @@ import { NotificationWebSocketService, NotificationEvent } from '../../service/n
         </h1>
         
         <div class="header-actions">
+          <div class="timezone-info" style="font-size: 0.85rem; color: #666; margin-right: 16px; display: flex; align-items: center; gap: 4px;">
+            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">schedule</mat-icon>
+            <span>{{ getTimezoneInfo() }}</span>
+          </div>
           @if (unreadCount > 0) {
             <button 
               mat-raised-button
@@ -135,12 +139,16 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   allNotifications: NotificationEvent[] = [];
   unreadCount = 0;
   isLoading = true;
+  userTimezone = '';
   private destroy$ = new Subject<void>();
 
   constructor(
     private wsService: NotificationWebSocketService,
     private router: Router
-  ) {}
+  ) {
+    // Детектираме timezone-а на потребителя
+    this.userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
 
   ngOnInit(): void {
     this.wsService.connect();
@@ -255,8 +263,10 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   formatTime(createdAt: string): string {
+    // Backend изпраща локално време без timezone, парсваме директно
     const date = new Date(createdAt);
     const now = new Date();
+    
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
@@ -272,7 +282,14 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZoneName: 'short'
     });
+  }
+
+  getTimezoneInfo(): string {
+    const offset = -new Date().getTimezoneOffset() / 60;
+    const sign = offset >= 0 ? '+' : '-';
+    return `${this.userTimezone} (UTC${sign}${Math.abs(offset)})`;
   }
 }

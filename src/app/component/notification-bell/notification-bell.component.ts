@@ -43,14 +43,16 @@ import { NotificationWebSocketService, NotificationEvent } from '../../service/n
       <mat-menu #notificationMenu="matMenu" class="notification-menu">
         <div class="notification-header" (click)="$event.stopPropagation()">
           <h4>Известия</h4>
-          @if (unreadCount > 0) {
-            <button 
-              mat-button 
-              (click)="markAllAsRead()"
-              class="mark-all-btn">
-              Маркирай всички
-            </button>
-          }
+          <div style="display: flex; align-items: center; gap: 8px;">
+            @if (unreadCount > 0) {
+              <button 
+                mat-button 
+                (click)="markAllAsRead()"
+                class="mark-all-btn">
+                Маркирай всички
+              </button>
+            }
+          </div>
         </div>
         
         <mat-divider></mat-divider>
@@ -121,12 +123,16 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   notifications: NotificationEvent[] = [];
   unreadCount = 0;
   animating = false;
+  userTimezone = '';
   private destroy$ = new Subject<void>();
 
   constructor(
     private wsService: NotificationWebSocketService,
     private router: Router
-  ) {}
+  ) {
+    // Детектираме timezone-а на потребителя
+    this.userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
 
   ngOnInit(): void {
     
@@ -220,8 +226,10 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   }
 
   formatTime(createdAt: string): string {
+    // Backend изпраща локално време без timezone, парсваме директно
     const date = new Date(createdAt);
     const now = new Date();
+    
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
@@ -232,7 +240,15 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     if (diffHours < 24) return `${diffHours} час${diffHours !== 1 ? 'а' : ''}`;
     if (diffDays < 30) return `${diffDays} ден${diffDays !== 1 ? 'и' : ''}`;
     
-    return date.toLocaleDateString('bg-BG');
+    return date.toLocaleDateString('bg-BG', {
+      timeZoneName: 'short'
+    });
+  }
+
+  getTimezoneInfo(): string {
+    const offset = -new Date().getTimezoneOffset() / 60;
+    const sign = offset >= 0 ? '+' : '-';
+    return `${this.userTimezone} (UTC${sign}${Math.abs(offset)})`;
   }
   
   // Метод за анимиране на камбанката
