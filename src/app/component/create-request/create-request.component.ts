@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CompanyRequestService } from '../../service/company-request.service';
 import { CompanyService } from '../../service/company.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,6 +27,7 @@ import { NotificationService } from '../../service/notification.service';
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -50,6 +51,10 @@ export class CreateRequestComponent implements OnDestroy {
   previewType: 'image' | 'pdf' | null = null;
   private userCompaniesLoaded = false;
   private destroy$ = new Subject<void>();
+  
+  // Preview mode
+  showPreview: boolean = false;
+  previewData: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -74,6 +79,7 @@ export class CreateRequestComponent implements OnDestroy {
       serviceType: [''],
       capacity: [''],
       workMode: [''],
+      fixedPrice: [''],
       priceFrom: [''],
       priceTo: [''],
       unit: [''],
@@ -192,7 +198,7 @@ export class CreateRequestComponent implements OnDestroy {
   }
 
   onSubmit(): void {
-    console.log('🎯 onSubmit called');
+    console.log('🎯 onSubmit called - showing preview');
     
     const currentCredits = this.creditsService.getCurrentCredits();
     if (currentCredits <= 0) {
@@ -200,13 +206,59 @@ export class CreateRequestComponent implements OnDestroy {
       return;
     }
     
-    console.log('📧 Checking email verification...');
+    if (this.requestForm.invalid) {
+      console.error('❌ Form is invalid!');
+      this.notificationService.error('Моля, попълнете всички задължителни полета.');
+      return;
+    }
+    
+    // Show preview instead of directly submitting
+    this.showRequestPreview();
+  }
+  
+  showRequestPreview(): void {
+    console.log('🔍 showRequestPreview() called');
+    const formValue = this.requestForm.value;
+    const selectedCompany = this.userCompanies.find(c => c.vatNumber === formValue.company);
+    
+    this.previewData = {
+      companyName: selectedCompany?.name || '',
+      companyVat: selectedCompany?.vatNumber || '',
+      title: formValue.title,
+      region: formValue.region,
+      requestType: this.getRequestTypeLabel(formValue.requestType),
+      requestTypeRaw: formValue.requestType,
+      description: formValue.description,
+      activeFrom: formValue.activeFrom,
+      activeTo: formValue.activeTo,
+      urgent: formValue.urgent,
+      serviceType: formValue.serviceType ? this.getServiceTypeLabel(formValue.serviceType) : null,
+      capacity: formValue.capacity,
+      unit: formValue.unit ? this.getUnitLabel(formValue.unit) : null,
+      workMode: formValue.workMode ? this.getWorkModeLabel(formValue.workMode) : null,
+      fixedPrice: formValue.fixedPrice,
+      priceFrom: formValue.priceFrom,
+      priceTo: formValue.priceTo,
+      requiredFields: formValue.requiredFields || [],
+      files: this.selectedFiles
+    };
+    
+    console.log('✅ Setting showPreview = true');
+    console.log('📦 Preview data:', this.previewData);
+    this.showPreview = true;
+    console.log('📊 showPreview is now:', this.showPreview);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  confirmPublish(): void {
+    console.log('📧 Checking email verification before publish...');
     
     this.emailVerificationService.checkVerificationOrPrompt().subscribe({
       next: (canProceed: boolean) => {
         console.log('📧 Email verification result:', canProceed);
         if (!canProceed) {
           console.log('❌ Cannot proceed - email verification failed');
+          this.showPreview = false;
           return; 
         }
         
@@ -215,8 +267,52 @@ export class CreateRequestComponent implements OnDestroy {
       },
       error: (error) => {
         console.error('❌ Error during email verification check:', error);
+        this.showPreview = false;
       }
     });
+  }
+  
+  cancelPreview(): void {
+    this.showPreview = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  getRequestTypeLabel(type: string): string {
+    switch (type) {
+      case 'LOOKING_FOR_SERVICE': return 'Търся услуга';
+      case 'SHARE_SERVICE': return 'Предлагам услуга';
+      case 'BUY': return 'Купувам';
+      case 'SELL': return 'Продавам';
+      case 'OTHER': return 'Друго';
+      default: return type || '';
+    }
+  }
+  
+  getUnitLabel(unit: string): string {
+    switch (unit) {
+      case 'count': return 'Бр.';
+      case 'box': return 'Кашон/и';
+      case 'pallet': return 'Пале/та';
+      default: return unit || '';
+    }
+  }
+  
+  getServiceTypeLabel(type: string): string {
+    switch (type) {
+      case 'one_time': return 'Еднократна';
+      case 'permanent': return 'Постоянна';
+      default: return type || '';
+    }
+  }
+  
+  getWorkModeLabel(mode: string): string {
+    switch (mode) {
+      case 'standard': return 'Стандартно делнично';
+      case 'extended': return 'Удължено';
+      case 'continuous': return 'Непрекъснато';
+      case 'nomatter': return 'Без значение';
+      default: return mode || '';
+    }
   }
 
   private processFormSubmission(): void {

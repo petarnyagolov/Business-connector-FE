@@ -1,4 +1,139 @@
-<form [formGroup]="requestForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data" class="request-form">
+<div class="create-request-container">
+  <!-- Preview Mode -->
+  <div *ngIf="showPreview" style="padding: 20px; max-width: 900px; margin: 0 auto;">
+    <mat-card style="margin-bottom: 20px;">
+      <mat-card-title style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; margin: -16px -16px 20px; border-radius: 4px 4px 0 0;">
+        <mat-icon style="vertical-align: middle; margin-right: 8px;">visibility</mat-icon>
+        Преглед преди публикуване
+      </mat-card-title>
+      
+      <mat-card-content style="padding-top: 20px;">
+        <div style="background: #fffbea; border-left: 4px solid #f59e0b; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
+          <div style="display: flex; align-items: center; gap: 8px; color: #92400e; font-weight: 500;">
+            <mat-icon style="color: #f59e0b;">info</mat-icon>
+            <span>Моля, прегледайте публикацията преди да я публикувате</span>
+          </div>
+        </div>
+        
+        <!-- Preview Card (matches request-details style) -->
+        <mat-card style="box-shadow: 0 2px 12px #0002; border-radius: 14px;">
+          <mat-card-header style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); margin: -16px -16px 16px; padding: 16px; border-radius: 14px 14px 0 0;">
+            <mat-icon mat-card-avatar style="background: #1976d2; color: white; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+              business
+            </mat-icon>
+            <mat-card-title style="margin: 0; font-size: 1.1rem; color: #333;">{{ previewData.companyName }}</mat-card-title>
+            <mat-card-subtitle style="margin: 4px 0 0; color: #666;">ЕИК: {{ previewData.companyVat }}</mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content style="padding: 20px;">
+            <!-- Urgent badge -->
+            <div *ngIf="previewData.urgent" style="display: inline-block; background: #ff5252; color: white; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px;">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;">warning</mat-icon>
+              СПЕШНО
+            </div>
+            
+            <h2 style="margin: 0 0 12px; color: #1976d2; font-size: 1.4rem;">{{ previewData.title }}</h2>
+            
+            <div style="display: grid; gap: 12px; margin-top: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">storage</mat-icon>
+                <strong>Тип:</strong> {{ previewData.requestType }}
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">location_on</mat-icon>
+                <strong>Регион:</strong> {{ previewData.region }}
+              </div>
+              
+              <div style="color: #333; margin-top: 8px; padding: 12px; background: #f5f9ff; border-radius: 8px; border-left: 4px solid #1976d2;">
+                <strong style="display: block; margin-bottom: 8px; color: #1976d2;">Описание:</strong>
+                <p style="margin: 0; white-space: pre-wrap; line-height: 1.6;">{{ previewData.description }}</p>
+              </div>
+              
+              <div *ngIf="previewData.activeFrom" style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">event</mat-icon>
+                <strong>Необходимо след:</strong> {{ previewData.activeFrom | date: 'dd.MM.yyyy' }}
+              </div>
+              
+              <div *ngIf="previewData.activeTo" style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">event</mat-icon>
+                <strong>Необходимо преди:</strong> {{ previewData.activeTo | date: 'dd.MM.yyyy' }}
+              </div>
+              
+              <div *ngIf="previewData.serviceType" style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">build</mat-icon>
+                <strong>Тип услуга:</strong> {{ previewData.serviceType }}
+              </div>
+              
+              <div *ngIf="previewData.capacity" style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">inventory_2</mat-icon>
+                <strong>Капацитет:</strong> {{ previewData.capacity }} <span *ngIf="previewData.unit">{{ previewData.unit }}</span>
+              </div>
+              
+              <div *ngIf="previewData.workMode" style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">schedule</mat-icon>
+                <strong>Работно време:</strong> {{ previewData.workMode }}
+              </div>
+              
+              <div *ngIf="previewData.fixedPrice" style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">euro</mat-icon>
+                <strong>Фиксирана цена:</strong> {{ previewData.fixedPrice }}€
+              </div>
+              
+              <div *ngIf="previewData.priceFrom || previewData.priceTo" style="display: flex; align-items: center; gap: 8px; color: #555;">
+                <mat-icon style="color: #1976d2;">euro</mat-icon>
+                <strong>Ценови диапазон:</strong>
+                <span *ngIf="previewData.priceFrom">от {{ previewData.priceFrom }}€</span>
+                <span *ngIf="previewData.priceTo">до {{ previewData.priceTo }}€</span>
+              </div>
+              
+              <div *ngIf="previewData.requiredFields?.length > 0" style="margin-top: 12px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <strong style="display: block; margin-bottom: 8px; color: #856404;">Задължителни полета за предложение:</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <span *ngFor="let field of previewData.requiredFields" style="background: white; padding: 4px 12px; border-radius: 16px; font-size: 0.9rem; border: 1px solid #ffc107;">
+                    {{ 
+                      field === 'fixedPrice' ? 'Фиксирана цена' :
+                      field === 'priceFrom' ? 'Цена от' :
+                      field === 'priceTo' ? 'Цена до' :
+                      field === 'availableFrom' ? 'Налично/Свободен от' :
+                      field === 'availableTo' ? 'Налично/Свободен до' :
+                      field === 'files' ? 'Файлове' : field
+                    }}
+                  </span>
+                </div>
+              </div>
+              
+              <div *ngIf="previewData.files?.length > 0" style="margin-top: 12px;">
+                <strong style="display: block; margin-bottom: 8px; color: #1976d2;">Прикачени файлове ({{ previewData.files.length }}):</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <div *ngFor="let file of previewData.files" style="display: flex; align-items: center; gap: 4px; padding: 6px 12px; background: #e3f2fd; border-radius: 16px; font-size: 0.9rem;">
+                    <mat-icon [style.color]="file.type.startsWith('image/') ? '#1976d2' : '#f44336'" style="font-size: 18px; width: 18px; height: 18px;">
+                      {{ file.type.startsWith('image/') ? 'image' : 'picture_as_pdf' }}
+                    </mat-icon>
+                    <span>{{ file.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-card-content>
+      
+      <mat-card-actions align="end" style="padding: 16px; background: #f5f5f5; margin: 20px -16px -16px; border-radius: 0 0 4px 4px;">
+        <button mat-raised-button color="warn" (click)="cancelPreview()" style="margin-right: 12px;">
+          <mat-icon style="margin-right: 4px;">arrow_back</mat-icon>
+          Откажи - Върни за редакция
+        </button>
+        <button mat-raised-button color="primary" (click)="confirmPublish()">
+          <mat-icon style="margin-right: 4px;">publish</mat-icon>
+          Публикувай
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Edit Mode (Form) -->
+  <form *ngIf="!showPreview" [formGroup]="requestForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data" class="request-form">
   <mat-card>
     <mat-card-title>
       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -116,6 +251,11 @@
         </ng-container>
 
         <ng-container *ngIf="requestForm.get('requestType')?.value === 'BUY' || requestForm.get('requestType')?.value === 'SELL'">
+          <mat-form-field appearance="fill" style="width: 100%;">
+            <mat-label>Фиксирана цена</mat-label>
+            <input matInput type="number" formControlName="fixedPrice">
+          </mat-form-field>
+          
           <div style="display:flex; gap:10px; align-items: flex-end;">
             <mat-form-field appearance="fill" style="flex:1;">
               <mat-label>Цена от</mat-label>
@@ -192,10 +332,10 @@
         color="primary" 
         type="submit" 
         [disabled]="requestForm.invalid || creditsService.getCurrentCredits() <= 0"
-        [title]="creditsService.getCurrentCredits() <= 0 ? 'Нямате достатъчно кредити' : (requestForm.invalid ? 'Формата е невалидна - попълнете всички задължителни полета' : 'Създай публикация')"
+        [title]="creditsService.getCurrentCredits() <= 0 ? 'Нямате достатъчно кредити' : (requestForm.invalid ? 'Формата е невалидна - попълнете всички задължителни полета' : 'Преглед преди публикуване')"
       >
-        <mat-icon style="margin-right: 4px;">add</mat-icon>
-        Създай публикация 
+        <mat-icon style="margin-right: 4px;">visibility</mat-icon>
+        Преглед и публикуване
         <span *ngIf="creditsService.getCurrentCredits() <= 0" style="color: #f44336;"> (Няма кредити)</span>
         <span *ngIf="requestForm.invalid && creditsService.getCurrentCredits() > 0" style="color: #ff9800;"> (Невалидна форма)</span>
       </button>
@@ -205,3 +345,4 @@
     </mat-card-actions>
   </mat-card>
 </form>
+</div>

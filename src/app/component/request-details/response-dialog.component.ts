@@ -76,44 +76,53 @@ export interface ResponseDialogData {
           }
         </mat-form-field>
 
-        @if (isFieldRequired('fixedPrice')) {
-          <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Фиксирана цена</mat-label>
-            <input matInput type="number" formControlName="fixedPrice" required>
-          </mat-form-field>
-        }
+        <mat-form-field appearance="fill" style="width: 100%;">
+          <mat-label>Фиксирана цена{{ isFieldRequired('fixedPrice') ? ' *' : '' }}</mat-label>
+          <input matInput type="number" formControlName="fixedPrice" [required]="isFieldRequired('fixedPrice')">
+          @if (responseForm.get('fixedPrice')?.hasError('required')) {
+            <mat-error>Фиксираната цена е задължителна</mat-error>
+          }
+        </mat-form-field>
 
-        @if (isFieldRequired('priceFrom')) {
-          <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Цена от</mat-label>
-            <input matInput type="number" formControlName="priceFrom" required>
+        <div style="display: flex; gap: 12px;">
+          <mat-form-field appearance="fill" style="flex: 1;">
+            <mat-label>Цена от{{ isFieldRequired('priceFrom') ? ' *' : '' }}</mat-label>
+            <input matInput type="number" formControlName="priceFrom" [required]="isFieldRequired('priceFrom')">
+            @if (responseForm.get('priceFrom')?.hasError('required')) {
+              <mat-error>Цената от е задължителна</mat-error>
+            }
           </mat-form-field>
-        }
 
-        @if (isFieldRequired('priceTo')) {
-          <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Цена до</mat-label>
-            <input matInput type="number" formControlName="priceTo" required>
+          <mat-form-field appearance="fill" style="flex: 1;">
+            <mat-label>Цена до{{ isFieldRequired('priceTo') ? ' *' : '' }}</mat-label>
+            <input matInput type="number" formControlName="priceTo" [required]="isFieldRequired('priceTo')">
+            @if (responseForm.get('priceTo')?.hasError('required')) {
+              <mat-error>Цената до е задължителна</mat-error>
+            }
           </mat-form-field>
-        }
+        </div>
 
-        @if (isFieldRequired('availableFrom')) {
-          <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Налично от</mat-label>
-            <input matInput [matDatepicker]="pickerFrom" formControlName="availableFrom" required placeholder="дд.мм.гггг">
+        <div style="display: flex; gap: 12px;">
+          <mat-form-field appearance="fill" style="flex: 1;">
+            <mat-label>Налично от{{ isFieldRequired('availableFrom') ? ' *' : '' }}</mat-label>
+            <input matInput [matDatepicker]="pickerFrom" formControlName="availableFrom" [required]="isFieldRequired('availableFrom')" placeholder="дд.мм.гггг">
             <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
             <mat-datepicker #pickerFrom></mat-datepicker>
+            @if (responseForm.get('availableFrom')?.hasError('required')) {
+              <mat-error>Датата е задължителна</mat-error>
+            }
           </mat-form-field>
-        }
 
-        @if (isFieldRequired('availableTo')) {
-          <mat-form-field appearance="fill" style="width: 100%;">
-            <mat-label>Налично до</mat-label>
-            <input matInput [matDatepicker]="pickerTo" formControlName="availableTo" required placeholder="дд.мм.гггг">
+          <mat-form-field appearance="fill" style="flex: 1;">
+            <mat-label>Налично до{{ isFieldRequired('availableTo') ? ' *' : '' }}</mat-label>
+            <input matInput [matDatepicker]="pickerTo" formControlName="availableTo" [required]="isFieldRequired('availableTo')" placeholder="дд.мм.гггг">
             <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
             <mat-datepicker #pickerTo></mat-datepicker>
+            @if (responseForm.get('availableTo')?.hasError('required')) {
+              <mat-error>Датата е задължителна</mat-error>
+            }
           </mat-form-field>
-        }
+        </div>
 
         <div style="margin: 16px 0; border: 2px solid #1976d2; padding: 15px; border-radius: 8px; background-color: #f5f9ff;">
           <label style="font-weight: 600; display: block; margin-bottom: 10px; color: #1976d2; font-size: 16px;">
@@ -247,28 +256,28 @@ export class ResponseDialogComponent implements OnInit, OnDestroy {
     // Add required validators based on required fields
     if (data.requiredFields) {
       if (this.isFieldRequired('availableFrom')) {
-        this.responseForm.get('availableFrom')?.addValidators(Validators.required);
+        this.responseForm.get('availableFrom')?.setValidators(Validators.required);
         this.responseForm.get('availableFrom')?.updateValueAndValidity();
       }
       if (this.isFieldRequired('availableTo')) {
-        this.responseForm.get('availableTo')?.addValidators(Validators.required);
+        this.responseForm.get('availableTo')?.setValidators(Validators.required);
         this.responseForm.get('availableTo')?.updateValueAndValidity();
       }
       if (this.isFieldRequired('fixedPrice')) {
-        this.responseForm.get('fixedPrice')?.addValidators(Validators.required);
+        this.responseForm.get('fixedPrice')?.setValidators(Validators.required);
         this.responseForm.get('fixedPrice')?.updateValueAndValidity();
       }
       if (this.isFieldRequired('priceFrom')) {
-        this.responseForm.get('priceFrom')?.addValidators(Validators.required);
+        this.responseForm.get('priceFrom')?.setValidators(Validators.required);
         this.responseForm.get('priceFrom')?.updateValueAndValidity();
       }
       if (this.isFieldRequired('priceTo')) {
-        this.responseForm.get('priceTo')?.addValidators(Validators.required);
+        this.responseForm.get('priceTo')?.setValidators(Validators.required);
         this.responseForm.get('priceTo')?.updateValueAndValidity();
       }
       // Check if files are required
       if (this.isFieldRequired('files')) {
-        this.responseForm.get('files')?.addValidators(Validators.required);
+        this.responseForm.get('files')?.setValidators(Validators.required);
         this.responseForm.get('files')?.updateValueAndValidity();
       }
     }

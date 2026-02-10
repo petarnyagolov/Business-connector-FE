@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CompanyRequest } from '../../model/companyRequest';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
@@ -27,7 +27,7 @@ import { CreditsService } from '../../service/credits.service';
 
 @Component({
   selector: 'app-user-requests',
-  imports: [RouterOutlet, CommonModule, MatGridListModule, MatCardModule, MatButtonModule, MatIconModule, FormatDateArrayPipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatMomentDateModule, MatCheckboxModule, MatRadioModule],
+  imports: [RouterOutlet, CommonModule, DatePipe, MatGridListModule, MatCardModule, MatButtonModule, MatIconModule, FormatDateArrayPipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatDatepickerModule, MatMomentDateModule, MatCheckboxModule, MatRadioModule],
   templateUrl: './user-requests.component.html',
   styleUrl: './user-requests.component.scss',
   standalone: true
@@ -44,6 +44,10 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     filePreview: string | null = null;
     previewType = '';
     modalSelectedFiles: File[] = [];
+    
+    // Modal preview
+    showModalPreview = false;
+    modalPreviewData: any = null;
     
     showConfirmModal = false;
     confirmModalData: {
@@ -139,6 +143,7 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       capacity: [''],
       unit: [''],
       workMode: [''],
+      fixedPrice: [''],
       priceFrom: [''],
       priceTo: [''],
       requiredFields: [[]]
@@ -365,6 +370,35 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       default: return unit || '';
     }
   }
+  
+  getRequestTypeLabel(type: string): string {
+    switch (type) {
+      case 'LOOKING_FOR_SERVICE': return 'Търся услуга';
+      case 'SHARE_SERVICE': return 'Предлагам услуга';
+      case 'BUY': return 'Купувам';
+      case 'SELL': return 'Продавам';
+      case 'OTHER': return 'Друго';
+      default: return type || '';
+    }
+  }
+  
+  getServiceTypeLabel(type: string): string {
+    switch (type) {
+      case 'one_time': return 'Еднократна';
+      case 'permanent': return 'Постоянна';
+      default: return type || '';
+    }
+  }
+  
+  getWorkModeLabel(mode: string): string {
+    switch (mode) {
+      case 'standard': return 'Стандартно делнично';
+      case 'extended': return 'Удължено';
+      case 'continuous': return 'Непрекъснато';
+      case 'nomatter': return 'Без значение';
+      default: return mode || '';
+    }
+  }
 
   getStatusLabel(status: string): string {
     switch (status) {
@@ -535,7 +569,7 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   }
 
   onSubmitRequest(): void {
-    console.log('🎯 Modal onSubmitRequest called');
+    console.log('🎯 Modal onSubmitRequest called - showing preview');
     
     const currentCredits = this.creditsService.getCurrentCredits();
     if (currentCredits <= 0) {
@@ -543,13 +577,57 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('📧 Checking email verification for modal request...');
+    if (this.requestForm.invalid) {
+      this.showSuccessMessage('Внимание', 'Моля, попълнете всички задължителни полета.', 'ОК');
+      return;
+    }
+    
+    // Show preview instead of directly submitting
+    this.showModalRequestPreview();
+  }
+  
+  showModalRequestPreview(): void {
+    console.log('🔍 showModalRequestPreview() called');
+    const formValue = this.requestForm.value;
+    const selectedCompany = this.userCompanies.find(c => c.vatNumber === formValue.company);
+    
+    this.modalPreviewData = {
+      companyName: selectedCompany?.name || '',
+      companyVat: selectedCompany?.vatNumber || '',
+      title: formValue.title,
+      region: formValue.region,
+      requestType: this.getRequestTypeLabel(formValue.requestType),
+      requestTypeRaw: formValue.requestType,
+      description: formValue.description,
+      activeFrom: formValue.activeFrom,
+      activeTo: formValue.activeTo,
+      urgent: formValue.urgent,
+      serviceType: formValue.serviceType ? this.getServiceTypeLabel(formValue.serviceType) : null,
+      capacity: formValue.capacity,
+      unit: formValue.unit ? this.getUnitLabel(formValue.unit) : null,
+      workMode: formValue.workMode ? this.getWorkModeLabel(formValue.workMode) : null,
+      fixedPrice: formValue.fixedPrice,
+      priceFrom: formValue.priceFrom,
+      priceTo: formValue.priceTo,
+      requiredFields: formValue.requiredFields || [],
+      files: this.modalSelectedFiles
+    };
+    
+    console.log('✅ Setting showModalPreview = true');
+    console.log('📦 Modal preview data:', this.modalPreviewData);
+    this.showModalPreview = true;
+    console.log('📊 showModalPreview is now:', this.showModalPreview);
+  }
+  
+  confirmModalPublish(): void {
+    console.log('📧 Checking email verification before modal publish...');
     
     this.emailVerificationService.checkVerificationOrPrompt().subscribe({
       next: (canProceed: boolean) => {
         console.log('📧 Modal email verification result:', canProceed);
         if (!canProceed) {
           console.log('❌ Cannot proceed with modal request - email verification failed');
+          this.showModalPreview = false;
           return; 
         }
         
@@ -558,8 +636,13 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('❌ Error during modal email verification check:', error);
+        this.showModalPreview = false;
       }
     });
+  }
+  
+  cancelModalPreview(): void {
+    this.showModalPreview = false;
   }
 
   private processModalFormSubmission(): void {

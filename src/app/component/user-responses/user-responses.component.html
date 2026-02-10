@@ -6,14 +6,20 @@
 <div class="card-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
   <mat-card class="example-card" *ngFor="let item of userResponses" appearance="outlined" 
             style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;"
-            [style.background]="item.requestCompany?.status === 'DEAL' ? '#f5f5f5' : '#ffffff'">
-    <!-- Status Badge -->
+            [style.background]="item.requestCompany?.status === 'DEAL' || item.status === 'NOT_AVAILABLE' ? '#f5f5f5' : '#ffffff'">
+    <!-- Status Badge for DEAL -->
     <div *ngIf="item.requestCompany?.status === 'DEAL'" class="status-badge-deal" style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4); z-index: 10; display: flex; align-items: center; gap: 4px;">
       <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: white;">handshake</mat-icon>
       <span>СДЕЛКА</span>
     </div>
     
-    <mat-card-header [style.opacity]="item.requestCompany?.status === 'DEAL' ? '0.6' : '1'">
+    <!-- Status Badge for NOT_AVAILABLE response -->
+    <div *ngIf="item.status === 'NOT_AVAILABLE'" style="position: absolute; top: 12px; right: 12px; background: #9e9e9e; color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(158, 158, 158, 0.4); z-index: 10; display: flex; align-items: center; gap: 4px;">
+      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: white;">block</mat-icon>
+      <span>ОТТЕГЛЕНО</span>
+    </div>
+    
+    <mat-card-header [style.opacity]="item.requestCompany?.status === 'DEAL' || item.status === 'NOT_AVAILABLE' ? '0.6' : '1'">
       <mat-icon mat-card-avatar color="primary" style="background: #e3f2fd; border-radius: 50%;">campaign</mat-icon>
       <mat-card-title style="font-weight: 600; font-size: 1.2rem; padding-right: 100px;">{{ item.requestCompany?.title }}</mat-card-title>
       <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">
@@ -22,7 +28,7 @@
         </ng-container>
       </mat-card-subtitle>
     </mat-card-header>
-    <mat-card-content [style.opacity]="item.requestCompany?.status === 'DEAL' ? '0.6' : '1'">
+    <mat-card-content [style.opacity]="item.requestCompany?.status === 'DEAL' || item.status === 'NOT_AVAILABLE' ? '0.6' : '1'">
       <div class="request-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
         <div *ngIf="item.requestCompany?.description" style="display: flex; flex-direction: column;">
           <div style="display: flex; align-items: center;">
@@ -114,19 +120,20 @@
         </div>
       </div>
 
-      <div class="response-details editable-response" style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px; border: 2px dashed #1976d2; position: relative; transition: box-shadow 0.2s; box-shadow: 0 2px 8px #1976d220;">
+      <div class="response-details editable-response" style="margin-top: 18px; padding: 12px 10px; background: #f5faff; border-radius: 8px; border: 2px dashed #1976d2; position: relative; transition: box-shadow 0.2s; box-shadow: 0 2px 8px #1976d220;"
+           [style.opacity]="item.status === 'NOT_AVAILABLE' ? '0.5' : '1'">
         
         <!-- Action buttons positioned at the top of response section -->
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px;">
           <button mat-icon-button (click)="openEditResponse(item); $event.stopPropagation()" 
-                  [disabled]="item.requestCompany?.status === 'DEAL'"
-                  [title]="item.requestCompany?.status === 'DEAL' ? 'Не може да се редактира - сделката е приключена' : 'Редактирай'"
+                  [disabled]="item.requestCompany?.status === 'DEAL' || item.status === 'NOT_AVAILABLE'"
+                  [title]="item.status === 'NOT_AVAILABLE' ? 'Не може да се редактира - предложението е оттеглено' : (item.requestCompany?.status === 'DEAL' ? 'Не може да се редактира - сделката е приключена' : 'Редактирай')"
                   style="background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #1976d220; padding: 6px;">
             <mat-icon style="color: #1976d2; font-size: 20px;">edit</mat-icon>
           </button>
           <button mat-icon-button (click)="deleteResponse(item); $event.stopPropagation()" 
-                  [disabled]="item.requestCompany?.status === 'DEAL'"
-                  [title]="item.requestCompany?.status === 'DEAL' ? 'Не може да се изтрие - сделката е приключена' : 'Изтрий'"
+                  [disabled]="item.requestCompany?.status === 'DEAL' || item.status === 'NOT_AVAILABLE'"
+                  [title]="item.status === 'NOT_AVAILABLE' ? 'Не може да се изтрие - предложението е оттеглено' : (item.requestCompany?.status === 'DEAL' ? 'Не може да се изтрие - сделката е приключена' : 'Изтрий')"
                   style="background: #fff; border-radius: 50%; box-shadow: 0 1px 4px #f4433620; padding: 6px;">
             <mat-icon style="color: #f44336; font-size: 20px;">delete</mat-icon>
           </button>
@@ -159,7 +166,9 @@
           </div>
         </div>
 
-        <div (click)="openEditResponse(item)" style="cursor: pointer;">
+        <div (click)="item.status !== 'NOT_AVAILABLE' ? openEditResponse(item) : null" 
+             [style.cursor]="item.status === 'NOT_AVAILABLE' ? 'not-allowed' : 'pointer'"
+             [title]="item.status === 'NOT_AVAILABLE' ? 'Предложението е оттеглено' : ''">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #1976d2; vertical-align: middle;">reply</mat-icon>
           <span style="font-weight: 500; color: #1976d2;">
             Моето предложение
@@ -190,7 +199,7 @@
     </mat-card-content>
     <mat-card-actions align="end">
       <button 
-        *ngIf="item.requestCompany?.status === 'DEAL'"
+        *ngIf="item.requestCompany?.status === 'DEAL' && item.requestCompany?.choiceResponseId === item.responserCompanyId"
         mat-raised-button 
         color="accent"
         (click)="openChatForRequest(item.requestCompany.id)"

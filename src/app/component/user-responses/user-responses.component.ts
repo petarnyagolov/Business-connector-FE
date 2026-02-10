@@ -145,16 +145,6 @@ export class UserResponsesComponent implements OnInit {
       default: return mode || '';
     }
   }
-  
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'DEAL': return 'СДЕЛКА';
-      case 'ACTIVE': return 'АКТИВНА';
-      case 'CLOSED': return 'ПРИКЛЮЧЕНА';
-      default: return status || '';
-    }
-  }
-  
   getPictureUrl(pic: string): string {
     if (!pic) return '';
     if (pic.startsWith('http')) {
