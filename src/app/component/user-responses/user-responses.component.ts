@@ -14,6 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../environments/environment';
+import { ChatServiceNative as ChatService } from '../../service/chat-native.service';
 
 @Component({
   selector: 'app-user-responses',
@@ -52,7 +53,8 @@ export class UserResponsesComponent implements OnInit {
     private responseService: ResponseService,
     private companyService: CompanyService,
     private sanitizer: DomSanitizer,
-    private http: HttpClient
+    private http: HttpClient,
+    private chatService: ChatService
   ) {}
 
   ngOnInit(): void {
@@ -338,5 +340,14 @@ export class UserResponsesComponent implements OnInit {
   openPdfInNewTab(fileUrl: string): void {
     if (!fileUrl) return;
     window.open(fileUrl, '_blank');
+  }
+
+  /**
+   * Opens the chat sidebar and auto-selects the chat for the given request
+   */
+  openChatForRequest(requestId: string): void {
+    if (requestId) {
+      this.chatService.openChatForRequest(requestId);
+    }
   }
 }

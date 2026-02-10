@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
@@ -562,7 +562,7 @@ import { NotificationService } from '../../service/notification.service';
     }
   `]
 })
-export class ChatSidebarComponent implements OnInit, OnDestroy {
+export class ChatSidebarComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isOpen = false;
   @Output() closeEvent = new EventEmitter<void>();
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
@@ -574,6 +574,8 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
   typingUsers: string[] = [];
   isTyping = false;
   selectedFiles: File[] = []; 
+  
+  private pendingRequestId: string | null = null;
 
   private destroy$ = new Subject<void>();
   private typingTimer?: any;
@@ -584,6 +586,31 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private notificationService: NotificationService
   ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // When sidebar opens, check if there's a pending request to auto-select
+    if (changes['isOpen'] && changes['isOpen'].currentValue === true && this.pendingRequestId) {
+      const requestId = this.pendingRequestId;
+      this.pendingRequestId = null;
+      
+      // Try to select the chat after a short delay to ensure chats are loaded
+      setTimeout(() => {
+        const chat = this.chats.find(c => c.requestId === requestId);
+        if (chat) {
+          this.selectChat(chat);
+        } else {
+          // Chat not in list yet, refresh and try again
+          this.chatService.refreshChats();
+          setTimeout(() => {
+            const retryChat = this.chats.find(c => c.requestId === requestId);
+            if (retryChat) {
+              this.selectChat(retryChat);
+            }
+          }, 500);
+        }
+      }, 100);
+    }
+  }
 
   ngOnInit(): void {
     console.log('🚀 ChatSidebarComponent ngOnInit called');
@@ -598,6 +625,33 @@ export class ChatSidebarComponent implements OnInit, OnDestroy {
           const updatedChat = chats.find(c => c.requestId === this.selectedChat!.requestId);
           if (updatedChat) {
             this.selectedChat = updatedChat;
+          }
+        }
+      });
+
+    // Auto-select chat when requested via service
+    this.chatService.selectedRequestId$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(requestId => {
+        if (requestId) {
+          if (this.isOpen) {
+            // Sidebar is already open, select immediately
+            const chatToSelect = this.chats.find(c => c.requestId === requestId);
+            if (chatToSelect) {
+              this.selectChat(chatToSelect);
+            } else {
+              // Chat not loaded yet, refresh and try again
+              this.chatService.refreshChats();
+              setTimeout(() => {
+                const chat = this.chats.find(c => c.requestId === requestId);
+                if (chat) {
+                  this.selectChat(chat);
+                }
+              }, 500);
+            }
+          } else {
+            // Sidebar not open yet, save for later
+            this.pendingRequestId = requestId;
           }
         }
       });

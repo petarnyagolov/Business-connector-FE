@@ -56,6 +56,9 @@ export class ChatServiceNative {
   private openChatSidebarSubject = new BehaviorSubject<boolean>(false);
   public openChatSidebar$ = this.openChatSidebarSubject.asObservable();
 
+  private selectedRequestIdSubject = new BehaviorSubject<string | null>(null);
+  public selectedRequestId$ = this.selectedRequestIdSubject.asObservable();
+
   public fileError$ = new BehaviorSubject<string | null>(null);
   
   public get typing$() {
@@ -313,5 +316,14 @@ export class ChatServiceNative {
     let isConnected = false;
     this.wsService.isConnected$.subscribe(connected => isConnected = connected).unsubscribe();
     return isConnected;
+  }
+
+  /**
+   * Opens the chat sidebar and selects a specific chat by requestId
+   * @param requestId The request ID to open chat for
+   */
+  openChatForRequest(requestId: string): void {
+    this.selectedRequestIdSubject.next(requestId);
+    this.openChatSidebarSubject.next(true);
   }
 }

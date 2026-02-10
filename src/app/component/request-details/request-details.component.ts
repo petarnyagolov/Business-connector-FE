@@ -23,6 +23,7 @@ import { ResponseDialogComponent } from './response-dialog.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { ChatServiceNative as ChatService } from '../../service/chat-native.service';
 
 @Component({
   selector: 'app-request-details',
@@ -98,7 +99,8 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private sanitizer: DomSanitizer,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private chatService: ChatService
   ) {
     this.loadUserCompanies();
   }
@@ -481,6 +483,15 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
       startChat: false
     };
     this.showDealDialog = true;
+  }
+
+  /**
+   * Opens the chat sidebar and auto-selects the chat for this request
+   */
+  openChatForRequest(): void {
+    if (this.request?.id) {
+      this.chatService.openChatForRequest(this.request.id);
+    }
   }
 
   closeDealDialog(): void {

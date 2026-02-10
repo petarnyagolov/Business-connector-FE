@@ -1,7 +1,6 @@
 <div *ngIf="request; else loading">
   <mat-card class="example-card" appearance="outlined" 
             style="max-width: 500px; margin: 0 auto; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;"
-            [style.opacity]="request.status === 'DEAL' ? '0.6' : '1'"
             [style.background]="request.status === 'DEAL' ? '#f5f5f5' : '#ffffff'">
     <!-- Request Status Badge -->
     <div *ngIf="request.status === 'DEAL'" class="status-badge-deal" style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4); z-index: 10; display: flex; align-items: center; gap: 4px;">
@@ -9,7 +8,7 @@
       <span>СДЕЛКА</span>
     </div>
     
-    <mat-card-header [style.opacity]="request.status === 'DEAL' ? '0.7' : '1'">
+    <mat-card-header [style.opacity]="request.status === 'DEAL' ? '0.6' : '1'">
       <mat-icon mat-card-avatar color="primary" style="background: #e3f2fd; border-radius: 50%;">campaign</mat-icon>
       <mat-card-title style="font-weight: 600; font-size: 1.2rem; padding-right: 100px;">{{ request.title }}</mat-card-title>
       <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">{{ request.requesterName | uppercase }}</mat-card-subtitle>
@@ -26,7 +25,7 @@
         </ng-template>
       </span>
     </div>
-    <mat-card-content>
+    <mat-card-content [style.opacity]="request.status === 'DEAL' ? '0.6' : '1'">
       <div class="request-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
         <div *ngIf="request.description" style="display: flex; flex-direction: column;">
           <div style="display: flex; align-items: center;">
@@ -131,7 +130,7 @@
         </div> -->
       </div>
     </mat-card-content>
-    <mat-card-actions align="end" [style.opacity]="request.status === 'DEAL' ? '0.5' : '1'">
+    <mat-card-actions align="end">
       <button 
         mat-raised-button 
         color="primary" 
@@ -142,6 +141,17 @@
       >
         <mat-icon style="margin-right: 4px;">reply</mat-icon>
         Предложи
+      </button>
+      <button 
+        *ngIf="request.status === 'DEAL' && isRequestOwner()"
+        mat-raised-button 
+        color="accent"
+        (click)="openChatForRequest()"
+        title="Отвори чат за сделката"
+        style="margin: 8px;"
+      >
+        <mat-icon style="margin-right: 4px;">chat</mat-icon>
+        Отвори чат
       </button>
     </mat-card-actions>
   </mat-card>
@@ -154,7 +164,6 @@
     <div class="responses-grid" style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: center;">
       <mat-card class="response-card" *ngFor="let response of responses; let i = index" appearance="outlined" 
                 style="width: 370px; min-width: 320px; max-width: 100%; box-shadow: 0 2px 12px #0002; border-radius: 14px; position: relative;"
-                [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.6' : '1'"
                 [style.background]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '#f5f5f5' : '#ffffff'">
         
         <!-- Response Status Badge for CHOSEN -->
@@ -168,7 +177,7 @@
           Оттеглено
         </div>
         
-        <mat-card-header [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.7' : '1'">
+        <mat-card-header [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.6' : '1'">
           <mat-icon mat-card-avatar color="accent" style="background: #e8f5e8; border-radius: 50%;">reply</mat-icon>
           <mat-card-title style="font-weight: 600; font-size: 1.1rem; padding-right: 90px;">Предложение #{{ response.id }}</mat-card-title>
           <mat-card-subtitle style="font-size: 0.95rem; color: #1976d2;">
@@ -176,7 +185,7 @@
           </mat-card-subtitle>
         </mat-card-header>
         
-        <mat-card-content>
+        <mat-card-content [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.6' : '1'">
           <div class="response-details" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
             
             <div style="display: flex; align-items: flex-start;">
@@ -253,7 +262,7 @@
           </div>
         </mat-card-content>
         
-        <mat-card-actions style="display: flex; justify-content: center; gap: 8px;" [style.opacity]="response.status === 'NOT_AVAILABLE' || request.status === 'DEAL' ? '0.5' : '1'">
+        <mat-card-actions style="display: flex; justify-content: center; gap: 8px;">
           <button *ngIf="canMakeDeal(response) && response.status !== 'NOT_AVAILABLE'" 
                   mat-stroked-button color="accent" (click)="openDealDialog(response)" 
                   [disabled]="request.status === 'DEAL'"
