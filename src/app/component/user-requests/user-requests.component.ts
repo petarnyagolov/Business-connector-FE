@@ -49,6 +49,12 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     showModalPreview = false;
     modalPreviewData: any = null;
     
+    // Редактиране properties
+    showEditRequestModal = false;
+    isEditMode = false;
+    editRequestId: string | null = null;
+    pendingEditRequest: CompanyRequest | null = null;
+    
     showConfirmModal = false;
     confirmModalData: {
       title: string;
@@ -227,17 +233,25 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
     );
   }
 
-  showConfirmMessage(title: string, message: string, confirmText: string = 'Да', cancelText: string = 'Отказ'): void {
+  showConfirmMessage(title: string, message: string, confirmText: string = 'Да', cancelText: string = 'Отказ', isEdit: boolean = false): void {
     this.confirmModalData = { title, message, confirmText, cancelText };
+    (this.confirmModalData as any).isEdit = isEdit;
     this.showConfirmModal = true;
   }
 
   closeConfirmModal(): void {
     this.showConfirmModal = false;
     this.pendingDeleteId = null;
+    this.pendingEditRequest = null;
   }
 
   confirmDeleteAction(): void {
+    // Проверяваме дали е за редактиране
+    if ((this.confirmModalData as any).isEdit) {
+      this.confirmEditAction();
+      return;
+    }
+    
     if (this.pendingDeleteId) {
       const requestId = this.pendingDeleteId;
       this.closeConfirmModal();
@@ -284,6 +298,243 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
 
   closeSuccessModal(): void {
     this.showSuccessModal = false;
+  }
+
+  editRequest(request: CompanyRequest): void {
+    if (request.responsesCount && request.responsesCount > 0) {
+      this.showSuccessMessage('Внимание', 'Не можете да редактирате публикация която има предложения!', 'ОК');
+      return;
+    }
+    
+    this.pendingEditRequest = request;
+    this.showConfirmMessage(
+      'Потвърждение',
+      'Сигурен ли си, че искаш да редактираш тази публикация?',
+      'Да',
+      'Отказ',
+      true
+    );
+  }
+
+  confirmEditAction(): void {
+    if (this.pendingEditRequest) {
+      const request = this.pendingEditRequest;
+      this.closeConfirmModal();
+      
+      // Откриваме модала за редактиране и попълваме данните
+      this.openEditRequestModal(request);
+    }
+  }
+
+  openEditRequestModal(request: CompanyRequest): void {
+    this.isEditMode = true;
+    this.editRequestId = request.id;
+    
+    // Намираме компанията
+    const company = this.userCompanies.find(c => c.id === request.requesterCompanyId);
+    
+    // Попълваме формата
+    this.requestForm.patchValue({
+      company: company?.vatNumber || '',
+      region: request.region || '',
+      title: request.title || '',
+      requestType: request.requestType || '',
+      description: request.description || '',
+      activeFrom: request.availableFrom ? this.formatDateForPicker(request.availableFrom) : null,
+      activeTo: request.availableTo ? this.formatDateForPicker(request.availableTo) : null,
+      urgent: request.urgent || false,
+      serviceType: request.serviceType || '',
+      capacity: request.capacity || '',
+      unit: request.unit || '',
+      workMode: request.workMode || '',
+      fixedPrice: (request as any).fixedPrice || '',
+      priceFrom: request.priceFrom || '',
+      priceTo: request.priceTo || '',
+      requiredFields: request.requiredFields || []
+    });
+    
+    // Зареждаме съществуващи файлове (ако има)
+    this.modalSelectedFiles = [];
+    
+    this.showEditRequestModal = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeEditRequestModal(): void {
+    this.showEditRequestModal = false;
+    this.isEditMode = false;
+    this.editRequestId = null;
+    this.pendingEditRequest = null;
+    document.body.style.overflow = 'auto';
+    this.resetForm();
+  }
+
+  submitEditRequest(): void {
+    console.log('🎯 submitEditRequest called - showing preview');
+    
+    if (this.requestForm.invalid) {
+      this.showSuccessMessage('Внимание', 'Моля, попълнете всички задължителни полета.', 'ОК');
+      return;
+    }
+    
+    // Показваме preview вместо директно да изпращаме
+    this.showEditRequestPreview();
+  }
+
+  showEditRequestPreview(): void {
+    console.log('🔍 showEditRequestPreview() called');
+    const formValue = this.requestForm.value;
+    const selectedCompany = this.userCompanies.find(c => c.vatNumber === formValue.company);
+    
+    this.modalPreviewData = {
+      companyName: selectedCompany?.name || '',
+      companyVat: selectedCompany?.vatNumber || '',
+      title: formValue.title,
+      region: formValue.region,
+      requestType: this.getRequestTypeLabel(formValue.requestType),
+      requestTypeRaw: formValue.requestType,
+      description: formValue.description,
+      activeFrom: formValue.activeFrom,
+      activeTo: formValue.activeTo,
+      urgent: formValue.urgent,
+      serviceType: formValue.serviceType ? this.getServiceTypeLabel(formValue.serviceType) : null,
+      capacity: formValue.capacity,
+      unit: formValue.unit ? this.getUnitLabel(formValue.unit) : null,
+      workMode: formValue.workMode ? this.getWorkModeLabel(formValue.workMode) : null,
+      fixedPrice: formValue.fixedPrice,
+      priceFrom: formValue.priceFrom,
+      priceTo: formValue.priceTo,
+      requiredFields: formValue.requiredFields || [],
+      files: this.modalSelectedFiles
+    };
+    
+    console.log('✅ Setting showModalPreview = true for EDIT');
+    console.log('📦 Edit modal preview data:', this.modalPreviewData);
+    this.showModalPreview = true;
+  }
+
+  confirmEditPublish(): void {
+    console.log('📧 Confirming edit publish...');
+    
+    if (!this.isEditMode || !this.editRequestId) {
+      console.error('❌ Not in edit mode or missing editRequestId');
+      return;
+    }
+    
+    this.processEditFormSubmission();
+  }
+
+  private processEditFormSubmission(): void {
+    if (this.requestForm.valid && !this.isSubmitting && this.editRequestId) {
+      console.log('✅ Edit form is valid, proceeding...');
+      
+      const maxFileSize = 25 * 1024 * 1024; 
+      const oversizedFiles = this.modalSelectedFiles.filter(file => file.size > maxFileSize);
+      if (oversizedFiles.length > 0) {
+        const fileNames = oversizedFiles.map(f => `${f.name} (${(f.size / (1024 * 1024)).toFixed(2)}MB)`).join(', ');
+        this.showSuccessMessage('Внимание', `Следните файлове са твърде големи: ${fileNames}. Максималният размер е 25MB на файл.`, 'ОК');
+        return;
+      }
+      
+      this.isSubmitting = true;
+      
+      const formData = new FormData();
+      const formValue = this.requestForm.value;
+      console.log('📝 Edit form values:', formValue);
+      
+      const selectedCompany = this.userCompanies.find(c => c.vatNumber === formValue.company);
+      console.log('🏢 Edit selected company:', selectedCompany);
+      
+      if (selectedCompany) {
+        console.log('✅ Company found in edit, preparing request data...');
+        
+        const toLocalDateString = (date: any) => {
+          if (!date) return null;
+          const d = new Date(date);
+          const year = d.getFullYear();
+          const month = (d.getMonth() + 1).toString().padStart(2, '0');
+          const day = d.getDate().toString().padStart(2, '0');
+          return `${year}-${month}-${day}T00:00:00`;
+        };
+        
+        const requestCompany = {
+          id: this.editRequestId,
+          requesterName: selectedCompany.name,
+          requesterCompanyId: selectedCompany.id,
+          region: formValue.region,
+          title: formValue.title,
+          requestType: formValue.requestType,
+          description: formValue.description,
+          activeFrom: toLocalDateString(formValue.activeFrom),
+          activeTo: toLocalDateString(formValue.activeTo),
+          urgent: formValue.urgent || false,
+          serviceType: formValue.serviceType || '',
+          capacity: formValue.capacity || '',
+          workMode: formValue.workMode || '',
+          priceFrom: formValue.priceFrom || '',
+          priceTo: formValue.priceTo || '',
+          unit: formValue.unit || '',
+          requiredFields: formValue.requiredFields || []
+        };
+        
+        console.log('📋 Edit request data prepared:', requestCompany);
+        formData.append('requestCompany', new Blob([JSON.stringify(requestCompany)], { type: 'application/json' }));
+        
+        if (this.modalSelectedFiles.length > 0) {
+          console.log(`📎 Adding ${this.modalSelectedFiles.length} files from edit:`);
+          this.modalSelectedFiles.forEach((file, index) => {
+            console.log(`File ${index + 1}: ${file.name} (${file.type}, ${file.size} bytes)`);
+            formData.append('files', file, file.name);
+          });
+        } else {
+          console.log('📎 No files attached in edit');
+        }
+        
+        console.log('🌐 Calling companyRequestService.updateRequest...');
+        
+        this.companyRequestService.updateRequest(this.editRequestId, formData).subscribe({
+          next: (response) => {
+            console.log('✅ Request updated successfully:', response);
+            this.isSubmitting = false;
+            this.closeEditRequestModal();
+            this.showModalPreview = false;
+            
+            this.loadRequests(); 
+            this.showSuccessMessage('Успех', 'Публикацията е редактирана успешно!', 'ОК');
+          },
+          error: (err) => {
+            console.error('❌ Error updating request:', err);
+            this.isSubmitting = false;
+            this.showSuccessMessage('Грешка', 'Грешка при редактиране на публикация: ' + (err.message || err.error?.message || 'Неизвестна грешка'), 'ОК');
+          }
+        });
+      } else {
+        console.error('❌ No company selected in edit!');
+        this.isSubmitting = false;
+        this.showSuccessMessage('Внимание', 'Моля, изберете фирма!', 'ОК');
+      }
+    } else {
+      console.log('❌ Edit form is invalid or already submitting');
+      if (this.requestForm.invalid) {
+        console.log('Edit form errors:', this.requestForm.errors);
+        Object.keys(this.requestForm.controls).forEach(key => {
+          const control = this.requestForm.get(key);
+          if (control && control.invalid) {
+            console.log(`❌ Edit field "${key}" is invalid:`, control.errors);
+          }
+        });
+      }
+    }
+  }
+
+  private formatDateForPicker(date: any): Date | null {
+    if (!date) return null;
+    if (date instanceof Date) return date;
+    if (typeof date === 'string' || typeof date === 'number') return new Date(date);
+    if (Array.isArray(date) && date.length >= 3) {
+      return new Date(date[0], date[1] - 1, date[2]);
+    }
+    return null;
   }
 
   onFileSelected(event: Event): void {
@@ -459,12 +710,17 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   }
 
   openCreateRequestModal(): void {
+    this.isEditMode = false;
+    this.editRequestId = null;
     this.showCreateRequestModal = true;
     document.body.style.overflow = 'hidden';
   }
 
   closeCreateRequestModal(): void {
     this.showCreateRequestModal = false;
+    this.showEditRequestModal = false;
+    this.isEditMode = false;
+    this.editRequestId = null;
     document.body.style.overflow = 'auto';
     this.resetForm();
   }
@@ -571,6 +827,12 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   onSubmitRequest(): void {
     console.log('🎯 Modal onSubmitRequest called - showing preview');
     
+    // Проверяваме дали сме в режим на редактиране
+    if (this.isEditMode) {
+      this.submitEditRequest();
+      return;
+    }
+    
     const currentCredits = this.creditsService.getCurrentCredits();
     if (currentCredits <= 0) {
       this.showSuccessMessage('Внимание', 'Нямате достатъчно кредити за създаване на публикация. Моля, закупете кредити.', 'ОК');
@@ -620,6 +882,12 @@ export class UserRequestsComponent implements OnInit, OnDestroy {
   }
   
   confirmModalPublish(): void {
+    if (this.isEditMode) {
+      // Ако сме в режим на редактиране, използваме confirm edit
+      this.confirmEditPublish();
+      return;
+    }
+    
     console.log('📧 Checking email verification before modal publish...');
     
     this.emailVerificationService.checkVerificationOrPrompt().subscribe({

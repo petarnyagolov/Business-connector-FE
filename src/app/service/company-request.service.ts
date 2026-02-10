@@ -115,6 +115,11 @@ export class CompanyRequestService {
       return this.http.post(`${this.apiUrl}`, formData);
     }
 
+    updateRequest(id: string, formData: FormData): Observable<any> {
+      this.clearUserRequestsCache();
+      return this.http.put(`${this.apiUrl}/${id}`, formData);
+    }
+
     deleteRequest(id: string): Observable<any> {
       this.clearUserRequestsCache();
       return this.http.delete(`${this.apiUrl}/${id}`);

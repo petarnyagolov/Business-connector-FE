@@ -135,6 +135,14 @@
       </div>
     </mat-card-content>
     <mat-card-actions align="end">
+      <button mat-stroked-button color="primary" (click)="editRequest(request)" 
+              *ngIf="!request.responsesCount || request.responsesCount === 0"
+              [disabled]="request.status === 'DEAL'"
+              [title]="request.status === 'DEAL' ? 'Не може да се редактира публикация със сделка' : 'Редактирай публикацията'" 
+              style="margin-right: 8px;">
+        <mat-icon>edit</mat-icon>
+        Редактирай
+      </button>
       <button mat-stroked-button color="warn" (click)="deleteRequest(request.id)" 
               [disabled]="request.status === 'DEAL'"
               [title]="request.status === 'DEAL' ? 'Не може да се свали публикация със сделка' : 'Свали публикацията'">
@@ -282,7 +290,7 @@
 }
 </style>
 
-<div *ngIf="showCreateRequestModal" class="modal-overlay" (click)="closeCreateRequestModal()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;">
+<div *ngIf="showCreateRequestModal || showEditRequestModal" class="modal-overlay" (click)="closeCreateRequestModal()" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;">
   <div class="modal-content" (click)="$event.stopPropagation()" style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 32px rgba(0,0,0,0.2);">
     
     <!-- PREVIEW MODE -->
@@ -291,7 +299,7 @@
         <mat-card-header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 2px solid #667eea;">
           <mat-card-title style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 1.3rem; font-weight: 600;">
             <mat-icon style="vertical-align: middle; margin-right: 8px; color: #667eea;">visibility</mat-icon>
-            Преглед преди публикуване
+            {{ isEditMode ? 'Преглед преди запазване' : 'Преглед преди публикуване' }}
           </mat-card-title>
           <button type="button" mat-icon-button (click)="closeCreateRequestModal()">
             <mat-icon>close</mat-icon>
@@ -302,7 +310,7 @@
           <div style="background: #fffbea; border-left: 4px solid #f59e0b; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px;">
             <div style="display: flex; align-items: center; gap: 8px; color: #92400e; font-weight: 500;">
               <mat-icon style="color: #f59e0b;">info</mat-icon>
-              <span>Прегледайте публикацията преди да я публикувате</span>
+              <span>{{ isEditMode ? 'Прегледайте промените преди да ги запазите' : 'Прегледайте публикацията преди да я публикувате' }}</span>
             </div>
           </div>
           
@@ -415,8 +423,8 @@
             Откажи - Редактирай
           </button>
           <button mat-raised-button color="primary" (click)="confirmModalPublish()" type="button">
-            <mat-icon style="margin-right: 4px;">publish</mat-icon>
-            Публикувай
+            <mat-icon style="margin-right: 4px;">{{ isEditMode ? 'save' : 'publish' }}</mat-icon>
+            {{ isEditMode ? 'Запази промените' : 'Публикувай' }}
           </button>
         </mat-card-actions>
       </mat-card>
@@ -428,7 +436,7 @@
         <mat-card-header style="display: flex; justify-content: space-between; align-items: center; padding: 16px;">
           <mat-card-title>
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-              <span>Създай публикация</span>
+              <span>{{ isEditMode ? 'Редактирай публикация' : 'Създай публикация' }}</span>
               <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #2196F3; font-weight: 500; margin-right: 40px;">
                 <mat-icon style="font-size: 18px;">account_balance_wallet</mat-icon>
                 <span>Кредити: {{ creditsService.getCurrentCredits() }}</span>
@@ -440,7 +448,7 @@
           </button>
         </mat-card-header>
         <mat-card-content>
-          <div *ngIf="creditsService.getCurrentCredits() <= 1" 
+          <div *ngIf="creditsService.getCurrentCredits() <= 1 && !isEditMode" 
                style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
             <mat-icon style="color: #e17055;">warning</mat-icon>
             <span style="color: #d63031; font-weight: 500;">
