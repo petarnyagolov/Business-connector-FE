@@ -8,8 +8,8 @@
   <div class="desktop-nav">
     <div class="nav-links">
       <a mat-button routerLink="/home">Начало</a>
-      @if (isAuthenticated) {
       <a mat-button routerLink="/requests">Публикации</a>
+      @if (isAuthenticated) {
       <a mat-button routerLink="/user/companies">Моите фирми</a>
       <a mat-button routerLink="/my-requests">Моите Публикации</a>
       <a mat-button routerLink="/my-responses">Моите Предложения</a>
@@ -144,12 +144,13 @@
         Начало
       </button>
 
+      <button mat-button routerLink="/requests" (click)="closeMobileMenu()">
+        <mat-icon>business</mat-icon>
+        Публикации
+      </button>
+
       @if (isAuthenticated) {
       <ng-container>
-        <button mat-button routerLink="/requests" (click)="closeMobileMenu()">
-          <mat-icon>business</mat-icon>
-          Публикации
-        </button>
         <button mat-button routerLink="/user/companies" (click)="closeMobileMenu()">
           <mat-icon>domain</mat-icon>
           Моите фирми

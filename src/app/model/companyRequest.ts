@@ -27,4 +27,5 @@ export interface CompanyRequest {
   
   fileUrls?: string[];
   pictureUrls?: string[];
+  filesCount?: number; // Count of attached files (visible for unauthenticated users)
 }

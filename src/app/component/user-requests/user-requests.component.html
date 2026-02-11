@@ -119,6 +119,14 @@
           </div>
         </div>
         
+        <!-- Show filesCount for unauthenticated users (when files array is not available) -->
+        <div *ngIf="(!request.files || request.files.length === 0) && request.filesCount && request.filesCount > 0" 
+             style="display: flex; align-items: center; margin-top: 8px; padding: 10px; background-color: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px;">
+          <mat-icon style="font-size: 18px; margin-right: 6px; color: #f57c00;">lock</mat-icon>
+          <span class="label" style="color: #e65100;">Прикачени файлове: {{ request.filesCount }}</span>
+          <span style="margin-left: 8px; font-size: 0.9rem; color: #757575;">(Влезте, за да видите файловете)</span>
+        </div>
+        
         <div *ngIf="(!request.files || !request.files.length) && getPictureUrls(request).length" class="pictures-row" style="display: flex; align-items: flex-start; margin-top: 8px;">
           <mat-icon style="font-size: 18px; margin-right: 6px; color: #607d8b; margin-top: 2px;">image</mat-icon>
           <span class="label" style="margin-right: 6px;">Снимки:</span>

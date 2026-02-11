@@ -20,6 +20,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormatDateArrayPipe } from '../user-responses/format-date-array.pipe';
 import { SavedRequestsService } from '../../service/saved-requests.service';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-company-requests',
@@ -47,6 +48,7 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   searchSubject: Subject<string> = new Subject<string>();
   private destroy$ = new Subject<void>();
   userCompanies: Company[] = [];
+  isAuthenticated: boolean = false;
 
   constructor(
     private companyRequestService: CompanyRequestService, 
@@ -56,7 +58,8 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer, 
     private http: HttpClient,
     private snackBar: MatSnackBar,
-    private savedRequestsService: SavedRequestsService
+    private savedRequestsService: SavedRequestsService,
+    private authService: AuthService
   ) {
     this.searchSubject.pipe(
       debounceTime(1000),
@@ -68,26 +71,39 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
     });
   }
   ngOnInit(): void {
-    this.loadRequests();
-    this.companyService.getAllCompaniesByUser()
+    // Check authentication status
+    this.authService.authStatus$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(companies => this.userCompanies = companies);
-    this.loadAllPictures();
-    
-    // Load saved requests to enable local checking
-    this.savedRequestsService.getAllSavedRequests()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => this.cdr.markForCheck(),
-        error: (error) => console.error('Error loading saved requests:', error)
+      .subscribe(status => {
+        this.isAuthenticated = status;
+        this.cdr.markForCheck();
       });
 
-    this.companyRequestService.getAllRequestsByUser()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => this.cdr.markForCheck(),
-        error: (error) => console.error('Error loading user requests:', error)
-      });
+    this.loadRequests();
+    
+    // Only load authenticated data if user is logged in
+    if (this.authService.isAuthenticated()) {
+      this.companyService.getAllCompaniesByUser()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(companies => this.userCompanies = companies);
+      
+      // Load saved requests to enable local checking
+      this.savedRequestsService.getAllSavedRequests()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => this.cdr.markForCheck(),
+          error: (error) => console.error('Error loading saved requests:', error)
+        });
+
+      this.companyRequestService.getAllRequestsByUser()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => this.cdr.markForCheck(),
+          error: (error) => console.error('Error loading user requests:', error)
+        });
+    }
+    
+    this.loadAllPictures();
   }
   loadRequests() {
     this.companyRequestService
@@ -180,6 +196,13 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   }
 
   onSave(request: CompanyRequest): void {
+    // Redirect to login if not authenticated
+    if (!this.isAuthenticated) {
+      this.snackBar.open('Моля, влезте в профила си, за да запазите публикации!', 'Затвори', { duration: 3000 });
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.savedRequestsService.toggleSavedRequest(request.id).subscribe({
       next: (isSaved) => {
         const message = isSaved ? 'Публикацията е запазена успешно!' : 'Публикацията е премахната от запазените!';
@@ -194,10 +217,18 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   }
 
   isRequestSaved(requestId: string): boolean {
+    // Only check if authenticated
+    if (!this.isAuthenticated) {
+      return false;
+    }
     return this.savedRequestsService.isRequestSavedLocally(requestId);
   }
 
   isMyRequest(requestId: string): boolean {
+    // Only check if authenticated
+    if (!this.isAuthenticated) {
+      return false;
+    }
     const result = this.companyRequestService.isUserRequest(requestId);
     return result;
   }
@@ -433,7 +464,18 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   }
 
   public navigateToRequest(requestId: string) {
+    // Redirect to login if not authenticated
+    if (!this.isAuthenticated) {
+      this.snackBar.open('Моля, влезте в профила си, за да видите пълните детайли!', 'Затвори', { duration: 3000 });
+      this.router.navigate(['/login']);
+      return;
+    }
     this.router.navigate(['/requests', requestId]);
+  }
+
+  requireLogin(action: string): void {
+    this.snackBar.open(`Моля, влезте в профила си, за да ${action}!`, 'Затвори', { duration: 3000 });
+    this.router.navigate(['/login']);
   }
 
   shareRequest(requestId: string): void {

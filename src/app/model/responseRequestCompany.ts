@@ -31,4 +31,6 @@ export interface RequestCompanyDto {
   pictureUrls?: string[];
   choiceResponseId?: string;
   requiredFields?: string[];
+  fileUrls?: string[];
+  filesCount?: number; // Count of attached files (visible for unauthenticated users)
 }

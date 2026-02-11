@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CompanyRequestService } from '../../service/company-request.service';
 import { CompanyRequest } from '../../model/companyRequest';
 import { CompanyService } from '../../service/company.service';
@@ -19,6 +19,7 @@ import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { EmailVerificationService } from '../../service/email-verification.service';
+import { AuthService } from '../../service/auth.service';
 import { ResponseDialogComponent } from './response-dialog.component';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
@@ -54,6 +55,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   editResponseData: any = {};
   editResponseItem: any = null;
   showEditResponseDialog: boolean = false;
+  isAuthenticated: boolean = false;
   
   showImageDialog: boolean = false;
   selectedImage: string | null = null;
@@ -92,6 +94,7 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private companyRequestService: CompanyRequestService,
     private companyService: CompanyService,
     private responseService: ResponseService,
@@ -100,12 +103,22 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private chatService: ChatService
+    private chatService: ChatService,
+    private authService: AuthService
   ) {
-    this.loadUserCompanies();
+    // Only load user companies if authenticated
+    this.isAuthenticated = this.authService.isAuthenticated();
+    if (this.isAuthenticated) {
+      this.loadUserCompanies();
+    }
   }
 
   loadUserCompanies(): void {
+    // Only load if authenticated
+    if (!this.authService.isAuthenticated()) {
+      return;
+    }
+
     this.companyService.getAllCompaniesByUser()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -121,6 +134,14 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Subscribe to auth status changes
+    this.authService.authStatus$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(status => {
+        this.isAuthenticated = status;
+        this.cdr.markForCheck();
+      });
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.companyRequestService.getRequestById(id).subscribe(res => {
@@ -612,11 +633,12 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   isRequestOwner(): boolean {
-    if (!this.request || !this.userCompanies) return false;
+    if (!this.isAuthenticated || !this.request || !this.userCompanies) return false;
     return this.userCompanies.some(company => company.id === this.request?.requesterCompanyId);
   }
 
   canSubmitResponse(): boolean {
+    if (!this.isAuthenticated) return false;
     return !this.isRequestOwner() && this.hasAvailableCompaniesForResponse();
   }
 
@@ -641,6 +663,19 @@ export class RequestDetailsComponent implements OnInit, OnDestroy {
   }
 
   openResponseModal(): void {
+    // Redirect to login if not authenticated
+    if (!this.isAuthenticated) {
+      this.showSuccessMessage(
+        'Автентикация изисквана',
+        'Моля, влезте в профила си, за да подадете предложение!',
+        'Влез'
+      );
+      setTimeout(() => {
+        this.router.navigate(['/login']);
+      }, 1500);
+      return;
+    }
+
     console.log('Opening response dialog, companies:', this.userCompanies);
     
     if (!this.hasAvailableCompaniesForResponse()) {

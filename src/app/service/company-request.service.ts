@@ -41,6 +41,7 @@ export class CompanyRequestService {
               });
             }
             
+            // Process fileUrls only if present (authenticated users)
             if (Array.isArray(req.fileUrls)) {
               files = req.fileUrls.map((fileUrl: string) => {
                 const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
@@ -63,7 +64,8 @@ export class CompanyRequestService {
             return {
               ...req,
               pictures,
-              files
+              files,
+              filesCount: req.filesCount || (files.length > 0 ? files.length : undefined)
             };
           });
         }
@@ -148,6 +150,7 @@ export class CompanyRequestService {
             });
           }
           
+          // Process fileUrls only if present (authenticated users)
           if (Array.isArray(req.fileUrls)) {
             files = req.fileUrls.map((fileUrl: string) => {
               const cleanFileUrl = fileUrl.replace(/^[\/\\]+/, '');
@@ -172,7 +175,8 @@ export class CompanyRequestService {
             request: { 
               ...req, 
               pictures,
-              files
+              files,
+              filesCount: req.filesCount || (files.length > 0 ? files.length : undefined)
             }
           };
         })

@@ -44,10 +44,10 @@ export const routes: Routes = [
     ]
   },
   {
-    path: 'requests', component: CompanyRequestsComponent, canActivate: [AuthGuard]
+    path: 'requests', component: CompanyRequestsComponent // Public route - accessible for all users
   },
   {
-    path: 'requests/:id', component: RequestDetailsComponent, canActivate: [AuthGuard]
+    path: 'requests/:id', component: RequestDetailsComponent // Public route - accessible for all users
   },
   {
     path: 'my-requests',
