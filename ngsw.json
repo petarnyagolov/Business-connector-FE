@@ -1,0 +1,217 @@
+{
+  "configVersion": 1,
+  "timestamp": 1770819109276,
+  "appData": {
+    "version": "1.2.6",
+    "timestamp": "2026-01-26T09:20:00Z",
+    "description": "Exclude all API calls from service worker cache"
+  },
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/chunk-3T42K4VL.js",
+        "/chunk-46BXKJKU.js",
+        "/chunk-4ASVBE62.js",
+        "/chunk-5M4JKBR5.js",
+        "/chunk-5W7TKXG3.js",
+        "/chunk-66LFEHQV.js",
+        "/chunk-6P3D3FBC.js",
+        "/chunk-7RFGPB7Y.js",
+        "/chunk-7SSEC27Y.js",
+        "/chunk-BKAIPBB7.js",
+        "/chunk-BS6KLKO5.js",
+        "/chunk-CFIN5KH7.js",
+        "/chunk-D4TCZGYH.js",
+        "/chunk-GDILFSMQ.js",
+        "/chunk-GUGDQATU.js",
+        "/chunk-I24YZ6JE.js",
+        "/chunk-I2X25UAR.js",
+        "/chunk-IFXUHTWD.js",
+        "/chunk-KN5H3PP4.js",
+        "/chunk-KOM3L7EU.js",
+        "/chunk-LIL5WR5X.js",
+        "/chunk-NARDRQXJ.js",
+        "/chunk-NU6S7GW7.js",
+        "/chunk-OE4Y2OP6.js",
+        "/chunk-PFNEJYLY.js",
+        "/chunk-UNUSGETR.js",
+        "/chunk-V22I5E4T.js",
+        "/chunk-WEC7HVZS.js",
+        "/chunk-YH2VTUX2.js",
+        "/chunk-ZOAOOZOY.js",
+        "/favicon.ico",
+        "/index.html",
+        "/main-O7F2GKW4.js",
+        "/manifest.webmanifest",
+        "/polyfills-HPZ7KTN2.js",
+        "/styles-5IL47IZN.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/Announcement.jpg",
+        "/icons/icon-128x128.png",
+        "/icons/icon-144x144.png",
+        "/icons/icon-152x152.png",
+        "/icons/icon-192x192.png",
+        "/icons/icon-384x384.png",
+        "/icons/icon-512x512.png",
+        "/icons/icon-72x72.png",
+        "/icons/icon-96x96.png",
+        "/logo.png",
+        "/small-business-svgrepo-com.svg"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "static-api",
+      "patterns": [
+        "https:\\/\\/api\\.xdealhub\\.com\\/utils\\/countries",
+        "https:\\/\\/api\\.xdealhub\\.com\\/utils\\/industries"
+      ],
+      "strategy": "freshness",
+      "maxSize": 20,
+      "maxAge": 604800000,
+      "timeoutMs": 10000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "user-content",
+      "patterns": [
+        "https:\\/\\/api\\.xdealhub\\.com\\/files\\/.*"
+      ],
+      "strategy": "performance",
+      "maxSize": 50,
+      "maxAge": 172800000,
+      "timeoutMs": 2000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "google-fonts",
+      "patterns": [
+        "https:\\/\\/fonts\\.googleapis\\.com\\/.*",
+        "https:\\/\\/fonts\\.gstatic\\.com\\/.*"
+      ],
+      "strategy": "freshness",
+      "maxSize": 30,
+      "maxAge": 2592000000,
+      "timeoutMs": 2000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    },
+    {
+      "name": "external-libraries",
+      "patterns": [
+        "https:\\/\\/cdnjs\\.cloudflare\\.com\\/.*"
+      ],
+      "strategy": "freshness",
+      "maxSize": 10,
+      "maxAge": 2592000000,
+      "timeoutMs": 2000,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    }
+  ],
+  "hashTable": {
+    "/Announcement.jpg": "3f8843248210c4e0dddd7f2cebba03d179d241e3",
+    "/chunk-3T42K4VL.js": "8970ef997abd403550e951d0a26a0797bd4d06a2",
+    "/chunk-46BXKJKU.js": "5e7da3d8e82304d7e1e40c547deb5d6505e1db55",
+    "/chunk-4ASVBE62.js": "fc4c04c70e483acac49a348589375b5556e4fa51",
+    "/chunk-5M4JKBR5.js": "9e915c3fa734d8dbd68dc8a5f7e426af4745e816",
+    "/chunk-5W7TKXG3.js": "805978aedb4d30675a7f0f6034ab5e400b70e180",
+    "/chunk-66LFEHQV.js": "2bdd8c8dad3a4d4080e6fa098d02c5b39fa7918f",
+    "/chunk-6P3D3FBC.js": "6c29f9e8563d0b6e5931258ffc1aff888c4b920d",
+    "/chunk-7RFGPB7Y.js": "cd80f77d4b06da4abe3a1d9d6178d4e823f7a3dc",
+    "/chunk-7SSEC27Y.js": "34d396eaa3e05daaa3e62b5e6d71a94e3ccd7a89",
+    "/chunk-BKAIPBB7.js": "1a3d844144b6b438dac423001dfc257c1f5f3386",
+    "/chunk-BS6KLKO5.js": "c61372dee45db2008b2f3ed02983a9ef44ef4c31",
+    "/chunk-CFIN5KH7.js": "d918600d3738986feb302170109b85a07b6f09f6",
+    "/chunk-D4TCZGYH.js": "64fa8c38b2d49980376a481d87024f0bdf6e890c",
+    "/chunk-GDILFSMQ.js": "33509723380bba1e2fb8ff475a835334d76bba65",
+    "/chunk-GUGDQATU.js": "f18d4f00dbf1ec7a2ea7d8def3bfccf69ff40f94",
+    "/chunk-I24YZ6JE.js": "78f31910f27f09d3c157f045dbab1215d4480ca4",
+    "/chunk-I2X25UAR.js": "f89e271d1502076af2255273206f6e0d39b18412",
+    "/chunk-IFXUHTWD.js": "eefffcbf2c0f6931f2aaa83b4be5583fcad91aeb",
+    "/chunk-KN5H3PP4.js": "3d76b890e464d574323cb4821ca302f5f0534247",
+    "/chunk-KOM3L7EU.js": "be43f20a44185417e69c08cbb3cf50f3c69a8ea7",
+    "/chunk-LIL5WR5X.js": "912d637769cf0b37d1c5bd600d204b3564d61627",
+    "/chunk-NARDRQXJ.js": "45e1948e9a38be1809d5a17d451b36f3c6c55e76",
+    "/chunk-NU6S7GW7.js": "3fcb4a0e536dd7567f0726a0171b2765fd5dffc4",
+    "/chunk-OE4Y2OP6.js": "bc651e7d01cca100c214fbb3c7f72a92d08c807a",
+    "/chunk-PFNEJYLY.js": "a7bad7882ee750b21699f638d23859f975ceecd1",
+    "/chunk-UNUSGETR.js": "fc0a4ac5a94d23930c3acb4cedc945c38a1af12b",
+    "/chunk-V22I5E4T.js": "bb190589beb5fda8c492665161375502b4228f80",
+    "/chunk-WEC7HVZS.js": "93231c654701e72e3cde5cda1569e6b63e91485e",
+    "/chunk-YH2VTUX2.js": "d1e354a84ea56460180bd01ef533dc840aa84efd",
+    "/chunk-ZOAOOZOY.js": "2c7a63be914b15b7a12e135d86662552c2fb7b40",
+    "/favicon.ico": "819cb6ed82961b41825c5bdaff97c1acf202050f",
+    "/icons/icon-128x128.png": "b25d6e7efd5fbc21d12dae113cf870ff0b97315e",
+    "/icons/icon-144x144.png": "810017394ce98caff78bfa87db1f3693c27778f8",
+    "/icons/icon-152x152.png": "1db37f64cd144dfd54eb48cc48bc87c75ddfd497",
+    "/icons/icon-192x192.png": "f0c5eac746a328f012576ec5a84d61aaa09e74a2",
+    "/icons/icon-384x384.png": "41cf25b323a790ca591fd65be07d6c08306b53c5",
+    "/icons/icon-512x512.png": "e9988ea51e14d83e3549522043f8cecda7376585",
+    "/icons/icon-72x72.png": "e7fd55e0c38e7b675a1c5a5024fa85eaaf7b7fdb",
+    "/icons/icon-96x96.png": "74b7000770f93c5559091f5da04cd162ffb1383d",
+    "/index.html": "1cae776a455394ad83fba1a3f442fbf9a129a787",
+    "/logo.png": "dcf4298c18ab461c486c07e28eeca0ae48f99eb2",
+    "/main-O7F2GKW4.js": "99b11e61b32b612d572b2cd4972cf9c924ee3d35",
+    "/manifest.webmanifest": "ee94f3c9328e15e353f0ca19c47672312ee4a8aa",
+    "/polyfills-HPZ7KTN2.js": "a328286aa2e927a96bf670f744a3fb4f9eec3a51",
+    "/small-business-svgrepo-com.svg": "6534897458d56bad748aa526134942c472f13e0b",
+    "/styles-5IL47IZN.css": "06b66fd49ef71255910206ca104f671f530b4fb8"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/api\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/request-company\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "freshness"
+}
