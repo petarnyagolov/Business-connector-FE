@@ -43,7 +43,7 @@
       "strategy": "freshness",
       "maxSize": 20,
       "maxAge": "7d",
-      "timeout": "2s"
+      "timeout": "10s"
     }
   },
   {
@@ -90,7 +90,8 @@
   "!/**/.*",
   "!/**/*__*",
   "!/**/*__*/**",
-  "!/api/**"
+  "!/api/**",
+  "!/request-company/**"
  ]
 }
 

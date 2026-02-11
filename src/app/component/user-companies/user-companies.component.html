@@ -34,7 +34,7 @@
       <button mat-button (click)="openEditCompanyModal(company)">Редактирай</button>
       <button mat-button color="accent" (click)="openInvoiceDataModal(company)">
         <mat-icon style="vertical-align: middle; font-size: 18px; margin-right: 4px;">receipt</mat-icon>
-        Фактурни данни
+        Данни за фактура
       </button>
     </mat-card-actions>
   </mat-card>
@@ -82,7 +82,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e0e0e0;">
       <h3 style="margin: 0; color: #1976d2;">
         <mat-icon style="vertical-align: middle; margin-right: 8px;">receipt</mat-icon>
-        Фактурни данни за {{ currentInvoiceCompany?.name }}
+        Данни за фактура за {{ currentInvoiceCompany?.name }}
       </h3>
       <button mat-icon-button (click)="closeInvoiceDataModal()" title="Затвори">
         <mat-icon>close</mat-icon>

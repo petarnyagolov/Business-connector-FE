@@ -17,7 +17,8 @@ import { environment } from '../../../environments/environment';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormatDateArrayPipe } from '../user-responses/format-date-array.pipe';
 import { SavedRequestsService } from '../../service/saved-requests.service';
 import { AuthService } from '../../service/auth.service';
@@ -32,6 +33,8 @@ import { AuthService } from '../../service/auth.service';
     MatInputModule,
     MatIconModule,
     MatTooltipModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule,
     FormatDateArrayPipe],
   templateUrl: './company-requests.component.html',
   styleUrl: './company-requests.component.scss',
@@ -49,6 +52,8 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   userCompanies: Company[] = [];
   isAuthenticated: boolean = false;
+  isLoading: boolean = false;
+  loadError: string | null = null;
 
   constructor(
     private companyRequestService: CompanyRequestService, 
@@ -106,10 +111,15 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
     this.loadAllPictures();
   }
   loadRequests() {
+    this.isLoading = true;
+    this.loadError = null;
+    this.cdr.markForCheck();
+
     this.companyRequestService
     .searchRequests(this.searchQuery, this.currentPage, this.pageSize)
-    .subscribe((response: any) => {
-      this.companyRequests = response.content.map((req: any) => {
+    .subscribe({
+      next: (response: any) => {
+        this.companyRequests = response.content.map((req: any) => {
         let activeFrom = req.activeFrom;
         let activeTo = req.activeTo;
         if (Array.isArray(activeFrom) && activeFrom.length >= 3) {
@@ -158,9 +168,26 @@ export class CompanyRequestsComponent implements OnInit, OnDestroy {
       });
       
       this.totalRequests = response.totalElements;
+      this.isLoading = false;
       this.cdr.markForCheck();
-      this.loadAllPictures(); 
-    });
+      this.loadAllPictures();
+    },
+    error: (error) => {
+      console.error('Error loading requests:', error);
+      this.isLoading = false;
+      
+      if (error.status === 504) {
+        this.loadError = 'Сървърът не отговори навреме. Моля, опитайте отново.';
+      } else if (error.status === 0) {
+        this.loadError = 'Няма връзка със сървъра. Проверете интернет връзката си.';
+      } else {
+        this.loadError = 'Грешка при зареждане на публикациите. Моля, опитайте отново.';
+      }
+      
+      this.snackBar.open(this.loadError, 'Затвори', { duration: 5000 });
+      this.cdr.markForCheck();
+    }
+  });
   }
 
   loadAllPictures(): void {
